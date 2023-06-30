@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jovial_svg/jovial_svg.dart';
 
 import 'entity.dart';
 import 'entity_widget.dart';
@@ -41,7 +42,18 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        title: Row(
+          children: [
+            ScalableImageWidget.fromSISource(
+              si: ScalableImageSource.fromSI(
+                DefaultAssetBundle.of(context),
+                'assets/logo.si',
+              ),
+              scale: 0.1,
+            ),
+            Text(widget.title),
+          ],
+        ),
       ),
       body: InteractiveViewer(
         child: const Stack(
