@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 
 import 'entity.dart';
-import 'entity_widget.dart';
+import 'entity_cell.dart';
+import 'entity_chip.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'DepAuth',
       theme: ThemeData.from(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.cyan,
@@ -22,7 +23,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'DepAuth'),
     );
   }
 }
@@ -31,13 +32,23 @@ class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
   final String title;
+  final Map<(int, int), Entity> entities = const {
+    (0, 1): Entity(
+      type: EntityType.webService,
+      name: 'Google',
+    ),
+    (2, 3): Entity(
+      type: EntityType.hardwareKey,
+      name: 'Yubikey',
+    ),
+  };
 
   @override
   createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  TransformationController transformationController =
+  final TransformationController transformationController =
       TransformationController();
   double scale = 0;
 
@@ -49,6 +60,21 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   build(BuildContext context) {
+    final rows = <Expanded>[];
+    for (var i = 0; i < 5; ++i) {
+      final row = <EntityCell>[];
+      for (var j = 0; j < 5; ++j) {
+        if (widget.entities.containsKey((i, j))) {
+          row.add(
+            EntityCell(EntityChip(scale: scale, widget.entities[(i, j)]!)),
+          );
+        } else {
+          row.add(const EntityCell.empty());
+        }
+      }
+      rows.add(Expanded(child: Row(children: row)));
+    }
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -70,27 +96,8 @@ class _MyHomePageState extends State<MyHomePage> {
         onInteractionEnd: (_) => setState(() {
           scale = transformationController.value.getMaxScaleOnAxis();
         }),
-        child: Stack(
-          children: [
-            EntityWidget(
-              Entity(
-                x: 50,
-                y: 100,
-                scale: scale,
-                type: EntityType.webService,
-                name: 'Google',
-              ),
-            ),
-            EntityWidget(
-              Entity(
-                x: 200,
-                y: 200,
-                scale: scale,
-                type: EntityType.hardwareKey,
-                name: 'Yubikey',
-              ),
-            ),
-          ],
+        child: Column(
+          children: rows,
         ),
       ),
       floatingActionButton: FloatingActionButton(
