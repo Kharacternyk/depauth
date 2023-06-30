@@ -32,12 +32,16 @@ class _State extends State<EntityWidget> {
       top: entity.y,
       left: entity.x,
       child: Draggable(
-        feedback: Card(child: chip),
+        feedback: Transform.scale(
+          scale: widget.entity.scale,
+          child: Card(child: chip),
+        ),
         childWhenDragging: const SizedBox.shrink(),
         onDragEnd: (drag) => setState(() {
           entity = Entity(
             type: entity.type,
             name: entity.name,
+            scale: widget.entity.scale,
             x: drag.offset.dx,
             y: drag.offset.dy - yOffset,
           );

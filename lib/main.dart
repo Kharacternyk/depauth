@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData.from(
@@ -33,12 +33,22 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  TransformationController transformationController =
+      TransformationController();
+  double scale = 0;
+
   @override
-  Widget build(BuildContext context) {
+  initState() {
+    super.initState();
+    scale = transformationController.value.getMaxScaleOnAxis();
+  }
+
+  @override
+  build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -56,12 +66,17 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       body: InteractiveViewer(
-        child: const Stack(
+        transformationController: transformationController,
+        onInteractionEnd: (_) => setState(() {
+          scale = transformationController.value.getMaxScaleOnAxis();
+        }),
+        child: Stack(
           children: [
             EntityWidget(
               Entity(
                 x: 50,
                 y: 100,
+                scale: scale,
                 type: EntityType.webService,
                 name: 'Google',
               ),
@@ -70,6 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
               Entity(
                 x: 200,
                 y: 200,
+                scale: scale,
                 type: EntityType.hardwareKey,
                 name: 'Yubikey',
               ),
