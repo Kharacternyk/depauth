@@ -28,9 +28,9 @@ class EntityGraph extends StatelessWidget {
     final (maxX, maxY) = max;
 
     final rows = <Expanded>[];
-    for (var y = minY; y <= maxY + 1; ++y) {
+    for (var y = minY - 1; y <= maxY + 1; ++y) {
       final row = <Widget>[];
-      for (var x = minX; x <= maxX + 1; ++x) {
+      for (var x = minX - 1; x <= maxX + 1; ++x) {
         row.add(switch (entities[(x, y)]) {
           Entity entity => EntityChip<(int, int)>(
               entity,
@@ -39,10 +39,15 @@ class EntityGraph extends StatelessWidget {
             ),
           null => EntityPlaceholder<(int, int)>(
               onDragAccepted: (point) => move((x, y), point),
-              icon: switch ((x - maxX, y - maxY)) {
-                (1, 1) => Icons.south_east,
-                (_, 1) => Icons.south,
-                (1, _) => Icons.east,
+              icon: switch (((x - maxX, y - maxY), (minX - x, minY - y))) {
+                ((1, 1), _) => Icons.south_east,
+                (_, (1, 1)) => Icons.north_west,
+                ((_, 1), (1, _)) => Icons.south_west,
+                ((1, _), (_, 1)) => Icons.north_east,
+                ((_, 1), _) => Icons.south,
+                ((1, _), _) => Icons.east,
+                (_, (_, 1)) => Icons.north,
+                (_, (1, _)) => Icons.west,
                 _ => null,
               },
             ),
