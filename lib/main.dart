@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 
 import 'core/entity.dart';
-import 'entity_chip.dart';
-import 'entity_placeholder.dart';
+import 'entity_graph.dart';
 
 void main() {
   runApp(const MyApp());
@@ -64,31 +63,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   build(BuildContext context) {
-    final rows = <Expanded>[];
-    for (var i = 0; i < 5; ++i) {
-      final row = <Widget>[];
-      for (var j = 0; j < 5; ++j) {
-        if (entities.containsKey((i, j))) {
-          row.add(
-            EntityChip<(int, int)>(
-              entities[(i, j)]!,
-              scale: scale,
-              dragData: (i, j),
-            ),
-          );
-        } else {
-          row.add(EntityPlaceholder<(int, int)>(
-            onDragAccepted: (point) {
-              setState(() {
-                entities[(i, j)] = entities.remove(point)!;
-              });
-            },
-          ));
-        }
-      }
-      rows.add(Expanded(child: Row(children: row)));
-    }
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -110,8 +84,17 @@ class _MyHomePageState extends State<MyHomePage> {
         onInteractionEnd: (_) => setState(() {
           scale = transformationController.value.getMaxScaleOnAxis();
         }),
-        child: Column(
-          children: rows,
+        child: EntityGraph(
+          entities,
+          scale: scale,
+          move: (destination, source) {
+            setState(() {
+              final point = entities.remove(source);
+              if (point != null) {
+                entities[destination] = point;
+              }
+            });
+          },
         ),
       ),
       floatingActionButton: FloatingActionButton(
