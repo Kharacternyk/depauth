@@ -10,8 +10,7 @@ class EntityPlaceholder<DragDataType extends Object> extends StatelessWidget {
   build(context) {
     return Expanded(
       child: DragTarget(
-        builder: (context, candidate, rejected) => SizedBox(
-          height: double.infinity,
+        builder: (context, candidate, rejected) => SizedBox.expand(
           child: candidate.isNotEmpty
               ? Card(
                   elevation: 20,
