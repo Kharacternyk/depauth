@@ -14,7 +14,7 @@ class EntityPlaceholder<DragDataType extends Object> extends StatelessWidget {
           child: candidate.isNotEmpty
               ? Card(
                   elevation: 20,
-                  child: icon != null ? Icon(icon) : null,
+                  child: icon != null ? FittedBox(child: Icon(icon)) : null,
                 )
               : null,
         ),
