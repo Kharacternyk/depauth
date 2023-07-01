@@ -39,6 +39,12 @@ class EntityGraph extends StatelessWidget {
             ),
           null => EntityPlaceholder<(int, int)>(
               onDragAccepted: (point) => move((x, y), point),
+              icon: switch ((x - maxX, y - maxY)) {
+                (1, 1) => Icons.south_east,
+                (_, 1) => Icons.south,
+                (1, _) => Icons.east,
+                _ => null,
+              },
             ),
         });
       }
