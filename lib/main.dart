@@ -44,9 +44,21 @@ class _MyHomePageState extends State<MyHomePage> {
       type: EntityType.webService,
       name: 'Google',
     ),
+    (0, 3): const Entity(
+      type: EntityType.webService,
+      name: 'GitHub',
+    ),
+    (1, 2): const Entity(
+      type: EntityType.webService,
+      name: 'AWS',
+    ),
     (2, 3): const Entity(
       type: EntityType.hardwareKey,
-      name: 'Yubikey',
+      name: 'Yubikey 5 NFC',
+    ),
+    (3, 3): const Entity(
+      type: EntityType.hardwareKey,
+      name: 'Yubikey 4',
     ),
     (1, 4): const Entity(
       type: EntityType.person,
