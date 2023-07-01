@@ -92,6 +92,8 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       body: InteractiveViewer(
+        minScale: 1,
+        maxScale: 20,
         transformationController: transformationController,
         onInteractionEnd: (_) => setState(() {
           scale = transformationController.value.getMaxScaleOnAxis();
