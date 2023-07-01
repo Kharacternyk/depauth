@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 
-import 'entity.dart';
-import 'entity_cell.dart';
+import 'core/entity.dart';
 import 'entity_chip.dart';
+import 'entity_placeholder.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,16 +32,6 @@ class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
   final String title;
-  final Map<(int, int), Entity> entities = const {
-    (0, 1): Entity(
-      type: EntityType.webService,
-      name: 'Google',
-    ),
-    (2, 3): Entity(
-      type: EntityType.hardwareKey,
-      name: 'Yubikey',
-    ),
-  };
 
   @override
   createState() => _MyHomePageState();
@@ -50,6 +40,16 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final TransformationController transformationController =
       TransformationController();
+  final Map<(int, int), Entity> entities = {
+    (0, 1): const Entity(
+      type: EntityType.webService,
+      name: 'Google',
+    ),
+    (2, 3): const Entity(
+      type: EntityType.hardwareKey,
+      name: 'Yubikey',
+    ),
+  };
   double scale = 0;
 
   @override
@@ -62,14 +62,24 @@ class _MyHomePageState extends State<MyHomePage> {
   build(BuildContext context) {
     final rows = <Expanded>[];
     for (var i = 0; i < 5; ++i) {
-      final row = <EntityCell>[];
+      final row = <Widget>[];
       for (var j = 0; j < 5; ++j) {
-        if (widget.entities.containsKey((i, j))) {
+        if (entities.containsKey((i, j))) {
           row.add(
-            EntityCell(EntityChip(scale: scale, widget.entities[(i, j)]!)),
+            EntityChip<(int, int)>(
+              entities[(i, j)]!,
+              scale: scale,
+              dragData: (i, j),
+            ),
           );
         } else {
-          row.add(const EntityCell.empty());
+          row.add(EntityPlaceholder<(int, int)>(
+            onDragAccepted: (point) {
+              setState(() {
+                entities[(i, j)] = entities.remove(point)!;
+              });
+            },
+          ));
         }
       }
       rows.add(Expanded(child: Row(children: row)));

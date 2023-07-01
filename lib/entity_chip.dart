@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
-import 'entity.dart';
+import 'core/entity.dart';
 
-class EntityChip extends StatelessWidget {
+class EntityChip<DragDataType extends Object> extends StatelessWidget {
   final Entity entity;
   final double scale;
+  final DragDataType dragData;
 
-  const EntityChip(this.entity, {required this.scale, super.key});
+  const EntityChip(this.entity,
+      {required this.dragData, required this.scale, super.key});
 
   @override
   build(context) {
@@ -18,13 +20,16 @@ class EntityChip extends StatelessWidget {
       label: Text(entity.name),
     );
 
-    return Draggable(
-      feedback: Transform.scale(
-        scale: scale,
-        child: Card(child: chip),
+    return Expanded(
+      child: Draggable(
+        feedback: Transform.scale(
+          scale: scale,
+          child: Card(child: chip),
+        ),
+        childWhenDragging: const SizedBox.shrink(),
+        data: dragData,
+        child: chip,
       ),
-      childWhenDragging: const SizedBox.shrink(),
-      child: chip,
     );
   }
 }
