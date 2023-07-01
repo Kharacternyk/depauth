@@ -23,7 +23,18 @@ class EntityChip<DragDataType extends Object> extends StatelessWidget {
 
     return Expanded(
       child: Draggable(
-        feedback: Card(child: chip),
+        feedback: LayoutBuilder(builder: (feedbackContext, constraints) {
+          final renderBox = context.findRenderObject() as RenderBox;
+          return Transform.scale(
+            scale: scale,
+            child: Card(
+              child: SizedBox.fromSize(
+                size: renderBox.size,
+                child: FittedBox(child: chip),
+              ),
+            ),
+          );
+        }),
         childWhenDragging: const SizedBox.shrink(),
         data: dragData,
         child: FittedBox(child: chip),
