@@ -16,6 +16,7 @@ class EntityChip<DragDataType extends Object> extends StatelessWidget {
       avatar: Icon(switch (entity.type) {
         EntityType.hardwareKey => Icons.key,
         EntityType.webService => Icons.web,
+        EntityType.person => Icons.person
       }),
       label: Text(entity.name),
     );

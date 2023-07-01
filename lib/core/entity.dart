@@ -1,6 +1,7 @@
 enum EntityType {
   hardwareKey,
   webService,
+  person,
 }
 
 class Entity {

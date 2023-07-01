@@ -49,6 +49,10 @@ class _MyHomePageState extends State<MyHomePage> {
       type: EntityType.hardwareKey,
       name: 'Yubikey',
     ),
+    (1, 4): const Entity(
+      type: EntityType.person,
+      name: 'Nazar',
+    ),
   };
   double scale = 0;
 
