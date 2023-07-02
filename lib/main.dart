@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
       title: 'DepAuth',
       theme: ThemeData.from(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.cyan,
+          seedColor: Colors.blueGrey,
           brightness: Brightness.dark,
         ),
         useMaterial3: true,
