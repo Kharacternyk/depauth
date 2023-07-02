@@ -3,6 +3,7 @@ import 'package:jovial_svg/jovial_svg.dart';
 
 import 'core/entity.dart';
 import 'entity_graph.dart';
+import 'viewer.dart';
 
 void main() {
   runApp(const MyApp());
@@ -37,8 +38,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final TransformationController transformationController =
-      TransformationController();
   final Map<(int, int), Entity> entities = {
     (0, 1): const Entity(
       type: EntityType.webService,
@@ -65,13 +64,6 @@ class _MyHomePageState extends State<MyHomePage> {
       name: 'Nazar',
     ),
   };
-  double scale = 0;
-
-  @override
-  initState() {
-    super.initState();
-    scale = transformationController.value.getMaxScaleOnAxis();
-  }
 
   @override
   build(BuildContext context) {
@@ -91,14 +83,10 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      body: InteractiveViewer(
+      body: Viewer(
         minScale: 1,
         maxScale: 20,
-        transformationController: transformationController,
-        onInteractionEnd: (_) => setState(() {
-          scale = transformationController.value.getMaxScaleOnAxis();
-        }),
-        child: EntityGraph(
+        builder: (scale) => EntityGraph(
           entities,
           scale: scale,
           move: (destination, source) {
