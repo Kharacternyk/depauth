@@ -12,13 +12,19 @@ class EntityChip<DragDataType extends Object> extends StatelessWidget {
 
   @override
   build(context) {
-    final chip = Chip(
-      avatar: Icon(switch (entity.type) {
-        EntityType.hardwareKey => Icons.key,
-        EntityType.webService => Icons.web,
-        EntityType.person => Icons.person
-      }),
-      label: Text(entity.name),
+    final body = Padding(
+      padding: const EdgeInsets.all(12),
+      child: FittedBox(
+        child: FloatingActionButton.extended(
+          icon: Icon(switch (entity.type) {
+            EntityType.hardwareKey => Icons.key,
+            EntityType.webService => Icons.web,
+            EntityType.person => Icons.person
+          }),
+          label: Text(entity.name),
+          onPressed: () {},
+        ),
+      ),
     );
 
     return Expanded(
@@ -29,13 +35,13 @@ class EntityChip<DragDataType extends Object> extends StatelessWidget {
             scale: scale,
             child: SizedBox.fromSize(
               size: renderBox.size,
-              child: Card(elevation: 20, child: FittedBox(child: chip)),
+              child: body,
             ),
           );
         }),
         childWhenDragging: const SizedBox.shrink(),
         data: dragData,
-        child: Card(elevation: 20, child: FittedBox(child: chip)),
+        child: body,
       ),
     );
   }
