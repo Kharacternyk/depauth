@@ -248,6 +248,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
+  widget_arrows:
+    dependency: "direct main"
+    description:
+      name: widget_arrows
+      sha256: "27c5f2770a64ba0f58d4a5c108a7a408e1e117a3fe1b4408ef5c753599e72747"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.2"
   xml:
     dependency: transitive
     description:

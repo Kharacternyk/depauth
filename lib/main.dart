@@ -42,22 +42,21 @@ class _MyHomePageState extends State<MyHomePage> {
     (0, 1): const Entity(
       type: EntityType.webService,
       name: 'Google',
+      dependsOn: {'Yubikey', 'Nazar'},
     ),
     (0, 3): const Entity(
       type: EntityType.webService,
       name: 'GitHub',
+      dependsOn: {'Google', 'Yubikey', 'Nazar'},
     ),
     (1, 2): const Entity(
       type: EntityType.webService,
-      name: 'AWS',
+      name: 'LinkedIn',
+      dependsOn: {'Google', 'Nazar'},
     ),
     (2, 3): const Entity(
       type: EntityType.hardwareKey,
-      name: 'Yubikey 5 NFC',
-    ),
-    (3, 3): const Entity(
-      type: EntityType.hardwareKey,
-      name: 'Yubikey 4',
+      name: 'Yubikey',
     ),
     (1, 4): const Entity(
       type: EntityType.person,

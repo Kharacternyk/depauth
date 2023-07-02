@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:widget_arrows/widget_arrows.dart';
 
 import 'core/entity.dart';
 import 'entity_chip.dart';
@@ -56,6 +57,6 @@ class EntityGraph extends StatelessWidget {
       rows.add(Expanded(child: Row(children: row)));
     }
 
-    return Column(children: rows);
+    return ArrowContainer(child: Column(children: rows));
   }
 }

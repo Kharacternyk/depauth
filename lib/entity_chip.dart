@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:widget_arrows/widget_arrows.dart';
 
 import 'core/entity.dart';
 
@@ -14,15 +15,23 @@ class EntityChip<DragDataType extends Object> extends StatelessWidget {
   build(context) {
     final body = Padding(
       padding: const EdgeInsets.all(12),
-      child: FittedBox(
-        child: FloatingActionButton.extended(
-          icon: Icon(switch (entity.type) {
-            EntityType.hardwareKey => Icons.key,
-            EntityType.webService => Icons.web,
-            EntityType.person => Icons.person
-          }),
-          label: Text(entity.name),
-          onPressed: () {},
+      child: ArrowElement(
+        color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+        id: entity.name,
+        targetIds: entity.dependsOn.toList(),
+        sourceAnchor: Alignment.bottomCenter,
+        targetAnchor: Alignment.topCenter,
+        tipLength: 0,
+        child: FittedBox(
+          child: FloatingActionButton.extended(
+            icon: Icon(switch (entity.type) {
+              EntityType.hardwareKey => Icons.key,
+              EntityType.webService => Icons.web,
+              EntityType.person => Icons.person
+            }),
+            label: Text(entity.name),
+            onPressed: () {},
+          ),
         ),
       ),
     );

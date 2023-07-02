@@ -11,6 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   jovial_svg: ^1.1.15
+  widget_arrows: ^0.5.2
 
 dev_dependencies:
   flutter_test:
