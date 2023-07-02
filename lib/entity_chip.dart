@@ -13,8 +13,9 @@ class EntityChip<DragDataType extends Object> extends StatelessWidget {
 
   @override
   build(context) {
-    final body = Padding(
-      padding: const EdgeInsets.all(12),
+    final body = FractionallySizedBox(
+      widthFactor: 0.9,
+      heightFactor: 0.9,
       child: ArrowElement(
         color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
         id: entity.name,
