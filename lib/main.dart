@@ -39,26 +39,26 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final Map<(int, int), Entity> entities = {
-    (0, 1): const Entity(
+    (1, 1): const Entity(
       type: EntityType.webService,
       name: 'Google',
       dependsOn: {'Yubikey', 'Nazar'},
     ),
-    (0, 3): const Entity(
+    (2, 2): const Entity(
       type: EntityType.webService,
       name: 'GitHub',
       dependsOn: {'Google', 'Yubikey', 'Nazar'},
     ),
-    (1, 2): const Entity(
+    (0, 2): const Entity(
       type: EntityType.webService,
       name: 'LinkedIn',
       dependsOn: {'Google', 'Nazar'},
     ),
-    (2, 3): const Entity(
+    (2, 0): const Entity(
       type: EntityType.hardwareKey,
       name: 'Yubikey',
     ),
-    (1, 4): const Entity(
+    (0, 0): const Entity(
       type: EntityType.person,
       name: 'Nazar',
     ),

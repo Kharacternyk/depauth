@@ -13,27 +13,15 @@ class EntityChip<DragDataType extends Object> extends StatelessWidget {
 
   @override
   build(context) {
-    final body = FractionallySizedBox(
-      widthFactor: 0.9,
-      heightFactor: 0.9,
-      child: ArrowElement(
-        color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-        id: entity.name,
-        targetIds: entity.dependsOn.toList(),
-        sourceAnchor: Alignment.bottomCenter,
-        targetAnchor: Alignment.topCenter,
-        tipLength: 0,
-        child: FittedBox(
-          child: FloatingActionButton.extended(
-            icon: Icon(switch (entity.type) {
-              EntityType.hardwareKey => Icons.key,
-              EntityType.webService => Icons.web,
-              EntityType.person => Icons.person
-            }),
-            label: Text(entity.name),
-            onPressed: () {},
-          ),
-        ),
+    final body = FittedBox(
+      child: FloatingActionButton.extended(
+        icon: Icon(switch (entity.type) {
+          EntityType.hardwareKey => Icons.key,
+          EntityType.webService => Icons.web,
+          EntityType.person => Icons.person
+        }),
+        label: Text(entity.name),
+        onPressed: () {},
       ),
     );
 
@@ -51,7 +39,15 @@ class EntityChip<DragDataType extends Object> extends StatelessWidget {
         }),
         childWhenDragging: const SizedBox.shrink(),
         data: dragData,
-        child: body,
+        child: ArrowElement(
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+          id: entity.name,
+          targetIds: entity.dependsOn.toList(),
+          sourceAnchor: Alignment.topCenter,
+          targetAnchor: Alignment.bottomCenter,
+          tipLength: 0,
+          child: body,
+        ),
       ),
     );
   }
