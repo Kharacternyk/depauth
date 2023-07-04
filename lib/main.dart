@@ -62,6 +62,10 @@ class _MyHomePageState extends State<MyHomePage> {
       type: EntityType.person,
       name: 'Nazar',
     ),
+    (0, 1): const Entity(
+      type: EntityType.person,
+      name: 'Romesh Ranghanathan',
+    ),
   };
 
   @override

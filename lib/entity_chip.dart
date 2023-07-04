@@ -13,16 +13,54 @@ class EntityChip<DragDataType extends Object> extends StatelessWidget {
 
   @override
   build(context) {
-    final body = FittedBox(
-      child: FloatingActionButton.extended(
-        icon: Icon(switch (entity.type) {
-          EntityType.hardwareKey => Icons.key,
-          EntityType.webService => Icons.web,
-          EntityType.person => Icons.person
-        }),
-        label: Text(entity.name),
-        onPressed: () {},
-      ),
+    const padding = EdgeInsets.all(8);
+
+    final body = Column(
+      children: [
+        const Spacer(),
+        Expanded(
+          flex: 6,
+          child: ArrowElement(
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+            id: entity.name,
+            targetIds: entity.dependsOn.toList(),
+            sourceAnchor: Alignment.topCenter,
+            targetAnchor: Alignment.bottomCenter,
+            tipLength: 0,
+            width: 4,
+            child: Column(
+              children: [
+                Expanded(
+                  child: FittedBox(
+                    child: CircleAvatar(
+                      child: Container(
+                        padding: padding,
+                        child: Icon(switch (entity.type) {
+                          EntityType.hardwareKey => Icons.key,
+                          EntityType.webService => Icons.web,
+                          EntityType.person => Icons.person
+                        }),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Card(
+                    margin: EdgeInsets.zero,
+                    child: FittedBox(
+                      child: Container(
+                        padding: padding,
+                        child: Text(entity.name),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const Spacer(),
+      ],
     );
 
     return Expanded(
@@ -39,15 +77,7 @@ class EntityChip<DragDataType extends Object> extends StatelessWidget {
         }),
         childWhenDragging: const SizedBox.shrink(),
         data: dragData,
-        child: ArrowElement(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-          id: entity.name,
-          targetIds: entity.dependsOn.toList(),
-          sourceAnchor: Alignment.topCenter,
-          targetAnchor: Alignment.bottomCenter,
-          tipLength: 0,
-          child: body,
-        ),
+        child: body,
       ),
     );
   }
