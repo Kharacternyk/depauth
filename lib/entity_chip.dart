@@ -3,19 +3,16 @@ import 'package:widget_arrows/widget_arrows.dart';
 
 import 'core/entity.dart';
 
-class EntityChip<DragDataType extends Object> extends StatelessWidget {
+class EntityChip extends StatelessWidget {
   final Entity entity;
-  final double scale;
-  final DragDataType dragData;
 
-  const EntityChip(this.entity,
-      {required this.dragData, required this.scale, super.key});
+  const EntityChip(this.entity, {super.key});
 
   @override
   build(context) {
     const padding = EdgeInsets.all(8);
 
-    final body = Column(
+    return Column(
       children: [
         const Spacer(),
         Expanded(
@@ -61,24 +58,6 @@ class EntityChip<DragDataType extends Object> extends StatelessWidget {
         ),
         const Spacer(),
       ],
-    );
-
-    return Expanded(
-      child: Draggable(
-        feedback: LayoutBuilder(builder: (feedbackContext, constraints) {
-          final renderBox = context.findRenderObject() as RenderBox;
-          return Transform.scale(
-            scale: scale,
-            child: SizedBox.fromSize(
-              size: renderBox.size,
-              child: body,
-            ),
-          );
-        }),
-        childWhenDragging: const SizedBox.shrink(),
-        data: dragData,
-        child: body,
-      ),
     );
   }
 }
