@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'core/entity.dart';
 import 'entity_card.dart';
 import 'entity_placeholder.dart';
+import 'fractional_padding.dart';
 import 'scaled_draggable.dart';
 import 'vendor/widget_arrows.dart';
 
@@ -39,19 +40,22 @@ class EntityGraph extends StatelessWidget {
                 scale: scale,
                 dragData: (x, y),
                 child: EntityCard(entity),
-                wrapPlaced: (child) => ArrowElement(
-                  id: entity.name,
-                  targetIds: entity.dependsOn.map((key, value) => MapEntry(
-                      key,
-                      Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withOpacity(value.toDouble() * 0.8))),
-                  sourceAnchor: Alignment.topCenter,
-                  targetAnchor: Alignment.bottomCenter,
-                  tipLength: 0,
-                  width: 4,
-                  child: child,
+                wrapPlaced: (child) => FractionalPadding(
+                  childSizeFactor: 6,
+                  child: ArrowElement(
+                    id: entity.name,
+                    targetIds: entity.dependsOn.map((key, value) => MapEntry(
+                        key,
+                        Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withOpacity(value.toDouble() * 0.8))),
+                    sourceAnchor: Alignment.topCenter,
+                    targetAnchor: Alignment.bottomCenter,
+                    tipLength: 0,
+                    width: 4,
+                    child: child,
+                  ),
                 ),
               ),
             ),
