@@ -1,3 +1,5 @@
+import 'fraction.dart';
+
 enum EntityType {
   hardwareKey,
   webService,
@@ -7,7 +9,7 @@ enum EntityType {
 class Entity {
   final EntityType type;
   final String name;
-  final Set<String> dependsOn;
+  final Map<String, Fraction> dependsOn;
 
   const Entity({
     required this.type,

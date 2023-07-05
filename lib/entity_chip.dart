@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:widget_arrows/widget_arrows.dart';
 
 import 'core/entity.dart';
+import 'vendor/widget_arrows.dart';
 
 class EntityChip extends StatelessWidget {
   final Entity entity;
@@ -18,9 +18,13 @@ class EntityChip extends StatelessWidget {
         Expanded(
           flex: 6,
           child: ArrowElement(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
             id: entity.name,
-            targetIds: entity.dependsOn.toList(),
+            targetIds: entity.dependsOn.map((key, value) => MapEntry(
+                key,
+                Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withOpacity(value.toDouble()))),
             sourceAnchor: Alignment.topCenter,
             targetAnchor: Alignment.bottomCenter,
             tipLength: 0,

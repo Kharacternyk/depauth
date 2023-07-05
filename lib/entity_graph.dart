@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:widget_arrows/widget_arrows.dart';
 
 import 'core/entity.dart';
 import 'entity_chip.dart';
 import 'entity_placeholder.dart';
 import 'scaled_draggable.dart';
+import 'vendor/widget_arrows.dart';
 
 class EntityGraph extends StatelessWidget {
   final Map<(int, int), Entity> entities;

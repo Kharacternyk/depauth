@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 
 import 'core/entity.dart';
+import 'core/fraction.dart';
 import 'entity_graph.dart';
 import 'viewer.dart';
 
@@ -39,20 +40,24 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final Map<(int, int), Entity> entities = {
-    (1, 1): const Entity(
+    (1, 1): Entity(
       type: EntityType.webService,
       name: 'Google',
-      dependsOn: {'Yubikey', 'Nazar'},
+      dependsOn: {'Yubikey': Fraction(1, 2), 'Nazar': Fraction(1, 2)},
     ),
-    (2, 2): const Entity(
+    (2, 2): Entity(
       type: EntityType.webService,
       name: 'GitHub',
-      dependsOn: {'Google', 'Yubikey', 'Nazar'},
+      dependsOn: {
+        'Google': Fraction(1, 2),
+        'Yubikey': Fraction(1, 2),
+        'Nazar': Fraction(1, 2)
+      },
     ),
-    (0, 2): const Entity(
+    (0, 2): Entity(
       type: EntityType.webService,
       name: 'LinkedIn',
-      dependsOn: {'Google', 'Nazar'},
+      dependsOn: {'Google': Fraction(1, 1), 'Nazar': Fraction(1, 1)},
     ),
     (2, 0): const Entity(
       type: EntityType.hardwareKey,
