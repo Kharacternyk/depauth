@@ -5,12 +5,14 @@ class ScaledDraggable<DragDataType extends Object> extends StatelessWidget {
   final double scale;
   final DragDataType dragData;
   final Widget Function(Widget)? wrapPlaced;
+  final Widget Function(Widget)? wrapDragged;
 
   const ScaledDraggable({
     required this.dragData,
     required this.child,
     required this.scale,
     this.wrapPlaced,
+    this.wrapDragged,
     super.key,
   });
 
@@ -23,7 +25,10 @@ class ScaledDraggable<DragDataType extends Object> extends StatelessWidget {
           scale: scale,
           child: SizedBox.fromSize(
             size: renderBox.size,
-            child: child,
+            child: switch (wrapDragged) {
+              null => child,
+              Widget Function(Widget) f => f(child),
+            },
           ),
         );
       }),

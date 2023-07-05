@@ -40,6 +40,8 @@ class EntityGraph extends StatelessWidget {
                 scale: scale,
                 dragData: (x, y),
                 child: EntityCard(entity),
+                wrapDragged: (child) =>
+                    FractionalPadding(childSizeFactor: 6, child: child),
                 wrapPlaced: (child) => FractionalPadding(
                   childSizeFactor: 6,
                   child: ArrowElement(
