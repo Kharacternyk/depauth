@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'core/entity.dart';
 import 'fractional_padding.dart';
-import 'vendor/widget_arrows.dart';
 
-class EntityChip extends StatelessWidget {
+class EntityCard extends StatelessWidget {
   final Entity entity;
 
-  const EntityChip(this.entity, {super.key});
+  const EntityCard(this.entity, {super.key});
 
   @override
   build(context) {
@@ -16,14 +15,6 @@ class EntityChip extends StatelessWidget {
 
     return FractionalPadding(
       childSizeFactor: 6,
-      child: ArrowElement(
-        id: entity.name,
-        targetIds: entity.dependsOn.map((key, value) =>
-            MapEntry(key, colors.primary.withOpacity(value.toDouble() * 0.8))),
-        sourceAnchor: Alignment.topCenter,
-        targetAnchor: Alignment.bottomCenter,
-        tipLength: 0,
-        width: 4,
         child: Card(
           elevation: 10,
           margin: EdgeInsets.zero,
