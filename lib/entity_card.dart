@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'core/entity.dart';
-import 'fractional_padding.dart';
 
 class EntityCard extends StatelessWidget {
   final Entity entity;
