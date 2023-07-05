@@ -11,53 +11,71 @@ class EntityChip extends StatelessWidget {
   @override
   build(context) {
     const padding = EdgeInsets.all(8);
+    final colors = Theme.of(context).colorScheme;
 
-    return Column(
+    return Row(
       children: [
         const Spacer(),
         Expanded(
           flex: 6,
-          child: ArrowElement(
-            id: entity.name,
-            targetIds: entity.dependsOn.map((key, value) => MapEntry(
-                key,
-                Theme.of(context)
-                    .colorScheme
-                    .primary
-                    .withOpacity(value.toDouble()))),
-            sourceAnchor: Alignment.topCenter,
-            targetAnchor: Alignment.bottomCenter,
-            tipLength: 0,
-            width: 4,
-            child: Column(
-              children: [
-                Expanded(
-                  child: FittedBox(
-                    child: CircleAvatar(
-                      child: Container(
-                        padding: padding,
-                        child: Icon(switch (entity.type) {
-                          EntityType.hardwareKey => Icons.key,
-                          EntityType.webService => Icons.web,
-                          EntityType.person => Icons.person
-                        }),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
+          child: Column(
+            children: [
+              const Spacer(),
+              Expanded(
+                flex: 6,
+                child: ArrowElement(
+                  id: entity.name,
+                  targetIds: entity.dependsOn.map((key, value) => MapEntry(
+                      key, colors.primary.withOpacity(value.toDouble() * 0.8))),
+                  sourceAnchor: Alignment.topCenter,
+                  targetAnchor: Alignment.bottomCenter,
+                  tipLength: 0,
+                  width: 4,
                   child: Card(
+                    elevation: 10,
                     margin: EdgeInsets.zero,
-                    child: FittedBox(
-                      child: Container(
-                        padding: padding,
-                        child: Text(entity.name),
-                      ),
+                    shape: const Border(),
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: Material(
+                            color: colors.primaryContainer,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: FittedBox(
+                                    child: Container(
+                                      padding: padding,
+                                      child: Icon(
+                                        switch (entity.type) {
+                                          EntityType.hardwareKey => Icons.key,
+                                          EntityType.webService => Icons.web,
+                                          EntityType.person => Icons.person
+                                        },
+                                        color: colors.onPrimaryContainer,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: FittedBox(
+                            child: Container(
+                              padding: padding,
+                              child: Text(entity.name),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+              const Spacer(),
+            ],
           ),
         ),
         const Spacer(),
