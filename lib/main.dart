@@ -43,7 +43,20 @@ class _MyHomePageState extends State<MyHomePage> {
     (1, 1): Entity(
       type: EntityType.webService,
       name: 'Google',
-      dependsOn: {'Yubikey': Fraction(1, 2), 'Nazar': Fraction(1, 2)},
+      dependsOn: {
+        'Yubikey': Fraction(1, 2),
+        'Nazar': Fraction(1, 2),
+        'Fastmail': Fraction(1, 2),
+      },
+    ),
+    (1, 2): Entity(
+      type: EntityType.webService,
+      name: 'Fastmail',
+      dependsOn: {
+        'Yubikey': Fraction(1, 2),
+        'Nazar': Fraction(1, 2),
+        'Google': Fraction(1, 2),
+      },
     ),
     (2, 2): Entity(
       type: EntityType.webService,
