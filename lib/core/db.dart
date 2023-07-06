@@ -72,7 +72,7 @@ class Db {
         '''),
         selectEntityDependencyNamesByName: db.prepare('''
           select name from entities
-          left join dependencies on destination = name
+          join dependencies on destination = name
           where source = ?;
         '''),
         updateEntityPositionByName: db.prepare('''
