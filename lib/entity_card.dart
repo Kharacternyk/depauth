@@ -20,6 +20,14 @@ class EntityCard extends StatelessWidget {
       child: Column(
         children: [
           Expanded(
+            child: FittedBox(
+              child: Container(
+                padding: padding,
+                child: Text(name),
+              ),
+            ),
+          ),
+          Expanded(
             child: Material(
               color: colors.primaryContainer,
               child: Row(
@@ -40,14 +48,6 @@ class EntityCard extends StatelessWidget {
                     ),
                   ),
                 ],
-              ),
-            ),
-          ),
-          Expanded(
-            child: FittedBox(
-              child: Container(
-                padding: padding,
-                child: Text(name),
               ),
             ),
           ),
