@@ -1,11 +1,15 @@
 import 'package:sqlite3/sqlite3.dart';
 
 class Db {
-  final Database _db;
-  final PreparedStatement _getEntityByCoordinates;
-  final PreparedStatement _getMapCoordinates;
+  final PreparedStatement selectEntityNameByCoordinates;
+  final PreparedStatement selectMapCoordinates;
+  final PreparedStatement selectEntityDependencyNamesByName;
 
-  Db._(this._db, this._getEntityByCoordinates, this._getMapCoordinates);
+  Db._({
+    required this.selectEntityNameByCoordinates,
+    required this.selectMapCoordinates,
+    required this.selectEntityDependencyNamesByName,
+  });
 
   factory Db() {
     final db = sqlite3.openInMemory();
@@ -23,8 +27,6 @@ class Db {
       create table if not exists dependencies (
         source text not null,
         destination text not null,
-        nominator integer not null,
-        denominator integer not null,
         foreign key(source) references entities(name),
         foreign key(destination) references entities(name)
       ) strict;
@@ -38,28 +40,51 @@ class Db {
       ..execute(['Nazar', 1, 2, 1])
       ..dispose();
 
-    final getEntityByCoordinates = db.prepare('''
-      select name, type, x, y from entities where x = ? and y = ?;
-    ''');
+    db.prepare('''
+      insert into dependencies(source, destination) values (?, ?);
+    ''')
+      ..execute(['Google', 'Fastmail'])
+      ..execute(['Fastmail', 'Google'])
+      ..execute(['Nazar', 'Google'])
+      ..execute(['Nazar', 'Fastmail'])
+      ..dispose();
 
-    final getMapCoordinates = db.prepare('''
-      select min(x), min(y), max(x), max(y) from entities;
-    ''');
-
-    return Db._(db, getEntityByCoordinates, getMapCoordinates);
+    return Db._(
+      selectEntityNameByCoordinates: db.prepare('''
+        select name, type, x, y from entities where x = ? and y = ?;
+      '''),
+      selectMapCoordinates: db.prepare('''
+        select min(x), min(y), max(x), max(y) from entities;
+      '''),
+      selectEntityDependencyNamesByName: db.prepare('''
+        select name from entities
+        left join dependencies on destination = name
+        where source = ?;
+      '''),
+    );
   }
 
-  String? getEntityNameByCoordinates(int x, int y) {
-    final row = _getEntityByCoordinates.select([x, y]).firstOrNull;
+  (String, Set<String>)? getEntityNameAndDependenciesByCoordinates(
+      int x, int y) {
+    final rows = selectEntityNameByCoordinates.select([x, y]);
 
-    return switch (row) {
-      null => null,
-      Row row => row['name'] as String,
-    };
+    if (rows.isEmpty) {
+      return null;
+    }
+
+    final name = rows.first['name'] as String;
+
+    return (
+      name,
+      selectEntityDependencyNamesByName
+          .select([name])
+          .map((row) => row['name'] as String)
+          .toSet(),
+    );
   }
 
   (int, int, int, int) getMapCoordinates() {
-    final values = _getMapCoordinates.select().first.values;
+    final values = selectMapCoordinates.select().first.values;
     return (
       values[0] as int,
       values[1] as int,

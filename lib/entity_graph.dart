@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:widget_arrows/widget_arrows.dart';
 
 import 'db.dart';
 import 'entity_card.dart';
 import 'entity_placeholder.dart';
 import 'fractional_padding.dart';
 import 'scaled_draggable.dart';
-import 'vendor/widget_arrows.dart';
 
 class EntityGraph extends StatelessWidget {
   final Db db;
@@ -23,9 +23,10 @@ class EntityGraph extends StatelessWidget {
     for (var y = minY - 1; y <= maxY + 1; ++y) {
       final row = <Widget>[];
       for (var x = minX - 1; x <= maxX + 1; ++x) {
-        final name = db.getEntityNameByCoordinates(x, y);
-        row.add(switch (name) {
-          String name => Expanded(
+        final entity = db.getEntityNameAndDependenciesByCoordinates(x, y);
+
+        row.add(switch (entity) {
+          (String name, Set<String> dependencies) => Expanded(
               child: ScaledDraggable<(int, int)>(
                 scale: scale,
                 dragData: (x, y),
@@ -36,12 +37,9 @@ class EntityGraph extends StatelessWidget {
                   childSizeFactor: 6,
                   child: ArrowElement(
                     id: name,
-                    targetIds: <String, double>{}.map((key, value) => MapEntry(
-                        key,
-                        Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withOpacity(value * 0.8))),
+                    color:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                    targetIds: dependencies.toList(),
                     sourceAnchor: Alignment.topCenter,
                     targetAnchor: Alignment.bottomCenter,
                     tipLength: 0,
