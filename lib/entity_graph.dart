@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:widget_arrows/widget_arrows.dart';
 
-import 'db.dart';
+import 'core/db.dart';
+import 'core/types.dart';
 import 'entity_card.dart';
 import 'entity_placeholder.dart';
 import 'fractional_padding.dart';
@@ -17,29 +18,31 @@ class EntityGraph extends StatelessWidget {
 
   @override
   build(context) {
-    final (minX, minY, maxX, maxY) = db.getMapCoordinates();
+    final (start: start, end: end) = db.getMapBoundaries();
 
     final rows = <Expanded>[];
-    for (var y = minY - 1; y <= maxY + 1; ++y) {
+    for (var y = start.y - 1; y <= end.y + 1; ++y) {
       final row = <Widget>[];
-      for (var x = minX - 1; x <= maxX + 1; ++x) {
-        final entity = db.getEntityNameAndDependenciesByCoordinates(x, y);
+      for (var x = start.x - 1; x <= end.x + 1; ++x) {
+        final entity = db.getEntityByPosition(x: x, y: y);
 
         row.add(switch (entity) {
-          (String name, Set<String> dependencies) => Expanded(
+          ({String name, Set<String> dependencyNames, EntityType type})
+            entity =>
+            Expanded(
               child: ScaledDraggable<String>(
                 scale: scale,
-                dragData: name,
-                child: EntityCard(name),
+                dragData: entity.name,
+                child: EntityCard(name: entity.name, type: entity.type),
                 wrapDragged: (child) =>
                     FractionalPadding(childSizeFactor: 6, child: child),
                 wrapPlaced: (child) => FractionalPadding(
                   childSizeFactor: 6,
                   child: ArrowElement(
-                    id: name,
+                    id: entity.name,
                     color:
                         Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                    targetIds: dependencies.toList(),
+                    targetIds: entity.dependencyNames.toList(),
                     sourceAnchor: Alignment.topCenter,
                     targetAnchor: Alignment.bottomCenter,
                     tipLength: 0,
@@ -51,7 +54,10 @@ class EntityGraph extends StatelessWidget {
             ),
           null => EntityPlaceholder<String>(
               onDragAccepted: (name) => move(name, x, y),
-              icon: switch (((x - maxX, y - maxY), (minX - x, minY - y))) {
+              icon: switch ((
+                (x - end.x, y - end.y),
+                (start.x - x, start.y - y)
+              )) {
                 ((1, 1), _) => Icons.south_east,
                 (_, (1, 1)) => Icons.north_west,
                 ((_, 1), (1, _)) => Icons.south_west,

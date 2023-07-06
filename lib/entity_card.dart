@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'core/types.dart';
+
 class EntityCard extends StatelessWidget {
   final String name;
+  final EntityType type;
 
-  const EntityCard(this.name, {super.key});
+  const EntityCard({required this.name, required this.type, super.key});
 
   @override
   build(context) {
@@ -26,7 +29,11 @@ class EntityCard extends StatelessWidget {
                       child: Padding(
                         padding: padding,
                         child: Icon(
-                          Icons.key,
+                          switch (type) {
+                            EntityType.hardwareKey => Icons.key,
+                            EntityType.webService => Icons.web,
+                            EntityType.person => Icons.person,
+                          },
                           color: colors.onPrimaryContainer,
                         ),
                       ),

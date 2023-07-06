@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 
-import 'db.dart';
+import 'core/db.dart';
 import 'entity_graph.dart';
 import 'viewer.dart';
 
@@ -66,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage> {
           scale: scale,
           move: (name, x, y) {
             setState(() {
-              db.changeEntityCoordinatesByName(name, x, y);
+              db.changeEntityPositionByName(name: name, x: x, y: y);
             });
           },
         ),
