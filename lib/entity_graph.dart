@@ -9,7 +9,7 @@ import 'scaled_draggable.dart';
 
 class EntityGraph extends StatelessWidget {
   final Db db;
-  final void Function((int, int) source, (int, int) destination) move;
+  final void Function(String name, int x, int y) move;
   final double scale;
 
   const EntityGraph(this.db,
@@ -27,9 +27,9 @@ class EntityGraph extends StatelessWidget {
 
         row.add(switch (entity) {
           (String name, Set<String> dependencies) => Expanded(
-              child: ScaledDraggable<(int, int)>(
+              child: ScaledDraggable<String>(
                 scale: scale,
-                dragData: (x, y),
+                dragData: name,
                 child: EntityCard(name),
                 wrapDragged: (child) =>
                     FractionalPadding(childSizeFactor: 6, child: child),
@@ -49,8 +49,8 @@ class EntityGraph extends StatelessWidget {
                 ),
               ),
             ),
-          null => EntityPlaceholder<(int, int)>(
-              onDragAccepted: (point) => move((x, y), point),
+          null => EntityPlaceholder<String>(
+              onDragAccepted: (name) => move(name, x, y),
               icon: switch (((x - maxX, y - maxY), (minX - x, minY - y))) {
                 ((1, 1), _) => Icons.south_east,
                 (_, (1, 1)) => Icons.north_west,

@@ -38,7 +38,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final Db entities = Db();
+  final Db db = Db();
 
   @override
   build(BuildContext context) {
@@ -62,10 +62,12 @@ class _MyHomePageState extends State<MyHomePage> {
         minScale: 1,
         maxScale: 20,
         builder: (scale) => EntityGraph(
-          entities,
+          db,
           scale: scale,
-          move: (destination, source) {
-            setState(() {});
+          move: (name, x, y) {
+            setState(() {
+              db.changeEntityCoordinatesByName(name, x, y);
+            });
           },
         ),
       ),

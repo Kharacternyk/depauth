@@ -4,11 +4,13 @@ class Db {
   final PreparedStatement selectEntityNameByCoordinates;
   final PreparedStatement selectMapCoordinates;
   final PreparedStatement selectEntityDependencyNamesByName;
+  final PreparedStatement updateEntityCoordinatesByName;
 
   Db._({
     required this.selectEntityNameByCoordinates,
     required this.selectMapCoordinates,
     required this.selectEntityDependencyNamesByName,
+    required this.updateEntityCoordinatesByName,
   });
 
   factory Db() {
@@ -61,6 +63,11 @@ class Db {
         left join dependencies on destination = name
         where source = ?;
       '''),
+      updateEntityCoordinatesByName: db.prepare('''
+        update entities
+        set x = ?, y = ?
+        where name = ?;
+      '''),
     );
   }
 
@@ -91,5 +98,9 @@ class Db {
       values[2] as int,
       values[3] as int,
     );
+  }
+
+  void changeEntityCoordinatesByName(String name, int x, int y) {
+    updateEntityCoordinatesByName.execute([x, y, name]);
   }
 }
