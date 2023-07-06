@@ -31,14 +31,16 @@ class Db {
         name text primary key,
         type integer not null,
         x integer not null,
-        y integer not null
+        y integer not null,
+        unique(x, y)
       ) strict;
 
       create table if not exists dependencies (
         source text not null,
         destination text not null,
         foreign key(source) references entities(name),
-        foreign key(destination) references entities(name)
+        foreign key(destination) references entities(name),
+        primary key(source, destination)
       ) strict;
     ''');
 
