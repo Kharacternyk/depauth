@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'core/entity.dart';
-
 class EntityCard extends StatelessWidget {
-  final Entity entity;
+  final String name;
 
-  const EntityCard(this.entity, {super.key});
+  const EntityCard(this.name, {super.key});
 
   @override
   build(context) {
@@ -28,11 +26,7 @@ class EntityCard extends StatelessWidget {
                       child: Padding(
                         padding: padding,
                         child: Icon(
-                          switch (entity.type) {
-                            EntityType.hardwareKey => Icons.key,
-                            EntityType.webService => Icons.web,
-                            EntityType.person => Icons.person
-                          },
+                          Icons.key,
                           color: colors.onPrimaryContainer,
                         ),
                       ),
@@ -46,7 +40,7 @@ class EntityCard extends StatelessWidget {
             child: FittedBox(
               child: Container(
                 padding: padding,
-                child: Text(entity.name),
+                child: Text(name),
               ),
             ),
           ),

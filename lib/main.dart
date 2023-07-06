@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 
-import 'core/entity.dart';
-import 'core/fraction.dart';
+import 'db.dart';
 import 'entity_graph.dart';
 import 'viewer.dart';
 
@@ -39,52 +38,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final Map<(int, int), Entity> entities = {
-    (1, 1): Entity(
-      type: EntityType.webService,
-      name: 'Google',
-      dependsOn: {
-        'Yubikey': Fraction(1, 2),
-        'Nazar': Fraction(1, 2),
-        'Fastmail': Fraction(1, 2),
-      },
-    ),
-    (1, 2): Entity(
-      type: EntityType.webService,
-      name: 'Fastmail',
-      dependsOn: {
-        'Yubikey': Fraction(1, 2),
-        'Nazar': Fraction(1, 2),
-        'Google': Fraction(1, 2),
-      },
-    ),
-    (2, 2): Entity(
-      type: EntityType.webService,
-      name: 'GitHub',
-      dependsOn: {
-        'Google': Fraction(1, 2),
-        'Yubikey': Fraction(1, 2),
-        'Nazar': Fraction(1, 2)
-      },
-    ),
-    (0, 2): Entity(
-      type: EntityType.webService,
-      name: 'LinkedIn',
-      dependsOn: {'Google': Fraction(1, 1), 'Nazar': Fraction(1, 1)},
-    ),
-    (2, 0): const Entity(
-      type: EntityType.hardwareKey,
-      name: 'Yubikey',
-    ),
-    (0, 0): const Entity(
-      type: EntityType.person,
-      name: 'Nazar',
-    ),
-    (0, 1): const Entity(
-      type: EntityType.person,
-      name: 'Romesh Ranghanathan',
-    ),
-  };
+  final Db entities = Db();
 
   @override
   build(BuildContext context) {
@@ -111,12 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
           entities,
           scale: scale,
           move: (destination, source) {
-            setState(() {
-              final point = entities.remove(source);
-              if (point != null) {
-                entities[destination] = point;
-              }
-            });
+            setState(() {});
           },
         ),
       ),
