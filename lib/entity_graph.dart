@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:widget_arrows/widget_arrows.dart';
 
-import 'core/db.dart';
-import 'core/types.dart';
+import 'db.dart';
 import 'entity_card.dart';
 import 'entity_placeholder.dart';
 import 'fractional_padding.dart';
 import 'scaled_draggable.dart';
+import 'types.dart';
 
 class EntityGraph extends StatelessWidget {
   final Db db;

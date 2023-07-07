@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 
-import 'core/db.dart';
+import 'db.dart';
 import 'entity_graph.dart';
 import 'viewer.dart';
 

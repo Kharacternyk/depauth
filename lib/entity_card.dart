@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'core/types.dart';
+import 'types.dart';
 
 class EntityCard extends StatelessWidget {
   final String name;
