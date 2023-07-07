@@ -3,15 +3,11 @@ import 'package:sqlite3/sqlite3.dart';
 import 'types.dart';
 
 class _Statements {
-  final PreparedStatement selectEntityByPosition;
-  final PreparedStatement selectMapBoundaries;
-  final PreparedStatement selectEntityDependencyNamesByName;
+  final PreparedStatement selectMap;
   final PreparedStatement updateEntityPositionByName;
 
   const _Statements({
-    required this.selectEntityByPosition,
-    required this.selectMapBoundaries,
-    required this.selectEntityDependencyNamesByName,
+    required this.selectMap,
     required this.updateEntityPositionByName,
   });
 }
@@ -64,16 +60,11 @@ class Db {
 
     return Db._(
       _Statements(
-        selectEntityByPosition: db.prepare('''
-          select name, type from entities where x = ? and y = ?;
-        '''),
-        selectMapBoundaries: db.prepare('''
-          select min(x), min(y), max(x), max(y) from entities;
-        '''),
-        selectEntityDependencyNamesByName: db.prepare('''
-          select name from entities
-          join dependencies on destination = name
-          where source = ?;
+        selectMap: db.prepare('''
+          select min(x), min(y), max(x), max(y), name, type, x, y, destination
+          from entities
+          join dependencies
+          where source = name;
         '''),
         updateEntityPositionByName: db.prepare('''
           update entities
