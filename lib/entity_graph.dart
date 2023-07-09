@@ -19,7 +19,13 @@ class EntityGraph extends StatefulWidget {
 
 class _State extends State<EntityGraph> {
   final Db db = Db();
-  final Map<Position, ({String name, EntityType type})?> entities = {};
+  final Map<
+      Position,
+      ({
+        String name,
+        EntityType type,
+        List<String> dependencyNames,
+      })?> entities = {};
   (Position, Position)? boundaries;
 
   @override
@@ -47,7 +53,9 @@ class _State extends State<EntityGraph> {
         }
 
         row.add(switch (entities[position]) {
-          ({String name, EntityType type}) entity => Expanded(
+          ({String name, EntityType type, List<String> dependencyNames})
+            entity =>
+            Expanded(
               child: ScaledDraggable<Position>(
                 scale: widget.scale,
                 dragData: position,
@@ -62,6 +70,7 @@ class _State extends State<EntityGraph> {
                         Theme.of(context).colorScheme.primary.withOpacity(0.5),
                     sourceAnchor: Alignment.topCenter,
                     targetAnchor: Alignment.bottomCenter,
+                    targetIds: entity.dependencyNames,
                     tipLength: 0,
                     width: 4,
                     child: child,

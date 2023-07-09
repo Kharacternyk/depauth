@@ -11,6 +11,7 @@ class Db {
   final ({
     String name,
     EntityType type,
+    List<String> dependencyNames,
   })?
       Function(Position position) getEntityByPosition;
 
@@ -92,9 +93,12 @@ class Db {
       }(),
       getEntityByPosition: () {
         final statement = db.prepare('''
-          select name, type
+          select name, type, group_concat(destination, '\n') as dependencies
           from entities
+          left join dependencies
+          on source = name
           where x = ? and y = ?
+          group by name, type
         ''');
 
         return (Position position) {
@@ -104,6 +108,8 @@ class Db {
             Row row => (
                 name: row['name'] as String,
                 type: EntityType.values[row['type'] as int],
+                dependencyNames:
+                    (row['dependencies'] as String?)?.split('\n') ?? []
               ),
           };
         };
