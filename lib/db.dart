@@ -2,20 +2,23 @@ import 'package:sqlite3/sqlite3.dart';
 
 import 'types.dart';
 
-class _Statements {
-  final PreparedStatement selectMap;
-  final PreparedStatement updateEntityPositionByName;
-
-  const _Statements({
-    required this.selectMap,
-    required this.updateEntityPositionByName,
-  });
-}
-
 class Db {
-  final _Statements _statements;
+  final (Position, Position) Function() getMapBoundaries;
+  final void Function({
+    required Position newPosition,
+    required Position oldPosition,
+  }) setEntityPosition;
+  final ({
+    String name,
+    EntityType type,
+  })?
+      Function(Position position) getEntityByPosition;
 
-  Db._(this._statements);
+  Db._({
+    required this.getMapBoundaries,
+    required this.setEntityPosition,
+    required this.getEntityByPosition,
+  });
 
   factory Db() {
     final db = sqlite3.openInMemory();
@@ -29,15 +32,13 @@ class Db {
         x integer not null,
         y integer not null,
         unique(x, y)
-      ) strict;
+      ) strict, without rowid;
 
       create table if not exists dependencies (
-        source text not null,
-        destination text not null,
-        foreign key(source) references entities(name),
-        foreign key(destination) references entities(name),
+        source text not null references entities on update cascade,
+        destination text not null references entities on update cascade,
         primary key(source, destination)
-      ) strict;
+      ) strict, without rowid;
     ''');
 
     db.prepare('''
@@ -59,67 +60,54 @@ class Db {
       ..dispose();
 
     return Db._(
-      _Statements(
-        selectMap: db.prepare('''
-          select min(x), min(y), max(x), max(y), name, type, x, y, destination
-          from entities
-          join dependencies
-          where source = name;
-        '''),
-        updateEntityPositionByName: db.prepare('''
+      getMapBoundaries: () {
+        final statement = db.prepare('''
+          select min(x), min(y), max(x), max(y)
+          from entities;
+        ''');
+
+        return () {
+          final values = statement.select().first.values;
+          return (
+            Position(values[0] as int, values[1] as int),
+            Position(values[2] as int, values[3] as int),
+          );
+        };
+      }(),
+      setEntityPosition: () {
+        final statement = db.prepare('''
           update entities
           set x = ?, y = ?
-          where name = ?;
-        '''),
-      ),
+          where x = ? and y = ?;
+        ''');
+
+        return ({
+          required Position newPosition,
+          required Position oldPosition,
+        }) {
+          statement.execute(
+            [newPosition.x, newPosition.y, oldPosition.x, oldPosition.y],
+          );
+        };
+      }(),
+      getEntityByPosition: () {
+        final statement = db.prepare('''
+          select name, type
+          from entities
+          where x = ? and y = ?
+        ''');
+
+        return (Position position) {
+          final row = statement.select([position.x, position.y]).firstOrNull;
+          return switch (row) {
+            null => null,
+            Row row => (
+                name: row['name'] as String,
+                type: EntityType.values[row['type'] as int],
+              ),
+          };
+        };
+      }(),
     );
-  }
-
-  ({
-    String name,
-    Set<String> dependencyNames,
-    EntityType type,
-  })? getEntityByPosition({required int x, required int y}) {
-    final rows = _statements.selectEntityByPosition.select([x, y]);
-
-    if (rows.isEmpty) {
-      return null;
-    }
-
-    final name = rows.first['name'] as String;
-
-    return (
-      name: name,
-      type: EntityType.values[rows.first['type'] as int],
-      dependencyNames: _statements.selectEntityDependencyNamesByName
-          .select([name])
-          .map((row) => row['name'] as String)
-          .toSet(),
-    );
-  }
-
-  ({
-    ({int x, int y}) start,
-    ({int x, int y}) end,
-  }) getMapBoundaries() {
-    final values = _statements.selectMapBoundaries.select().first.values;
-    return (
-      start: (
-        x: values[0] as int,
-        y: values[1] as int,
-      ),
-      end: (
-        x: values[2] as int,
-        y: values[3] as int,
-      ),
-    );
-  }
-
-  void changeEntityPositionByName({
-    required String name,
-    required int x,
-    required int y,
-  }) {
-    _statements.updateEntityPositionByName.execute([x, y, name]);
   }
 }

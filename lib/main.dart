@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 
-import 'db.dart';
 import 'entity_graph.dart';
 import 'viewer.dart';
 
@@ -28,17 +27,10 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key, required this.title});
 
   final String title;
-
-  @override
-  createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  final Db db = Db();
 
   @override
   build(BuildContext context) {
@@ -54,7 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               scale: 0.1,
             ),
-            Text(widget.title),
+            Text(title),
           ],
         ),
       ),
@@ -62,13 +54,7 @@ class _MyHomePageState extends State<MyHomePage> {
         minScale: 1,
         maxScale: 20,
         builder: (scale) => EntityGraph(
-          db,
           scale: scale,
-          move: (name, x, y) {
-            setState(() {
-              db.changeEntityPositionByName(name: name, x: x, y: y);
-            });
-          },
         ),
       ),
       floatingActionButton: FloatingActionButton(
