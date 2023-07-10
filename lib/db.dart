@@ -4,21 +4,17 @@ import 'types.dart';
 
 class Db {
   final (Position, Position) Function() getMapBoundaries;
-  final void Function({
-    required Position newPosition,
-    required Position oldPosition,
-  }) setEntityPosition;
-  final ({
-    String name,
-    EntityType type,
-    List<String> dependencyNames,
-  })?
-      Function(Position position) getEntityByPosition;
+  final void Function(EntityId id, Position position) setEntityPosition;
+  final Entity? Function(EntityId id) getEntity;
+  final EntityId? Function(Position position) getEntityId;
+  final List<EntityId> Function(EntityId id) getDependencies;
 
   Db._({
     required this.getMapBoundaries,
     required this.setEntityPosition,
-    required this.getEntityByPosition,
+    required this.getEntity,
+    required this.getEntityId,
+    required this.getDependencies,
   });
 
   factory Db() {
@@ -28,37 +24,42 @@ class Db {
       pragma foreign_keys = on;
 
       create table if not exists entities (
-        name text primary key,
+        id integer primary key,
+        name text not null unique,
         type integer not null,
         x integer not null,
         y integer not null,
         unique(x, y)
-      ) strict, without rowid;
+      ) strict;
 
       create table if not exists dependencies (
-        source text not null references entities on update cascade,
-        destination text not null references entities on update cascade,
+        source integer not null references entities on delete cascade,
+        destination integer not null references entities on delete cascade,
         primary key(source, destination)
       ) strict, without rowid;
     ''');
 
     db.prepare('''
-      insert into entities(name, type, x, y) values (?, ?, ?, ?);
+      insert into entities(id, name, type, x, y) values (?, ?, ?, ?, ?);
     ''')
-      ..execute(['Google', 0, 1, 1])
-      ..execute(['Fastmail', 0, 1, 2])
-      ..execute(['Yubikey', 1, 1, 3])
-      ..execute(['Nazar', 2, 2, 1])
+      ..execute([0, 'Google', 0, 1, 1])
+      ..execute([1, 'Fastmail', 0, 1, 2])
+      ..execute([2, 'Yubikey', 1, 1, 3])
+      ..execute([3, 'Nazar', 2, 2, 1])
       ..dispose();
 
     db.prepare('''
       insert into dependencies(source, destination) values (?, ?);
     ''')
-      ..execute(['Google', 'Fastmail'])
-      ..execute(['Fastmail', 'Google'])
-      ..execute(['Google', 'Nazar'])
-      ..execute(['Fastmail', 'Nazar'])
+      ..execute([0, 1])
+      ..execute([1, 0])
+      ..execute([0, 3])
+      ..execute([1, 3])
       ..dispose();
+
+    final Map<EntityId, Entity?> entityCache = {};
+    final Map<Position, EntityId?> idCache = {};
+    final Map<EntityId, List<EntityId>> dependencyCache = {};
 
     return Db._(
       getMapBoundaries: () {
@@ -79,39 +80,72 @@ class Db {
         final statement = db.prepare('''
           update entities
           set x = ?, y = ?
-          where x = ? and y = ?;
+          where id = ?;
         ''');
 
-        return ({
-          required Position newPosition,
-          required Position oldPosition,
-        }) {
+        return (EntityId id, Position position) {
           statement.execute(
-            [newPosition.x, newPosition.y, oldPosition.x, oldPosition.y],
+            [position.x, position.y, id.value],
           );
+          idCache.clear();
         };
       }(),
-      getEntityByPosition: () {
+      getEntity: () {
         final statement = db.prepare('''
-          select name, type, group_concat(destination, '\n') as dependencies
+          select name, type
           from entities
-          left join dependencies
-          on source = name
+          where id = ?
+        ''');
+
+        return (EntityId id) {
+          if (!entityCache.containsKey(id)) {
+            final row = statement.select([id.value]).firstOrNull;
+            entityCache[id] = switch (row) {
+              null => null,
+              Row row => Entity(
+                  row['name'] as String,
+                  EntityType.values[row['type'] as int],
+                ),
+            };
+          }
+
+          return entityCache[id];
+        };
+      }(),
+      getEntityId: () {
+        final statement = db.prepare('''
+          select id
+          from entities
           where x = ? and y = ?
-          group by name, type
         ''');
 
         return (Position position) {
-          final row = statement.select([position.x, position.y]).firstOrNull;
-          return switch (row) {
-            null => null,
-            Row row => (
-                name: row['name'] as String,
-                type: EntityType.values[row['type'] as int],
-                dependencyNames:
-                    (row['dependencies'] as String?)?.split('\n') ?? []
-              ),
-          };
+          if (!idCache.containsKey(position)) {
+            final row = statement.select([position.x, position.y]).firstOrNull;
+            idCache[position] = switch (row) {
+              null => null,
+              Row row => EntityId(row['id'] as int),
+            };
+          }
+
+          return idCache[position];
+        };
+      }(),
+      getDependencies: () {
+        final statement = db.prepare('''
+          select destination
+          from dependencies
+          where source = ?
+        ''');
+
+        return (EntityId id) {
+          if (!dependencyCache.containsKey(id)) {
+            final rows = statement.select([id.value]);
+            dependencyCache[id] =
+                rows.map((row) => EntityId(row['destination'] as int)).toList();
+          }
+
+          return dependencyCache[id] ?? [];
         };
       }(),
     );
