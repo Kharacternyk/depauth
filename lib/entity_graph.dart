@@ -31,15 +31,19 @@ class _State extends State<EntityGraph> {
       for (var x = start.x - 1; x <= end.x + 1; ++x) {
         final position = Position(x, y);
         final id = db.getEntityId(position);
-        final entity =
-            switch (id) { EntityId id => db.getEntity(id), null => null };
+        final entity = switch (id) {
+          EntityId id => db.getEntity(id),
+          null => null,
+        };
 
         row.add(switch (entity) {
           Entity entity => Expanded(
               child: ScaledDraggable<EntityId>(
                 scale: widget.scale,
                 dragData: id!,
-                child: EntityCard(name: entity.name, type: entity.type),
+                child: EntityCard(
+                  entity,
+                ),
                 wrapDragged: (child) =>
                     FractionalPadding(childSizeFactor: 6, child: child),
                 wrapPlaced: (child) => FractionalPadding(
