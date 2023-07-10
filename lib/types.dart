@@ -18,6 +18,13 @@ class Position {
   int get hashCode => Object.hash(x, y);
 }
 
+class Boundaries {
+  final Position start;
+  final Position end;
+
+  const Boundaries(this.start, this.end);
+}
+
 class EntityId {
   final int value;
 
