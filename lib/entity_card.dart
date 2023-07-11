@@ -18,18 +18,39 @@ class EntityCard extends StatelessWidget {
       childSizeFactor: 6,
       child: ArrowElement(
         id: entity.entity.name,
-        targetIds: entity.dependencies.map((entity) => entity.name).toList(),
-        color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-        sourceAnchor: Alignment.topCenter,
-        targetAnchor: Alignment.bottomCenter,
-        tipLength: 0,
-        width: 4,
         child: Card(
           elevation: 10,
           margin: EdgeInsets.zero,
           shape: const Border(),
           child: Column(
             children: [
+              if (entity.dependencies.isNotEmpty)
+                Expanded(
+                  child: Row(
+                    children: entity.dependencies
+                        .map(
+                          (dependency) => Expanded(
+                            child: ArrowElement(
+                              id: '${dependency.name}^${entity.entity.name}',
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withOpacity(0.5),
+                              sourceAnchor: Alignment.topCenter,
+                              targetAnchor: Alignment.bottomCenter,
+                              tipLength: 0,
+                              width: 4,
+                              targetId: dependency.name,
+                              child: EntityIcon(
+                                dependency,
+                                padding: padding,
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
               Expanded(
                 child: FittedBox(
                   child: Container(
@@ -38,9 +59,11 @@ class EntityCard extends StatelessWidget {
                   ),
                 ),
               ),
-              EntityIcon(
-                entity.entity,
-                padding: padding,
+              Expanded(
+                child: EntityIcon(
+                  entity.entity,
+                  padding: padding,
+                ),
               ),
             ],
           ),

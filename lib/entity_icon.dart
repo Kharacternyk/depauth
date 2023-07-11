@@ -12,28 +12,26 @@ class EntityIcon extends StatelessWidget {
   build(context) {
     final colors = Theme.of(context).colorScheme;
 
-    return Expanded(
-      child: Material(
-        color: colors.primaryContainer,
-        child: Row(
-          children: [
-            Expanded(
-              child: FittedBox(
-                child: Padding(
-                  padding: padding,
-                  child: Icon(
-                    switch (entity.type) {
-                      EntityType.hardwareKey => Icons.key,
-                      EntityType.webService => Icons.web,
-                      EntityType.person => Icons.person,
-                    },
-                    color: colors.onPrimaryContainer,
-                  ),
+    return Material(
+      color: colors.primaryContainer,
+      child: Row(
+        children: [
+          Expanded(
+            child: FittedBox(
+              child: Padding(
+                padding: padding,
+                child: Icon(
+                  switch (entity.type) {
+                    EntityType.hardwareKey => Icons.key,
+                    EntityType.webService => Icons.web,
+                    EntityType.person => Icons.person,
+                  },
+                  color: colors.onPrimaryContainer,
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
