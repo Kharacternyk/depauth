@@ -4,9 +4,12 @@ import 'package:sqlite3/sqlite3.dart';
 import 'types.dart';
 
 class Db {
-  final Map<Position, WeakReference<ValueNotifier<Entity?>>> _entities = {};
-  final ValueNotifier<Boundaries> boundaries;
   final Database db;
+  late final ValueNotifier<Boundaries> boundaries = ValueNotifier(
+    _getBoundaries(),
+  );
+
+  final Map<Position, WeakReference<ValueNotifier<Entity?>>> _entities = {};
 
   ValueNotifier<Entity?> getEntity(Position position) {
     switch (_entities[position]) {
@@ -26,14 +29,15 @@ class Db {
     }
   }
 
-  Entity? _getEntity(Position position) {
-    final statement = db.prepare('''
-      select name, type
-      from entities
-      where x = ? and y = ?
-    ''');
+  late final PreparedStatement _getEntityStatement = db.prepare('''
+    select name, type
+    from entities
+    where x = ? and y = ?
+  ''');
 
-    final row = statement.select([position.x, position.y]).firstOrNull;
+  Entity? _getEntity(Position position) {
+    final row =
+        _getEntityStatement.select([position.x, position.y]).firstOrNull;
     return switch (row) {
       null => null,
       Row row => Entity(
@@ -43,26 +47,36 @@ class Db {
     };
   }
 
-  void moveEntity({required Position from, required Position to}) {
-    final statement = db.prepare('''
-        update entities
-        set x = ?, y = ?
-        where x = ? and y = ?;
-      ''');
+  late final _moveEntityStatement = db.prepare('''
+    update entities
+    set x = ?, y = ?
+    where x = ? and y = ?;
+  ''');
 
-    statement.execute(
+  void moveEntity({required Position from, required Position to}) {
+    _moveEntityStatement.execute(
       [to.x, to.y, from.x, from.y],
     );
 
     _entities[to]?.target?.value = _entities[from]?.target?.value;
     _entities[from]?.target?.value = null;
+    boundaries.value = _getBoundaries();
   }
 
-  Db._(this.db, this.boundaries);
+  late final _getBoundariesStatement = db.prepare('''
+    select min(x), min(y), max(x), max(y)
+    from entities;
+  ''');
 
-  factory Db() {
-    final db = sqlite3.openInMemory();
+  Boundaries _getBoundaries() {
+    final values = _getBoundariesStatement.select().first.values;
+    return Boundaries(
+      Position(values[0] as int, values[1] as int),
+      Position(values[2] as int, values[3] as int),
+    );
+  }
 
+  Db() : db = sqlite3.openInMemory() {
     db.execute('''
       pragma foreign_keys = on;
 
@@ -99,22 +113,5 @@ class Db {
       ..execute([0, 3])
       ..execute([1, 3])
       ..dispose();
-
-    final statement = db.prepare('''
-      select min(x), min(y), max(x), max(y)
-      from entities;
-    ''');
-
-    final values = statement.select().first.values;
-
-    return Db._(
-      db,
-      ValueNotifier(
-        Boundaries(
-          Position(values[0] as int, values[1] as int),
-          Position(values[2] as int, values[3] as int),
-        ),
-      ),
-    );
   }
 }

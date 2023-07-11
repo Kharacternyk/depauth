@@ -23,18 +23,13 @@ class Boundaries {
   final Position end;
 
   const Boundaries(this.start, this.end);
-}
-
-class EntityId {
-  final int value;
-
-  const EntityId(this.value);
 
   @override
-  bool operator ==(Object other) => other is EntityId && value == other.value;
+  bool operator ==(Object other) =>
+      other is Boundaries && start == other.start && end == other.end;
 
   @override
-  int get hashCode => value.hashCode;
+  int get hashCode => Object.hash(start, end);
 }
 
 class Entity {
