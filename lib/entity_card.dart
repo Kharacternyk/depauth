@@ -7,8 +7,9 @@ import 'types.dart';
 
 class EntityCard extends StatelessWidget {
   final EntityVertex entity;
+  final double arrowScale;
 
-  const EntityCard(this.entity, {super.key});
+  const EntityCard(this.entity, {this.arrowScale = 1, super.key});
 
   @override
   build(context) {
@@ -39,7 +40,7 @@ class EntityCard extends StatelessWidget {
                               sourceAnchor: Alignment.topCenter,
                               targetAnchor: Alignment.bottomCenter,
                               tipLength: 0,
-                              width: 4,
+                              width: 4 * arrowScale,
                               targetId: dependency.name,
                               child: EntityIcon(
                                 dependency,

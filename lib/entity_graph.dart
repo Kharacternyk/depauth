@@ -44,6 +44,7 @@ class _State extends State<EntityGraph> {
                           dragData: position,
                           child: EntityCard(
                             entity,
+                            arrowScale: 1 / widget.scale,
                           ),
                         ),
                       ),
