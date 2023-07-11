@@ -4,7 +4,6 @@ import 'package:widget_arrows/widget_arrows.dart';
 import 'db.dart';
 import 'entity_card.dart';
 import 'entity_placeholder.dart';
-import 'fractional_padding.dart';
 import 'scaled_draggable.dart';
 import 'types.dart';
 
@@ -44,27 +43,7 @@ class _State extends State<EntityGraph> {
                           scale: widget.scale,
                           dragData: position,
                           child: EntityCard(
-                            entity.entity,
-                          ),
-                          wrapDragged: (child) => FractionalPadding(
-                              childSizeFactor: 6, child: child),
-                          wrapPlaced: (child) => FractionalPadding(
-                            childSizeFactor: 6,
-                            child: ArrowElement(
-                              id: entity.entity.name,
-                              targetIds: entity.dependencies
-                                  .map((entity) => entity.name)
-                                  .toList(),
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .primary
-                                  .withOpacity(0.5),
-                              sourceAnchor: Alignment.topCenter,
-                              targetAnchor: Alignment.bottomCenter,
-                              tipLength: 0,
-                              width: 4,
-                              child: child,
-                            ),
+                            entity,
                           ),
                         ),
                       ),
