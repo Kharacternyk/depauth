@@ -26,7 +26,6 @@ class _State extends State<EntityGraph> {
       valueListenable: db.boundaries,
       builder: (context, boundaries, child) {
         final rows = <Expanded>[];
-        print('builder runs');
 
         for (var y = boundaries.start.y - 1; y <= boundaries.end.y + 1; ++y) {
           final row = <Widget>[];
@@ -40,19 +39,22 @@ class _State extends State<EntityGraph> {
                 valueListenable: entity,
                 builder: (context, entity, child) {
                   return switch (entity) {
-                    Entity entity => Expanded(
+                    EntityVertex entity => Expanded(
                         child: ScaledDraggable<Position>(
                           scale: widget.scale,
                           dragData: position,
                           child: EntityCard(
-                            entity,
+                            entity.entity,
                           ),
                           wrapDragged: (child) => FractionalPadding(
                               childSizeFactor: 6, child: child),
                           wrapPlaced: (child) => FractionalPadding(
                             childSizeFactor: 6,
                             child: ArrowElement(
-                              id: '3',
+                              id: entity.entity.name,
+                              targetIds: entity.dependencies
+                                  .map((entity) => entity.name)
+                                  .toList(),
                               color: Theme.of(context)
                                   .colorScheme
                                   .primary

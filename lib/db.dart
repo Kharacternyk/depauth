@@ -9,21 +9,22 @@ class Db {
     _getBoundaries(),
   );
 
-  final Map<Position, WeakReference<ValueNotifier<Entity?>>> _entities = {};
+  final Map<Position, WeakReference<ValueNotifier<EntityVertex?>>> _entities =
+      {};
 
-  ValueNotifier<Entity?> getEntity(Position position) {
+  ValueNotifier<EntityVertex?> getEntity(Position position) {
     switch (_entities[position]) {
       case null:
-        final entity = ValueNotifier<Entity?>(_getEntity(position));
+        final entity = ValueNotifier<EntityVertex?>(_getEntity(position));
         _entities[position] = WeakReference(entity);
         return entity;
-      case WeakReference<ValueNotifier<Entity?>> reference:
+      case WeakReference<ValueNotifier<EntityVertex?>> reference:
         switch (reference.target) {
           case null:
-            final entity = ValueNotifier<Entity?>(_getEntity(position));
+            final entity = ValueNotifier<EntityVertex?>(_getEntity(position));
             _entities[position] = WeakReference(entity);
             return entity;
-          case ValueNotifier<Entity?> entity:
+          case ValueNotifier<EntityVertex?> entity:
             return entity;
         }
     }
@@ -34,18 +35,33 @@ class Db {
     from entities
     where x = ? and y = ?
   ''');
+  late final PreparedStatement _getDependenciesStatement = db.prepare('''
+    select name, type
+    from entities
+    join dependencies
+    on name = destination
+    where source = ?
+  ''');
 
-  Entity? _getEntity(Position position) {
+  EntityVertex? _getEntity(Position position) {
     final row =
         _getEntityStatement.select([position.x, position.y]).firstOrNull;
     return switch (row) {
       null => null,
-      Row row => Entity(
-          row['name'] as String,
-          EntityType.values[row['type'] as int],
+      Row row => EntityVertex(
+          _parseEntity(row),
+          _getDependenciesStatement
+              .select([row['name']])
+              .map(_parseEntity)
+              .toList(),
         ),
     };
   }
+
+  Entity _parseEntity(Row row) => Entity(
+        row['name'] as String,
+        EntityType.values[row['type'] as int],
+      );
 
   late final _moveEntityStatement = db.prepare('''
     update entities
@@ -81,37 +97,36 @@ class Db {
       pragma foreign_keys = on;
 
       create table if not exists entities (
-        id integer primary key,
-        name text not null unique,
+        name text not null primary key,
         type integer not null,
         x integer not null,
         y integer not null,
         unique(x, y)
-      ) strict;
+      ) strict, without rowid;
 
       create table if not exists dependencies (
-        source integer not null references entities on delete cascade,
-        destination integer not null references entities on delete cascade,
+        source text not null references entities on delete cascade,
+        destination text not null references entities on delete cascade,
         primary key(source, destination)
       ) strict, without rowid;
     ''');
 
     db.prepare('''
-      insert into entities(id, name, type, x, y) values (?, ?, ?, ?, ?);
+      insert into entities(name, type, x, y) values (?, ?, ?, ?);
     ''')
-      ..execute([0, 'Google', 0, 1, 1])
-      ..execute([1, 'Fastmail', 0, 1, 2])
-      ..execute([2, 'Yubikey', 1, 1, 3])
-      ..execute([3, 'Nazar', 2, 2, 1])
+      ..execute(['Google', 0, 1, 1])
+      ..execute(['Fastmail', 0, 1, 2])
+      ..execute(['Yubikey', 1, 1, 3])
+      ..execute(['Nazar', 2, 2, 1])
       ..dispose();
 
     db.prepare('''
       insert into dependencies(source, destination) values (?, ?);
     ''')
-      ..execute([0, 1])
-      ..execute([1, 0])
-      ..execute([0, 3])
-      ..execute([1, 3])
+      ..execute(['Google', 'Fastmail'])
+      ..execute(['Fastmail', 'Google'])
+      ..execute(['Google', 'Nazar'])
+      ..execute(['Fastmail', 'Nazar'])
       ..dispose();
   }
 }

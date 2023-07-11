@@ -38,3 +38,10 @@ class Entity {
 
   const Entity(this.name, this.type);
 }
+
+class EntityVertex {
+  final Entity entity;
+  final List<Entity> dependencies;
+
+  const EntityVertex(this.entity, this.dependencies);
+}
