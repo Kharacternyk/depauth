@@ -15,6 +15,50 @@ class EntityCard extends StatelessWidget {
   @override
   build(context) {
     const padding = EdgeInsets.all(8);
+    final dependencyIcons = <Widget>[];
+
+    for (final group in entity.dependencies) {
+      for (final dependency in group) {
+        dependencyIcons.add(
+          Expanded(
+            child: ArrowElement(
+              id: '${dependency.name}^${entity.entity.name}',
+              color: EntityTheme(dependency).arrow.withOpacity(0.5),
+              sourceAnchor: Alignment.topCenter,
+              targetAnchor: Alignment.bottomCenter,
+              tipLength: 0,
+              width: 4 * arrowScale,
+              targetId: dependency.name,
+              child: EntityIcon(
+                dependency,
+                padding: padding,
+              ),
+            ),
+          ),
+        );
+      }
+      dependencyIcons.add(
+        const Expanded(
+          child: Column(
+            children: [
+              Expanded(
+                child: FittedBox(
+                  child: Padding(
+                    padding: padding,
+                    child: Icon(Icons.insert_link),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (dependencyIcons.isNotEmpty) {
+      dependencyIcons.removeLast();
+    }
+
     return FractionalPadding(
       childSizeFactor: 6,
       child: ArrowElement(
@@ -28,29 +72,7 @@ class EntityCard extends StatelessWidget {
               if (entity.dependencies.isNotEmpty)
                 Expanded(
                   child: Row(
-                    children: entity.dependencies
-                        .expand(
-                          (dependencyGroup) => dependencyGroup.map(
-                            (dependency) => Expanded(
-                              child: ArrowElement(
-                                id: '${dependency.name}^${entity.entity.name}',
-                                color: EntityTheme(dependency)
-                                    .arrow
-                                    .withOpacity(0.5),
-                                sourceAnchor: Alignment.topCenter,
-                                targetAnchor: Alignment.bottomCenter,
-                                tipLength: 0,
-                                width: 4 * arrowScale,
-                                targetId: dependency.name,
-                                child: EntityIcon(
-                                  dependency,
-                                  padding: padding,
-                                ),
-                              ),
-                            ),
-                          ),
-                        )
-                        .toList(),
+                    children: dependencyIcons,
                   ),
                 ),
               Expanded(
