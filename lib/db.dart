@@ -23,6 +23,14 @@ class Db {
     };
   }
 
+  ValueNotifier<EntityVertex?> _cacheEntity(Position position) {
+    final entity = ValueNotifier(_getEntity(position));
+
+    _entities[position] = WeakReference(entity);
+
+    return entity;
+  }
+
   late final PreparedStatement _getEntityStatement = db.prepare('''
     select name, type
     from entities
@@ -34,12 +42,12 @@ class Db {
     join dependencies
     on name = destination
     where source = ?
+    order by x, y
   ''');
-
-  ValueNotifier<EntityVertex?> _cacheEntity(Position position) {
+  EntityVertex? _getEntity(Position position) {
     final row =
         _getEntityStatement.select([position.x, position.y]).firstOrNull;
-    final entity = ValueNotifier(switch (row) {
+    return switch (row) {
       null => null,
       Row row => EntityVertex(
           _parseEntity(row),
@@ -48,11 +56,7 @@ class Db {
               .map(_parseEntity)
               .toList(),
         ),
-    });
-
-    _entities[position] = WeakReference(entity);
-
-    return entity;
+    };
   }
 
   Entity _parseEntity(Row row) => Entity(
@@ -65,22 +69,28 @@ class Db {
     set x = ?, y = ?
     where x = ? and y = ?
   ''');
-
   void moveEntity({required Position from, required Position to}) {
     _moveEntityStatement.execute(
       [to.x, to.y, from.x, from.y],
     );
 
-    _entities[to]?.target?.value = _entities[from]?.target?.value;
     _entities[from]?.target?.value = null;
+    _updateEntity(to);
+    for (final position in _getDependantPositions(to)) {
+      _updateEntity(position);
+    }
+
     boundaries.value = _getBoundaries();
+  }
+
+  void _updateEntity(Position position) {
+    _entities[position]?.target?.value = _getEntity(position);
   }
 
   late final _getBoundariesStatement = db.prepare('''
     select min(x), min(y), max(x), max(y)
     from entities
   ''');
-
   Boundaries _getBoundaries() {
     final values = _getBoundariesStatement.select().first.values;
     return Boundaries(
@@ -88,6 +98,19 @@ class Db {
       Position(values[2] as int, values[3] as int),
     );
   }
+
+  late final _getDependantPositionsStatement = db.prepare('''
+    select sources.x, sources.y
+    from entities as sources
+    join dependencies
+    on sources.name = source
+    join entities as destinations
+    on destinations.name = destination
+    where destinations.x = ? and destinations.y = ?
+  ''');
+  Iterable<Position> _getDependantPositions(Position position) =>
+      _getDependantPositionsStatement.select([position.x, position.y]).map(
+          (row) => Position(row['x'] as int, row['y'] as int));
 
   Db() : db = sqlite3.openInMemory() {
     db.execute('''
