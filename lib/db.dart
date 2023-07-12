@@ -63,7 +63,7 @@ class Db {
   late final _moveEntityStatement = db.prepare('''
     update entities
     set x = ?, y = ?
-    where x = ? and y = ?;
+    where x = ? and y = ?
   ''');
 
   void moveEntity({required Position from, required Position to}) {
@@ -78,7 +78,7 @@ class Db {
 
   late final _getBoundariesStatement = db.prepare('''
     select min(x), min(y), max(x), max(y)
-    from entities;
+    from entities
   ''');
 
   Boundaries _getBoundaries() {
@@ -109,7 +109,7 @@ class Db {
     ''');
 
     db.prepare('''
-      insert into entities(name, type, x, y) values (?, ?, ?, ?);
+      insert into entities(name, type, x, y) values (?, ?, ?, ?)
     ''')
       ..execute(['Google', 0, 1, 1])
       ..execute(['Fastmail', 0, 1, 2])
@@ -118,7 +118,7 @@ class Db {
       ..dispose();
 
     db.prepare('''
-      insert into dependencies(source, destination) values (?, ?);
+      insert into dependencies(source, destination) values (?, ?)
     ''')
       ..execute(['Google', 'Fastmail'])
       ..execute(['Fastmail', 'Google'])
