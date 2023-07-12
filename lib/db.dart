@@ -127,6 +127,8 @@ class Db {
       ..execute(['Fastmail', 'Google'])
       ..execute(['Google', 'Nazar'])
       ..execute(['Fastmail', 'Nazar'])
+      ..execute(['Google', 'Yubikey'])
+      ..execute(['Fastmail', 'Yubikey'])
       ..dispose();
   }
 }
