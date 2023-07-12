@@ -49,13 +49,8 @@ class Db {
         _getEntityStatement.select([position.x, position.y]).firstOrNull;
     return switch (row) {
       null => null,
-      Row row => EntityVertex(
-          _parseEntity(row),
-          _getDependenciesStatement
-              .select([row['name']])
-              .map(_parseEntity)
-              .toList(),
-        ),
+      Row row => EntityVertex(_parseEntity(row),
+          _getDependenciesStatement.select([row['name']]).map(_parseEntity)),
     };
   }
 
