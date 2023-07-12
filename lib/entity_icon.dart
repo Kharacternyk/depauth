@@ -28,18 +28,24 @@ class EntityIcon extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: FittedBox(
-              child: Padding(
-                padding: padding,
-                child: Icon(
-                  switch (entity.type) {
-                    EntityType.hardwareKey => Icons.key,
-                    EntityType.webService => Icons.web,
-                    EntityType.person => Icons.person,
-                  },
-                  color: colors.onPrimaryContainer,
+            child: Column(
+              children: [
+                Expanded(
+                  child: FittedBox(
+                    child: Padding(
+                      padding: padding,
+                      child: Icon(
+                        switch (entity.type) {
+                          EntityType.hardwareKey => Icons.key,
+                          EntityType.webService => Icons.web,
+                          EntityType.person => Icons.person,
+                        },
+                        color: colors.onPrimaryContainer,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ],
