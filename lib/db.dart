@@ -13,21 +13,14 @@ class Db {
       {};
 
   ValueNotifier<EntityVertex?> getEntity(Position position) {
-    switch (_entities[position]) {
-      case null:
-        final entity = ValueNotifier<EntityVertex?>(_getEntity(position));
-        _entities[position] = WeakReference(entity);
-        return entity;
-      case WeakReference<ValueNotifier<EntityVertex?>> reference:
-        switch (reference.target) {
-          case null:
-            final entity = ValueNotifier<EntityVertex?>(_getEntity(position));
-            _entities[position] = WeakReference(entity);
-            return entity;
-          case ValueNotifier<EntityVertex?> entity:
-            return entity;
-        }
-    }
+    return switch (_entities[position]) {
+      null => _cacheEntity(position),
+      WeakReference<ValueNotifier<EntityVertex?>> reference => switch (
+            reference.target) {
+          null => _cacheEntity(position),
+          ValueNotifier<EntityVertex?> entity => entity,
+        },
+    };
   }
 
   late final PreparedStatement _getEntityStatement = db.prepare('''
@@ -43,10 +36,10 @@ class Db {
     where source = ?
   ''');
 
-  EntityVertex? _getEntity(Position position) {
+  ValueNotifier<EntityVertex?> _cacheEntity(Position position) {
     final row =
         _getEntityStatement.select([position.x, position.y]).firstOrNull;
-    return switch (row) {
+    final entity = ValueNotifier(switch (row) {
       null => null,
       Row row => EntityVertex(
           _parseEntity(row),
@@ -55,7 +48,11 @@ class Db {
               .map(_parseEntity)
               .toList(),
         ),
-    };
+    });
+
+    _entities[position] = WeakReference(entity);
+
+    return entity;
   }
 
   Entity _parseEntity(Row row) => Entity(
