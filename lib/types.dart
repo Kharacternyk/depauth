@@ -41,7 +41,7 @@ class Entity {
 
 class EntityVertex {
   final Entity entity;
-  final Iterable<Entity> dependencies;
+  final Iterable<Iterable<Entity>> dependencies;
 
   const EntityVertex(this.entity, this.dependencies);
 }

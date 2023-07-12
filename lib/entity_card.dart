@@ -29,21 +29,23 @@ class EntityCard extends StatelessWidget {
                 Expanded(
                   child: Row(
                     children: entity.dependencies
-                        .map(
-                          (dependency) => Expanded(
-                            child: ArrowElement(
-                              id: '${dependency.name}^${entity.entity.name}',
-                              color: EntityTheme(dependency)
-                                  .arrow
-                                  .withOpacity(0.5),
-                              sourceAnchor: Alignment.topCenter,
-                              targetAnchor: Alignment.bottomCenter,
-                              tipLength: 0,
-                              width: 4 * arrowScale,
-                              targetId: dependency.name,
-                              child: EntityIcon(
-                                dependency,
-                                padding: padding,
+                        .expand(
+                          (dependencyGroup) => dependencyGroup.map(
+                            (dependency) => Expanded(
+                              child: ArrowElement(
+                                id: '${dependency.name}^${entity.entity.name}',
+                                color: EntityTheme(dependency)
+                                    .arrow
+                                    .withOpacity(0.5),
+                                sourceAnchor: Alignment.topCenter,
+                                targetAnchor: Alignment.bottomCenter,
+                                tipLength: 0,
+                                width: 4 * arrowScale,
+                                targetId: dependency.name,
+                                child: EntityIcon(
+                                  dependency,
+                                  padding: padding,
+                                ),
                               ),
                             ),
                           ),

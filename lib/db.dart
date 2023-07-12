@@ -40,17 +40,31 @@ class Db {
     select name, type
     from entities
     join dependencies
-    on name = destination
-    where source = ?
+    on name = entity
+    where dependency_group = ?
     order by x, y
+  ''');
+  late final PreparedStatement _getDependencyGroupsStatement = db.prepare('''
+    select id
+    from dependency_groups
+    join dependencies
+    on id = dependency_group
+    join entities
+    on dependencies.entity = name
+    where dependency_groups.entity = ?
+    group by id
+    order by min(entities.x), min(entities.y)
   ''');
   EntityVertex? _getEntity(Position position) {
     final row =
         _getEntityStatement.select([position.x, position.y]).firstOrNull;
     return switch (row) {
       null => null,
-      Row row => EntityVertex(_parseEntity(row),
-          _getDependenciesStatement.select([row['name']]).map(_parseEntity)),
+      Row row => EntityVertex(
+          _parseEntity(row),
+          _getDependencyGroupsStatement.select([row['name']]).map((row) =>
+              _getDependenciesStatement.select([row['id']]).map(_parseEntity)),
+        ),
     };
   }
 
@@ -97,11 +111,13 @@ class Db {
   late final _getDependantPositionsStatement = db.prepare('''
     select sources.x, sources.y
     from entities as sources
+    join dependency_groups
+    on sources.name = dependency_groups.entity
     join dependencies
-    on sources.name = source
-    join entities as destinations
-    on destinations.name = destination
-    where destinations.x = ? and destinations.y = ?
+    on dependency_group = id
+    join entities as targets
+    on targets.name = dependencies.entity
+    where targets.x = ? and targets.y = ?
   ''');
   Iterable<Position> _getDependantPositions(Position position) =>
       _getDependantPositionsStatement.select([position.x, position.y]).map(
@@ -119,10 +135,15 @@ class Db {
         unique(x, y)
       ) strict, without rowid;
 
+      create table if not exists dependency_groups (
+        id integer not null primary key,
+        entity text not null references entities on update cascade on delete cascade
+      ) strict;
+
       create table if not exists dependencies (
-        source text not null references entities on delete cascade,
-        destination text not null references entities on delete cascade,
-        primary key(source, destination)
+        dependency_group integer not null references dependency_groups on delete cascade,
+        entity text not null references entities on update cascade on delete cascade,
+        primary key(entity, dependency_group)
       ) strict, without rowid;
     ''');
 
@@ -136,14 +157,23 @@ class Db {
       ..dispose();
 
     db.prepare('''
-      insert into dependencies(source, destination) values (?, ?)
+      insert into dependency_groups(id, entity) values (?, ?)
     ''')
-      ..execute(['Google', 'Fastmail'])
-      ..execute(['Fastmail', 'Google'])
-      ..execute(['Google', 'Nazar'])
-      ..execute(['Fastmail', 'Nazar'])
-      ..execute(['Google', 'Yubikey'])
-      ..execute(['Fastmail', 'Yubikey'])
+      ..execute([0, 'Google'])
+      ..execute([1, 'Fastmail'])
+      ..execute([2, 'Google'])
+      ..execute([3, 'Fastmail'])
+      ..dispose();
+
+    db.prepare('''
+      insert into dependencies(dependency_group, entity) values (?, ?)
+    ''')
+      ..execute([0, 'Fastmail'])
+      ..execute([1, 'Google'])
+      ..execute([0, 'Nazar'])
+      ..execute([1, 'Nazar'])
+      ..execute([2, 'Yubikey'])
+      ..execute([3, 'Yubikey'])
       ..dispose();
   }
 }
