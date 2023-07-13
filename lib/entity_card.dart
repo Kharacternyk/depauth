@@ -77,7 +77,7 @@ class EntityCard extends StatelessWidget {
                 ),
               Expanded(
                 child: FittedBox(
-                  child: Container(
+                  child: Padding(
                     padding: padding,
                     child: Text(entity.entity.name),
                   ),
