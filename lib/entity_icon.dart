@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
+import 'core/entity_type.dart';
 import 'entity_theme.dart';
-import 'types.dart';
 
 class EntityIcon extends StatelessWidget {
-  final Entity entity;
+  final EntityType type;
   final EdgeInsets padding;
 
-  const EntityIcon(this.entity, {required this.padding, super.key});
+  const EntityIcon(this.type, {required this.padding, super.key});
 
   @override
   build(context) {
-    final theme = EntityTheme(entity);
+    final theme = EntityTheme(type);
 
     return Ink(
       color: theme.background,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'types.dart';
+import 'core/entity_type.dart';
 
 class EntityTheme {
   final Color background;
@@ -27,8 +27,8 @@ class EntityTheme {
   static final _person = _fromScheme(_red, Icons.person);
   static final _hardwareKey = _fromScheme(_green, Icons.key);
 
-  factory EntityTheme(Entity entity) {
-    return switch (entity.type) {
+  factory EntityTheme(EntityType type) {
+    return switch (type) {
       EntityType.hardwareKey => _hardwareKey,
       EntityType.webService => _webService,
       EntityType.person => _person,

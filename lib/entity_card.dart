@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:widget_arrows/widget_arrows.dart';
 
+import 'core/traversable_entity.dart';
 import 'entity_icon.dart';
 import 'entity_theme.dart';
 import 'fractional_padding.dart';
-import 'types.dart';
 
 class EntityCard extends StatelessWidget {
-  final EntityVertex entity;
+  final TraversableEntity entity;
   final double arrowScale;
 
   const EntityCard(this.entity, {this.arrowScale = 1, super.key});
@@ -22,15 +22,15 @@ class EntityCard extends StatelessWidget {
         dependencyIcons.add(
           Expanded(
             child: ArrowElement(
-              id: '${dependency.name}^${entity.entity.name}',
-              color: EntityTheme(dependency).arrow.withOpacity(0.5),
+              id: '${dependency.name}^${entity.name}',
+              color: EntityTheme(dependency.type).arrow.withOpacity(0.5),
               sourceAnchor: Alignment.topCenter,
               targetAnchor: Alignment.bottomCenter,
               tipLength: 0,
               width: 4 * arrowScale,
               targetId: dependency.name,
               child: EntityIcon(
-                dependency,
+                dependency.type,
                 padding: padding,
               ),
             ),
@@ -62,7 +62,7 @@ class EntityCard extends StatelessWidget {
     return FractionalPadding(
       childSizeFactor: 6,
       child: ArrowElement(
-        id: entity.entity.name,
+        id: entity.name,
         child: Card(
           elevation: 10,
           margin: EdgeInsets.zero,
@@ -75,10 +75,10 @@ class EntityCard extends StatelessWidget {
                   return SimpleDialog(
                     children: [
                       SimpleDialogOption(
-                        child: TextField(
-                          controller: TextEditingController(
-                            text: entity.entity.name,
-                          ),
+                        child: TextButton.icon(
+                          onPressed: () {},
+                          icon: const Icon(Icons.delete),
+                          label: const Text('Delete'),
                         ),
                       ),
                     ],
@@ -98,13 +98,13 @@ class EntityCard extends StatelessWidget {
                   child: FittedBox(
                     child: Padding(
                       padding: padding,
-                      child: Text(entity.entity.name),
+                      child: Text(entity.name),
                     ),
                   ),
                 ),
                 Expanded(
                   child: EntityIcon(
-                    entity.entity,
+                    entity.type,
                     padding: padding,
                   ),
                 ),

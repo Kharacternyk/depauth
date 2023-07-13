@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:widget_arrows/widget_arrows.dart';
 
-import 'db.dart';
+import 'core/db.dart';
+import 'core/position.dart';
+import 'core/traversable_entity.dart';
 import 'entity_card.dart';
 import 'entity_placeholder.dart';
 import 'scaled_draggable.dart';
-import 'types.dart';
 
 class EntityGraph extends StatefulWidget {
   final double scale;
@@ -38,7 +39,7 @@ class _State extends State<EntityGraph> {
                 valueListenable: entity,
                 builder: (context, entity, child) {
                   return switch (entity) {
-                    EntityVertex entity => Expanded(
+                    TraversableEntity entity => Expanded(
                         child: ScaledDraggable<Position>(
                           scale: widget.scale,
                           dragData: position,

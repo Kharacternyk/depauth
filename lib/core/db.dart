@@ -1,7 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:sqlite3/sqlite3.dart';
 
-import 'types.dart';
+import 'boundaries.dart';
+import 'entity.dart';
+import 'entity_type.dart';
+import 'position.dart';
+import 'traversable_entity.dart';
 
 class Db {
   final Database db;
@@ -9,21 +13,21 @@ class Db {
     _getBoundaries(),
   );
 
-  final Map<Position, WeakReference<ValueNotifier<EntityVertex?>>> _entities =
-      {};
+  final Map<Position, WeakReference<ValueNotifier<TraversableEntity?>>>
+      _entities = {};
 
-  ValueNotifier<EntityVertex?> getEntity(Position position) {
+  ValueNotifier<TraversableEntity?> getEntity(Position position) {
     return switch (_entities[position]) {
       null => _cacheEntity(position),
-      WeakReference<ValueNotifier<EntityVertex?>> reference => switch (
+      WeakReference<ValueNotifier<TraversableEntity?>> reference => switch (
             reference.target) {
           null => _cacheEntity(position),
-          ValueNotifier<EntityVertex?> entity => entity,
+          ValueNotifier<TraversableEntity?> entity => entity,
         },
     };
   }
 
-  ValueNotifier<EntityVertex?> _cacheEntity(Position position) {
+  ValueNotifier<TraversableEntity?> _cacheEntity(Position position) {
     final entity = ValueNotifier(_getEntity(position));
 
     _entities[position] = WeakReference(entity);
@@ -55,23 +59,22 @@ class Db {
     group by id
     order by min(entities.x), min(entities.y)
   ''');
-  EntityVertex? _getEntity(Position position) {
+  TraversableEntity? _getEntity(Position position) {
     final row =
         _getEntityStatement.select([position.x, position.y]).firstOrNull;
     return switch (row) {
       null => null,
-      Row row => EntityVertex(
-          _parseEntity(row),
+      Row row => TraversableEntity(
+          row['name'] as String,
+          EntityType.values[row['type'] as int],
           _getDependencyGroupsStatement.select([row['name']]).map((row) =>
-              _getDependenciesStatement.select([row['id']]).map(_parseEntity)),
+              _getDependenciesStatement.select([row['id']]).map((row) => Entity(
+                    row['name'] as String,
+                    EntityType.values[row['type'] as int],
+                  ))),
         ),
     };
   }
-
-  Entity _parseEntity(Row row) => Entity(
-        row['name'] as String,
-        EntityType.values[row['type'] as int],
-      );
 
   late final _moveEntityStatement = db.prepare('''
     update entities
