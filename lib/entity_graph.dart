@@ -27,10 +27,10 @@ class _State extends State<EntityGraph> {
       builder: (context, boundaries, child) {
         final rows = <Expanded>[];
 
-        for (var y = boundaries.start.y - 1; y <= boundaries.end.y + 1; ++y) {
+        for (var y = boundaries.start.y; y <= boundaries.end.y; ++y) {
           final row = <Widget>[];
 
-          for (var x = boundaries.start.x - 1; x <= boundaries.end.x + 1; ++x) {
+          for (var x = boundaries.start.x; x <= boundaries.end.x; ++x) {
             final position = Position(x, y);
             final entity = db.getEntity(position);
 
@@ -57,14 +57,15 @@ class _State extends State<EntityGraph> {
                           (x - boundaries.end.x, y - boundaries.end.y),
                           (boundaries.start.x - x, boundaries.start.y - y)
                         )) {
-                          ((1, 1), _) => Icons.south_east,
-                          (_, (1, 1)) => Icons.north_west,
-                          ((_, 1), (1, _)) => Icons.south_west,
-                          ((1, _), (_, 1)) => Icons.north_east,
-                          ((_, 1), _) => Icons.south,
-                          ((1, _), _) => Icons.east,
-                          (_, (_, 1)) => Icons.north,
-                          (_, (1, _)) => Icons.west,
+                          ((0, 0), (0, 0)) => null,
+                          ((0, 0), _) => Icons.south_east,
+                          (_, (0, 0)) => Icons.north_west,
+                          ((_, 0), (0, _)) => Icons.south_west,
+                          ((0, _), (_, 0)) => Icons.north_east,
+                          ((_, 0), _) => Icons.south,
+                          ((0, _), _) => Icons.east,
+                          (_, (_, 0)) => Icons.north,
+                          (_, (0, _)) => Icons.west,
                           _ => null,
                         },
                       ),

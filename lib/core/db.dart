@@ -114,7 +114,7 @@ class Db {
   }
 
   late final _getBoundariesStatement = _db.prepare('''
-    select min(x), min(y), max(x), max(y)
+    select min(x) - 1, min(y) - 1, max(x) + 1, max(y) + 1
     from entities
   ''');
   Boundaries _getBoundaries() {
