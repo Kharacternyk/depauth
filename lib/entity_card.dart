@@ -67,29 +67,49 @@ class EntityCard extends StatelessWidget {
           elevation: 10,
           margin: EdgeInsets.zero,
           shape: const Border(),
-          child: Column(
-            children: [
-              if (entity.dependencies.isNotEmpty)
+          child: InkWell(
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return SimpleDialog(
+                    children: [
+                      SimpleDialogOption(
+                        child: TextField(
+                          controller: TextEditingController(
+                            text: entity.entity.name,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+            child: Column(
+              children: [
+                if (entity.dependencies.isNotEmpty)
+                  Expanded(
+                    child: Row(
+                      children: dependencyIcons,
+                    ),
+                  ),
                 Expanded(
-                  child: Row(
-                    children: dependencyIcons,
+                  child: FittedBox(
+                    child: Padding(
+                      padding: padding,
+                      child: Text(entity.entity.name),
+                    ),
                   ),
                 ),
-              Expanded(
-                child: FittedBox(
-                  child: Padding(
+                Expanded(
+                  child: EntityIcon(
+                    entity.entity,
                     padding: padding,
-                    child: Text(entity.entity.name),
                   ),
                 ),
-              ),
-              Expanded(
-                child: EntityIcon(
-                  entity.entity,
-                  padding: padding,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

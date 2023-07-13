@@ -13,7 +13,7 @@ class EntityIcon extends StatelessWidget {
   build(context) {
     final theme = EntityTheme(entity);
 
-    return Material(
+    return Ink(
       color: theme.background,
       child: Row(
         children: [
