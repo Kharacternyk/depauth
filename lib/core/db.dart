@@ -8,13 +8,13 @@ import 'position.dart';
 import 'traversable_entity.dart';
 
 class Db {
-  final Database db;
+  final Database _db;
+  final Map<Position, WeakReference<ValueNotifier<TraversableEntity?>>>
+      _entities = {};
+
   late final ValueNotifier<Boundaries> boundaries = ValueNotifier(
     _getBoundaries(),
   );
-
-  final Map<Position, WeakReference<ValueNotifier<TraversableEntity?>>>
-      _entities = {};
 
   ValueNotifier<TraversableEntity?> getEntity(Position position) {
     return switch (_entities[position]) {
@@ -35,27 +35,27 @@ class Db {
     return entity;
   }
 
-  late final PreparedStatement _getEntityStatement = db.prepare('''
+  late final PreparedStatement _getEntityStatement = _db.prepare('''
     select name, type
     from entities
     where x = ? and y = ?
   ''');
-  late final PreparedStatement _getDependenciesStatement = db.prepare('''
+  late final PreparedStatement _getDependenciesStatement = _db.prepare('''
     select name, type
     from entities
     join dependencies
     on name = entity
-    where dependency_group = ?
+    where factor = ?
     order by x, y
   ''');
-  late final PreparedStatement _getDependencyGroupsStatement = db.prepare('''
+  late final PreparedStatement _getFactorsStatement = _db.prepare('''
     select id
-    from dependency_groups
+    from factors
     join dependencies
-    on id = dependency_group
+    on id = factor
     join entities
     on dependencies.entity = name
-    where dependency_groups.entity = ?
+    where factors.entity = ?
     group by id
     order by min(entities.x), min(entities.y)
   ''');
@@ -67,7 +67,7 @@ class Db {
       Row row => TraversableEntity(
           row['name'] as String,
           EntityType.values[row['type'] as int],
-          _getDependencyGroupsStatement.select([row['name']]).map((row) =>
+          _getFactorsStatement.select([row['name']]).map((row) =>
               _getDependenciesStatement.select([row['id']]).map((row) => Entity(
                     row['name'] as String,
                     EntityType.values[row['type'] as int],
@@ -76,7 +76,7 @@ class Db {
     };
   }
 
-  late final _moveEntityStatement = db.prepare('''
+  late final _moveEntityStatement = _db.prepare('''
     update entities
     set x = ?, y = ?
     where x = ? and y = ?
@@ -99,7 +99,7 @@ class Db {
     _entities[position]?.target?.value = _getEntity(position);
   }
 
-  late final _getBoundariesStatement = db.prepare('''
+  late final _getBoundariesStatement = _db.prepare('''
     select min(x), min(y), max(x), max(y)
     from entities
   ''');
@@ -111,13 +111,13 @@ class Db {
     );
   }
 
-  late final _getDependantPositionsStatement = db.prepare('''
+  late final _getDependantPositionsStatement = _db.prepare('''
     select sources.x, sources.y
     from entities as sources
-    join dependency_groups
-    on sources.name = dependency_groups.entity
+    join factors
+    on sources.name = factors.entity
     join dependencies
-    on dependency_group = id
+    on factor = id
     join entities as targets
     on targets.name = dependencies.entity
     where targets.x = ? and targets.y = ?
@@ -126,8 +126,8 @@ class Db {
       _getDependantPositionsStatement.select([position.x, position.y]).map(
           (row) => Position(row['x'] as int, row['y'] as int));
 
-  Db() : db = sqlite3.openInMemory() {
-    db.execute('''
+  Db() : _db = sqlite3.openInMemory() {
+    _db.execute('''
       pragma foreign_keys = on;
 
       create table if not exists entities (
@@ -138,19 +138,19 @@ class Db {
         unique(x, y)
       ) strict, without rowid;
 
-      create table if not exists dependency_groups (
+      create table if not exists factors (
         id integer not null primary key,
         entity text not null references entities on update cascade on delete cascade
       ) strict;
 
       create table if not exists dependencies (
-        dependency_group integer not null references dependency_groups on delete cascade,
+        factor integer not null references factors on delete cascade,
         entity text not null references entities on update cascade on delete cascade,
-        primary key(entity, dependency_group)
+        primary key(entity, factor)
       ) strict, without rowid;
     ''');
 
-    db.prepare('''
+    _db.prepare('''
       insert into entities(name, type, x, y) values (?, ?, ?, ?)
     ''')
       ..execute(['Google', 0, 1, 1])
@@ -159,8 +159,8 @@ class Db {
       ..execute(['Nazar', 2, 2, 1])
       ..dispose();
 
-    db.prepare('''
-      insert into dependency_groups(id, entity) values (?, ?)
+    _db.prepare('''
+      insert into factors(id, entity) values (?, ?)
     ''')
       ..execute([0, 'Google'])
       ..execute([1, 'Fastmail'])
@@ -168,8 +168,8 @@ class Db {
       ..execute([3, 'Fastmail'])
       ..dispose();
 
-    db.prepare('''
-      insert into dependencies(dependency_group, entity) values (?, ?)
+    _db.prepare('''
+      insert into dependencies(factor, entity) values (?, ?)
     ''')
       ..execute([0, 'Fastmail'])
       ..execute([1, 'Google'])
