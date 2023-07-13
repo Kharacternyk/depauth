@@ -86,17 +86,31 @@ class Db {
       [to.x, to.y, from.x, from.y],
     );
 
-    _entities[from]?.target?.value = null;
-    _updateEntity(to);
-    for (final position in _getDependantPositions(to)) {
-      _updateEntity(position);
-    }
+    _updateEntities([from, to, ..._getDependantPositions(from)]);
+    _updateBoundaries();
+  }
 
+  late final _deleteEntityStatement = _db.prepare('''
+    delete from entities
+    where x = ? and y = ?
+  ''');
+  void deleteEntity(Position position) {
+    final dependants = _getDependantPositions(position);
+
+    _deleteEntityStatement.execute([position.x, position.y]);
+
+    _updateEntities([position, ...dependants]);
+    _updateBoundaries();
+  }
+
+  void _updateBoundaries() {
     boundaries.value = _getBoundaries();
   }
 
-  void _updateEntity(Position position) {
-    _entities[position]?.target?.value = _getEntity(position);
+  void _updateEntities(Iterable<Position> positions) {
+    for (final position in positions) {
+      _entities[position]?.target?.value = _getEntity(position);
+    }
   }
 
   late final _getBoundariesStatement = _db.prepare('''
@@ -106,8 +120,8 @@ class Db {
   Boundaries _getBoundaries() {
     final values = _getBoundariesStatement.select().first.values;
     return Boundaries(
-      Position(values[0] as int, values[1] as int),
-      Position(values[2] as int, values[3] as int),
+      Position(values[0] as int? ?? 0, values[1] as int? ?? 0),
+      Position(values[2] as int? ?? 0, values[3] as int? ?? 0),
     );
   }
 

@@ -9,8 +9,14 @@ import 'fractional_padding.dart';
 class EntityCard extends StatelessWidget {
   final TraversableEntity entity;
   final double arrowScale;
+  final VoidCallback onDelete;
 
-  const EntityCard(this.entity, {this.arrowScale = 1, super.key});
+  const EntityCard(
+    this.entity, {
+    required this.onDelete,
+    this.arrowScale = 1,
+    super.key,
+  });
 
   @override
   build(context) {
@@ -76,7 +82,7 @@ class EntityCard extends StatelessWidget {
                     children: [
                       SimpleDialogOption(
                         child: TextButton.icon(
-                          onPressed: () {},
+                          onPressed: onDelete,
                           icon: const Icon(Icons.delete),
                           label: const Text('Delete'),
                         ),

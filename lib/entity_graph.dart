@@ -46,6 +46,7 @@ class _State extends State<EntityGraph> {
                           child: EntityCard(
                             entity,
                             arrowScale: 1 / widget.scale,
+                            onDelete: () => db.deleteEntity(position),
                           ),
                         ),
                       ),
