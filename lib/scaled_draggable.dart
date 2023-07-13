@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 class ScaledDraggable<DragDataType extends Object> extends StatelessWidget {
   final Widget child;
-  final double scale;
   final DragDataType dragData;
+  final double scale;
 
   const ScaledDraggable({
     required this.dragData,
     required this.child,
-    required this.scale,
+    this.scale = 1,
     super.key,
   });
 

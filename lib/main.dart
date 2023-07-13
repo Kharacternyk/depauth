@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 
+import 'core/position.dart';
 import 'entity_graph.dart';
+import 'scaled_draggable.dart';
 import 'viewer.dart';
 
 void main() {
@@ -57,10 +59,13 @@ class MyHomePage extends StatelessWidget {
           scale: scale,
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => {},
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+      floatingActionButton: ScaledDraggable(
+        dragData: const Position(0, 0),
+        child: FloatingActionButton(
+          onPressed: () => {},
+          tooltip: 'Increment',
+          child: const Icon(Icons.add),
+        ),
       ),
     );
   }
