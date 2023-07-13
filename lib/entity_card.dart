@@ -45,7 +45,7 @@ class EntityCard extends StatelessWidget {
                 child: FittedBox(
                   child: Padding(
                     padding: padding,
-                    child: Icon(Icons.insert_link),
+                    child: Icon(Icons.add),
                   ),
                 ),
               ),
