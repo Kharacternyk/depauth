@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 
-import 'core/position.dart';
+import 'core/entity_source.dart';
 import 'entity_graph.dart';
 import 'scaled_draggable.dart';
 import 'viewer.dart';
@@ -36,6 +36,9 @@ class MyHomePage extends StatelessWidget {
 
   @override
   build(BuildContext context) {
+    const addEntityTooltip =
+        "Drag this button onto an empty space to create a new entity.";
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -60,10 +63,17 @@ class MyHomePage extends StatelessWidget {
         ),
       ),
       floatingActionButton: ScaledDraggable(
-        dragData: const Position(0, 0),
+        dragData: const NewEntitySource(),
         child: FloatingActionButton(
-          onPressed: () => {},
-          tooltip: 'Increment',
+          onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(addEntityTooltip),
+                showCloseIcon: true,
+              ),
+            );
+          },
+          tooltip: addEntityTooltip,
           child: const Icon(Icons.add),
         ),
       ),

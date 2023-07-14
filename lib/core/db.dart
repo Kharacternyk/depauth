@@ -103,6 +103,37 @@ class Db {
     _updateBoundaries();
   }
 
+  late final _createEntityStatement = _db.prepare('''
+    insert into entities(name, type, x, y) values (?, ?, ?, ?)
+  ''');
+  void createEntity(Position position) {
+    const baseName = 'New Entity';
+    const beforeIndex = ' (';
+    const afterIndex = ')';
+    const primaryKeyError = 1555;
+
+    for (var i = 0; true; ++i) {
+      final name = i == 0 ? baseName : '$baseName$beforeIndex$i$afterIndex';
+      try {
+        _createEntityStatement.execute([
+          name,
+          EntityType.generic.index,
+          position.x,
+          position.y,
+        ]);
+      } on SqliteException catch (error) {
+        if (error.extendedResultCode != primaryKeyError) {
+          rethrow;
+        }
+        continue;
+      }
+      break;
+    }
+
+    _updateEntities([position]);
+    _updateBoundaries();
+  }
+
   void _updateBoundaries() {
     boundaries.value = _getBoundaries();
   }
@@ -167,10 +198,10 @@ class Db {
     _db.prepare('''
       insert into entities(name, type, x, y) values (?, ?, ?, ?)
     ''')
-      ..execute(['Google', 0, 1, 1])
-      ..execute(['Fastmail', 0, 1, 2])
-      ..execute(['Yubikey', 1, 1, 3])
-      ..execute(['Nazar', 2, 2, 1])
+      ..execute(['Google', 1, 1, 1])
+      ..execute(['Fastmail', 1, 1, 2])
+      ..execute(['Yubikey', 2, 1, 3])
+      ..execute(['Nazar', 3, 2, 1])
       ..dispose();
 
     _db.prepare('''

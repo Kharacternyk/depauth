@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:widget_arrows/widget_arrows.dart';
 
 import 'core/db.dart';
+import 'core/entity_source.dart';
 import 'core/position.dart';
 import 'core/traversable_entity.dart';
 import 'entity_card.dart';
@@ -40,9 +41,9 @@ class _State extends State<EntityGraph> {
                 builder: (context, entity, child) {
                   return switch (entity) {
                     TraversableEntity entity => Expanded(
-                        child: ScaledDraggable<Position>(
+                        child: ScaledDraggable(
                           scale: widget.scale,
-                          dragData: position,
+                          dragData: EntityFromPositionSource(position),
                           child: EntityCard(
                             entity,
                             arrowScale: 1 / widget.scale,
@@ -50,9 +51,16 @@ class _State extends State<EntityGraph> {
                           ),
                         ),
                       ),
-                    null => EntityPlaceholder<Position>(
-                        onDragAccepted: (oldPosition) =>
-                            db.moveEntity(from: oldPosition, to: position),
+                    null => EntityPlaceholder<EntitySource>(
+                        onDragAccepted: (source) {
+                          switch (source) {
+                            case EntityFromPositionSource source:
+                              db.moveEntity(
+                                  from: source.position, to: position);
+                            case NewEntitySource _:
+                              db.createEntity(position);
+                          }
+                        },
                         icon: switch ((
                           (x - boundaries.end.x, y - boundaries.end.y),
                           (boundaries.start.x - x, boundaries.start.y - y)
