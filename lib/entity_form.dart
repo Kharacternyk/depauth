@@ -33,8 +33,16 @@ class _State extends State<EntityForm> {
     return SimpleDialog(
       children: [
         SimpleDialogOption(
-          child: TextFormField(
+          child: TextField(
             controller: nameController,
+            onChanged: (String name) {
+              widget.changeEntity(
+                Entity(
+                  name.trim(),
+                  widget.entity.type,
+                ),
+              );
+            },
             decoration: const InputDecoration(
               icon: Icon(Icons.edit),
               hintText: 'Name',
@@ -47,20 +55,23 @@ class _State extends State<EntityForm> {
               Expanded(
                 child: IconButton(
                   onPressed: () {
-                    widget.changeEntity(
-                      Entity(
-                        nameController.text,
-                        widget.entity.type,
-                      ),
-                    );
                     Navigator.maybePop(context);
                   },
-                  icon: const Icon(Icons.save),
+                  icon: const Icon(Icons.done),
                   color: Theme.of(context).colorScheme.primary,
-                  tooltip: "Save",
+                  tooltip: "Done",
                 ),
               ),
-              const Expanded(child: CloseButton()),
+              Expanded(
+                child: IconButton(
+                  onPressed: () {
+                    nameController.text = widget.entity.name;
+                    widget.changeEntity(widget.entity);
+                  },
+                  icon: const Icon(Icons.undo),
+                  tooltip: "Undo all changes",
+                ),
+              ),
               Expanded(
                 child: IconButton(
                   onPressed: () {

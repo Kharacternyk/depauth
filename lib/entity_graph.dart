@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:widget_arrows/widget_arrows.dart';
 
 import 'core/db.dart';
+import 'core/entity.dart';
 import 'core/entity_source.dart';
+import 'core/entity_type.dart';
 import 'core/position.dart';
 import 'core/traversable_entity.dart';
 import 'entity_card.dart';
@@ -17,7 +19,10 @@ class EntityGraph extends StatefulWidget {
 }
 
 class _State extends State<EntityGraph> {
-  final Db db = Db();
+  final Db db = Db(
+    entityDuplicatePrefix: ' (',
+    entityDuplicateSuffix: ')',
+  );
 
   @override
   dispose() {
@@ -65,7 +70,13 @@ class _State extends State<EntityGraph> {
                               db.moveEntity(
                                   from: source.position, to: position);
                             case NewEntitySource _:
-                              db.createEntity(position);
+                              db.createEntity(
+                                position,
+                                const Entity(
+                                  'New Entity',
+                                  EntityType.generic,
+                                ),
+                              );
                           }
                         },
                         icon: switch ((

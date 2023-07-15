@@ -8,6 +8,9 @@ import 'position.dart';
 import 'traversable_entity.dart';
 
 class Db {
+  final String entityDuplicatePrefix;
+  final String entityDuplicateSuffix;
+
   final Database _db;
   final Map<Position, WeakReference<ValueNotifier<TraversableEntity?>>>
       _entities = {};
@@ -104,52 +107,68 @@ class Db {
     _updateBoundaries();
   }
 
-  late final _createEntityStatement = _db.prepare('''
-    insert into entities(name, type, x, y) values (?, ?, ?, ?)
-  ''');
-  void createEntity(Position position) {
-    const baseName = 'New Entity';
-    const beforeIndex = ' (';
-    const afterIndex = ')';
-    const primaryKeyError = 1555;
-
-    for (var i = 0; true; ++i) {
-      final name = i == 0 ? baseName : '$baseName$beforeIndex$i$afterIndex';
-      try {
-        _createEntityStatement.execute([
-          name,
-          EntityType.generic.index,
-          position.x,
-          position.y,
-        ]);
-      } on SqliteException catch (error) {
-        if (error.extendedResultCode != primaryKeyError) {
-          rethrow;
-        }
-        continue;
-      }
-      break;
-    }
-
+  void createEntity(Position position, Entity entity) {
+    _upsertEntity(position, entity);
     _updateEntities([position]);
     _updateBoundaries();
   }
 
-  late final _changeEntityStatement = _db.prepare('''
-    update entities
-    set name = ?, type = ?
-    where x = ? and y = ?
-  ''');
   void changeEntity(Position position, Entity entity) {
-    _changeEntityStatement.execute([
-      entity.name,
-      entity.type.index,
-      position.x,
-      position.y,
-    ]);
-
+    _upsertEntity(position, entity);
     _updateEntities([position, ..._getDependantPositions(position)]);
     _updateDependencies();
+  }
+
+  late final _upsertEntityStatement = _db.prepare('''
+    insert into entities(name, type, x, y)
+    values (?, ?, ?, ?)
+    on conflict(x, y)
+    do update set name = ?, type = ?
+  ''');
+  void _upsertEntity(Position position, Entity entity) {
+    final i = _getEntityDuplicateIndex(position, entity);
+    final name = i > 0
+        ? '${entity.name}$entityDuplicatePrefix$i$entityDuplicateSuffix'
+        : entity.name;
+    final type = entity.type.index;
+
+    _upsertEntityStatement.execute([
+      name,
+      type,
+      position.x,
+      position.y,
+      name,
+      type,
+    ]);
+  }
+
+  late final _getEntityDuplicateIndexStatement = _db.prepare('''
+    with recursive duplicateIndices(i) as(
+      select 0
+      union all
+      select i + 1
+      from duplicateIndices
+      join entities
+      on name = ? || ? || i || ?
+      or i = 0 and name = ?
+      where x <> ? and y <> ?
+    )
+    select max(i)
+    from duplicateIndices
+  ''');
+  int _getEntityDuplicateIndex(Position position, Entity entity) {
+    return _getEntityDuplicateIndexStatement
+        .select([
+          entity.name,
+          entityDuplicatePrefix,
+          entityDuplicateSuffix,
+          entity.name,
+          position.x,
+          position.y,
+        ])
+        .first
+        .values
+        .first as int;
   }
 
   void _updateDependencies() {
@@ -193,7 +212,10 @@ class Db {
       _getDependantPositionsStatement.select([position.x, position.y]).map(
           (row) => Position(row['x'] as int, row['y'] as int));
 
-  Db() : _db = sqlite3.openInMemory() {
+  Db({
+    required this.entityDuplicatePrefix,
+    required this.entityDuplicateSuffix,
+  }) : _db = sqlite3.openInMemory() {
     _db.execute('''
       pragma foreign_keys = on;
 
