@@ -10,9 +10,7 @@ import 'entity_placeholder.dart';
 import 'scaled_draggable.dart';
 
 class EntityGraph extends StatefulWidget {
-  final double scale;
-
-  const EntityGraph({required this.scale, super.key});
+  const EntityGraph({super.key});
 
   @override
   createState() => _State();
@@ -42,11 +40,9 @@ class _State extends State<EntityGraph> {
                   return switch (entity) {
                     TraversableEntity entity => Expanded(
                         child: ScaledDraggable(
-                          scale: widget.scale,
                           dragData: EntityFromPositionSource(position),
                           child: EntityCard(
                             entity,
-                            arrowScale: 1 / widget.scale,
                             onDelete: () => db.deleteEntity(position),
                           ),
                         ),

@@ -5,16 +5,15 @@ import 'core/traversable_entity.dart';
 import 'entity_icon.dart';
 import 'entity_theme.dart';
 import 'fractional_padding.dart';
+import 'scaled_line.dart';
 
 class EntityCard extends StatelessWidget {
   final TraversableEntity entity;
-  final double arrowScale;
   final VoidCallback onDelete;
 
   const EntityCard(
     this.entity, {
     required this.onDelete,
-    this.arrowScale = 1,
     super.key,
   });
 
@@ -27,13 +26,9 @@ class EntityCard extends StatelessWidget {
       for (final dependency in group) {
         dependencyIcons.add(
           Expanded(
-            child: ArrowElement(
+            child: ScaledLine(
               id: '${dependency.name}^${entity.name}',
               color: EntityTheme(dependency.type).arrow.withOpacity(0.5),
-              sourceAnchor: Alignment.topCenter,
-              targetAnchor: Alignment.bottomCenter,
-              tipLength: 0,
-              width: 4 * arrowScale,
               targetId: dependency.name,
               child: EntityIcon(
                 dependency.type,

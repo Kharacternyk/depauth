@@ -55,12 +55,10 @@ class MyHomePage extends StatelessWidget {
           ],
         ),
       ),
-      body: Viewer(
+      body: const Viewer(
         minScale: 1,
         maxScale: 20,
-        builder: (scale) => EntityGraph(
-          scale: scale,
-        ),
+        child: EntityGraph(),
       ),
       floatingActionButton: ScaledDraggable(
         dragData: const NewEntitySource(),

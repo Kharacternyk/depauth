@@ -1,24 +1,28 @@
 import 'package:flutter/material.dart';
 
+import 'late_widget.dart';
+import 'viewer.dart';
+
 class ScaledDraggable<DragDataType extends Object> extends StatelessWidget {
   final Widget child;
   final DragDataType dragData;
-  final double scale;
 
   const ScaledDraggable({
     required this.dragData,
     required this.child,
-    this.scale = 1,
     super.key,
   });
 
   @override
   build(context) {
     return Draggable(
-      feedback: LayoutBuilder(builder: (feedbackContext, constraints) {
+      feedback: LateWidget(() {
         final renderBox = context.findRenderObject() as RenderBox;
         return Transform.scale(
-          scale: scale,
+          scale: switch (Scale.maybeOf(context)) {
+            null => 1,
+            Scale scale => scale.value
+          },
           child: SizedBox.fromSize(
             size: renderBox.size,
             child: child,

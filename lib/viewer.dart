@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 class Viewer extends StatefulWidget {
-  final Widget Function(double scale) builder;
+  final Widget child;
   final double minScale;
   final double maxScale;
 
   const Viewer({
-    required this.builder,
+    required this.child,
     required this.minScale,
     required this.maxScale,
     super.key,
@@ -14,6 +14,18 @@ class Viewer extends StatefulWidget {
 
   @override
   createState() => _State();
+}
+
+class Scale extends InheritedWidget {
+  final double value;
+
+  const Scale(this.value, {required super.child, super.key});
+
+  @override
+  bool updateShouldNotify(Scale oldWidget) => value != oldWidget.value;
+
+  static Scale? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<Scale>();
 }
 
 class _State extends State<Viewer> {
@@ -36,7 +48,10 @@ class _State extends State<Viewer> {
       onInteractionEnd: (details) => setState(() {
         scale = transformationController.value.getMaxScaleOnAxis();
       }),
-      child: widget.builder(scale),
+      child: Scale(
+        scale,
+        child: widget.child,
+      ),
     );
   }
 }
