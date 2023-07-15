@@ -102,7 +102,6 @@ class Db {
 
     _updateEntities([position, ...dependants]);
     _updateBoundaries();
-    _updateDependencies();
   }
 
   late final _createEntityStatement = _db.prepare('''
@@ -149,8 +148,8 @@ class Db {
       position.y,
     ]);
 
-    _updateDependencies();
     _updateEntities([position, ..._getDependantPositions(position)]);
+    _updateDependencies();
   }
 
   void _updateDependencies() {
