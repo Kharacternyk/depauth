@@ -15,6 +15,7 @@ class Db {
   late final ValueNotifier<Boundaries> boundaries = ValueNotifier(
     _getBoundaries(),
   );
+  final dependencyChangeNotifier = DependencyChangeNotifier();
 
   ValueNotifier<TraversableEntity?> getEntity(Position position) {
     return switch (_entities[position]) {
@@ -86,7 +87,7 @@ class Db {
       [to.x, to.y, from.x, from.y],
     );
 
-    _updateEntities([from, to, ..._getDependantPositions(from)]);
+    _updateEntities([from, to, ..._getDependantPositions(to)]);
     _updateBoundaries();
   }
 
@@ -101,6 +102,7 @@ class Db {
 
     _updateEntities([position, ...dependants]);
     _updateBoundaries();
+    _updateDependencies();
   }
 
   late final _createEntityStatement = _db.prepare('''
@@ -132,6 +134,27 @@ class Db {
 
     _updateEntities([position]);
     _updateBoundaries();
+  }
+
+  late final _changeEntityStatement = _db.prepare('''
+    update entities
+    set name = ?, type = ?
+    where x = ? and y = ?
+  ''');
+  void changeEntity(Position position, Entity entity) {
+    _changeEntityStatement.execute([
+      entity.name,
+      entity.type.index,
+      position.x,
+      position.y,
+    ]);
+
+    _updateDependencies();
+    _updateEntities([position, ..._getDependantPositions(position)]);
+  }
+
+  void _updateDependencies() {
+    dependencyChangeNotifier._update();
   }
 
   void _updateBoundaries() {
@@ -226,4 +249,10 @@ class Db {
   }
 
   void dispose() => _db.dispose();
+}
+
+class DependencyChangeNotifier extends ChangeNotifier {
+  void _update() {
+    notifyListeners();
+  }
 }

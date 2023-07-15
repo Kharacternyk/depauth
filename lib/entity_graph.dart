@@ -49,7 +49,12 @@ class _State extends State<EntityGraph> {
                           dragData: EntityFromPositionSource(position),
                           child: EntityCard(
                             entity,
-                            onDelete: () => db.deleteEntity(position),
+                            deleteEntity: () {
+                              db.deleteEntity(position);
+                            },
+                            changeEntity: (entity) {
+                              db.changeEntity(position, entity);
+                            },
                           ),
                         ),
                       ),
@@ -88,7 +93,15 @@ class _State extends State<EntityGraph> {
           rows.add(Expanded(child: Row(children: row)));
         }
 
-        return ArrowContainer(child: Column(children: rows));
+        final column = Column(children: rows);
+
+        return ListenableBuilder(
+          listenable: db.dependencyChangeNotifier,
+          builder: (context, child) => ArrowContainer(
+            key: UniqueKey(),
+            child: column,
+          ),
+        );
       },
     );
   }

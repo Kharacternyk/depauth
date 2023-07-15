@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:widget_arrows/widget_arrows.dart';
 
+import 'core/entity.dart';
 import 'core/traversable_entity.dart';
+import 'entity_form.dart';
 import 'entity_icon.dart';
 import 'entity_theme.dart';
 import 'fractional_padding.dart';
@@ -9,11 +11,13 @@ import 'scaled_line.dart';
 
 class EntityCard extends StatelessWidget {
   final TraversableEntity entity;
-  final VoidCallback onDelete;
+  final VoidCallback deleteEntity;
+  final void Function(Entity) changeEntity;
 
   const EntityCard(
     this.entity, {
-    required this.onDelete,
+    required this.deleteEntity,
+    required this.changeEntity,
     super.key,
   });
 
@@ -76,10 +80,9 @@ class EntityCard extends StatelessWidget {
                   return SimpleDialog(
                     children: [
                       SimpleDialogOption(
-                        child: TextButton.icon(
-                          onPressed: onDelete,
-                          icon: const Icon(Icons.delete),
-                          label: const Text('Delete'),
+                        child: EntityForm(
+                          entity,
+                          changeEntity: changeEntity,
                         ),
                       ),
                     ],
