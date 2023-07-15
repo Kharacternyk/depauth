@@ -224,4 +224,6 @@ class Db {
       ..execute([3, 'Yubikey'])
       ..dispose();
   }
+
+  void dispose() => _db.dispose();
 }

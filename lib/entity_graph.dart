@@ -20,6 +20,12 @@ class _State extends State<EntityGraph> {
   final Db db = Db();
 
   @override
+  dispose() {
+    db.dispose();
+    super.dispose();
+  }
+
+  @override
   build(context) {
     return ValueListenableBuilder(
       valueListenable: db.boundaries,
