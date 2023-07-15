@@ -74,18 +74,13 @@ class EntityCard extends StatelessWidget {
           shape: const Border(),
           child: InkWell(
             onTap: () {
-              showDialog(
+              showDialog<void>(
                 context: context,
                 builder: (context) {
-                  return SimpleDialog(
-                    children: [
-                      SimpleDialogOption(
-                        child: EntityForm(
-                          entity,
-                          changeEntity: changeEntity,
-                        ),
-                      ),
-                    ],
+                  return EntityForm(
+                    entity,
+                    changeEntity: changeEntity,
+                    deleteEntity: deleteEntity,
                   );
                 },
               );
