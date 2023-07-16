@@ -121,7 +121,7 @@ class Db {
 
   late final _upsertEntityStatement = _db.prepare('''
     insert into entities(name, type, x, y)
-    values (?, ?, ?, ?)
+    values(?, ?, ?, ?)
     on conflict(x, y)
     do update set name = ?, type = ?
   ''');
@@ -246,7 +246,7 @@ class Db {
         entity text not null references entities on update cascade on delete cascade
       ) strict;
 
-      create table if not exists dependencies (
+      create table if not exists dependencies(
         factor integer not null references factors on delete cascade,
         entity text not null references entities on update cascade on delete cascade,
         primary key(entity, factor)
@@ -254,7 +254,7 @@ class Db {
     ''');
 
     _db.prepare('''
-      insert into entities(name, type, x, y) values (?, ?, ?, ?)
+      insert into entities(name, type, x, y) values(?, ?, ?, ?)
     ''')
       ..execute(['Google', 1, 1, 1])
       ..execute(['Fastmail', 1, 1, 2])
@@ -263,7 +263,7 @@ class Db {
       ..dispose();
 
     _db.prepare('''
-      insert into factors(id, entity) values (?, ?)
+      insert into factors(id, entity) values(?, ?)
     ''')
       ..execute([0, 'Google'])
       ..execute([1, 'Fastmail'])
@@ -272,7 +272,7 @@ class Db {
       ..dispose();
 
     _db.prepare('''
-      insert into dependencies(factor, entity) values (?, ?)
+      insert into dependencies(factor, entity) values(?, ?)
     ''')
       ..execute([0, 'Fastmail'])
       ..execute([1, 'Google'])
