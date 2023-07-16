@@ -126,20 +126,34 @@ class Db {
     do update set name = ?, type = ?
   ''');
   void _upsertEntity(Position position, Entity entity) {
-    final i = _getEntityDuplicateIndex(position, entity);
-    final name = i > 0
-        ? '${entity.name}$entityDuplicatePrefix$i$entityDuplicateSuffix'
-        : entity.name;
+    entity = _getValidEntity(position, entity);
     final type = entity.type.index;
 
     _upsertEntityStatement.execute([
-      name,
+      entity.name,
       type,
       position.x,
       position.y,
-      name,
+      entity.name,
       type,
     ]);
+  }
+
+  Entity _getValidEntity(Position position, Entity entity) {
+    entity = Entity(
+      entity.name.trim(),
+      entity.type,
+    );
+    final i = _getEntityDuplicateIndex(position, entity);
+
+    if (i > 0) {
+      return Entity(
+        '${entity.name}$entityDuplicatePrefix$i$entityDuplicateSuffix',
+        entity.type,
+      );
+    }
+
+    return entity;
   }
 
   late final _getEntityDuplicateIndexStatement = _db.prepare('''

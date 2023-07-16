@@ -41,7 +41,7 @@ class _State extends State<EntityForm> {
             onChanged: (String name) {
               widget.changeEntity(
                 Entity(
-                  name.trim(),
+                  name,
                   widget.entity.type,
                 ),
               );
