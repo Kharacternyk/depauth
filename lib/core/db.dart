@@ -212,7 +212,7 @@ class Db {
   }
 
   late final _getDependantPositionsStatement = _db.prepare('''
-    select sources.x, sources.y
+    select distinct sources.x, sources.y
     from entities as sources
     join factors
     on sources.name = factors.entity
