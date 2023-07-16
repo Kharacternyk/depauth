@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'core/entity.dart';
+import 'core/entity_type.dart';
 import 'core/traversable_entity.dart';
+import 'entity_theme.dart';
 
 class EntityForm extends StatefulWidget {
   final TraversableEntity entity;
@@ -21,6 +23,7 @@ class EntityForm extends StatefulWidget {
 
 class _State extends State<EntityForm> {
   late final nameController = TextEditingController(text: widget.entity.name);
+  late EntityType type = widget.entity.type;
 
   @override
   dispose() {
@@ -44,9 +47,44 @@ class _State extends State<EntityForm> {
               );
             },
             decoration: const InputDecoration(
-              icon: Icon(Icons.edit),
               hintText: 'Name',
             ),
+          ),
+        ),
+        SimpleDialogOption(
+          child: DropdownButton(
+            isExpanded: true,
+            items: EntityType.values
+                .map(
+                  (value) => DropdownMenuItem(
+                    value: value,
+                    child: Row(
+                      children: [
+                        Ink(
+                          color: EntityTheme(value).background,
+                          child: Padding(
+                            padding: const EdgeInsets.all(3),
+                            child: Icon(
+                              EntityTheme(value).icon,
+                              color: EntityTheme(value).foreground,
+                            ),
+                          ),
+                        ),
+                        Text(' ${EntityTheme(value).typeName}'),
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
+            onChanged: (value) {
+              widget.changeEntity(
+                Entity(nameController.text, value ?? widget.entity.type),
+              );
+              setState(() {
+                type = value ?? widget.entity.type;
+              });
+            },
+            value: type,
           ),
         ),
         SimpleDialogOption(
@@ -66,6 +104,9 @@ class _State extends State<EntityForm> {
                 child: IconButton(
                   onPressed: () {
                     nameController.text = widget.entity.name;
+                    setState(() {
+                      type = widget.entity.type;
+                    });
                     widget.changeEntity(widget.entity);
                   },
                   icon: const Icon(Icons.undo),

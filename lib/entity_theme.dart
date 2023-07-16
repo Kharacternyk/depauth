@@ -7,8 +7,15 @@ class EntityTheme {
   final Color foreground;
   final Color arrow;
   final IconData icon;
+  final String typeName;
 
-  EntityTheme._(this.background, this.foreground, this.arrow, this.icon);
+  EntityTheme._(
+    this.background,
+    this.foreground,
+    this.arrow,
+    this.icon,
+    this.typeName,
+  );
 
   static ColorScheme _seedScheme(Color seed) {
     return ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.dark);
@@ -19,15 +26,25 @@ class EntityTheme {
   static final _blue = _seedScheme(Colors.blue);
   static final _yellow = _seedScheme(Colors.yellow);
 
-  static EntityTheme _fromScheme(ColorScheme scheme, IconData icon) {
-    return EntityTheme._(scheme.primaryContainer, scheme.onPrimaryContainer,
-        scheme.primary, icon);
+  static EntityTheme _fromScheme(
+    ColorScheme scheme,
+    IconData icon,
+    String typeName,
+  ) {
+    return EntityTheme._(
+      scheme.primaryContainer,
+      scheme.onPrimaryContainer,
+      scheme.primary,
+      icon,
+      typeName,
+    );
   }
 
-  static final _generic = _fromScheme(_yellow, Icons.category);
-  static final _webService = _fromScheme(_blue, Icons.web);
-  static final _person = _fromScheme(_red, Icons.person);
-  static final _hardwareKey = _fromScheme(_green, Icons.key);
+  static final _generic =
+      _fromScheme(_yellow, Icons.category, 'Generic Entity');
+  static final _webService = _fromScheme(_blue, Icons.web, 'Web Service');
+  static final _person = _fromScheme(_red, Icons.person, 'Person');
+  static final _hardwareKey = _fromScheme(_green, Icons.key, 'Hardware Key');
 
   factory EntityTheme(EntityType type) {
     return switch (type) {
