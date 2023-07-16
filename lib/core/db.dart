@@ -233,15 +233,15 @@ class Db {
     _db.execute('''
       pragma foreign_keys = on;
 
-      create table if not exists entities (
-        name text not null primary key,
+      create table if not exists entities(
+        name text not null primary key check(trim(name) = name),
         type integer not null,
         x integer not null,
         y integer not null,
         unique(x, y)
       ) strict, without rowid;
 
-      create table if not exists factors (
+      create table if not exists factors(
         id integer not null primary key,
         entity text not null references entities on update cascade on delete cascade
       ) strict;
