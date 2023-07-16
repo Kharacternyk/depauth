@@ -165,7 +165,7 @@ class Db {
       join entities
       on name = ? || ? || i || ?
       or i = 0 and name = ?
-      where x <> ? and y <> ?
+      where x <> ? or y <> ?
     )
     select max(i)
     from duplicateIndices
