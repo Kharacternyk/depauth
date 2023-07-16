@@ -148,7 +148,7 @@ class Db {
 
     if (i > 0) {
       return Entity(
-        '${entity.name}$entityDuplicatePrefix$i$entityDuplicateSuffix',
+        '${entity.name}$entityDuplicatePrefix$i$entityDuplicateSuffix'.trim(),
         entity.type,
       );
     }
@@ -163,7 +163,7 @@ class Db {
       select i + 1
       from duplicateIndices
       join entities
-      on name = ? || ? || i || ?
+      on name = trim(? || ? || i || ?)
       or i = 0 and name = ?
       where x <> ? or y <> ?
     )
