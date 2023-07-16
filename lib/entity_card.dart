@@ -26,8 +26,8 @@ class EntityCard extends StatelessWidget {
     const padding = EdgeInsets.all(8);
     final dependencyIcons = <Widget>[];
 
-    for (final group in entity.dependencies) {
-      for (final dependency in group) {
+    for (final factor in entity.dependencies) {
+      for (final dependency in factor) {
         dependencyIcons.add(
           Expanded(
             key: ValueKey((dependency.name, entity.name)),
