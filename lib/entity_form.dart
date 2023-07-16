@@ -52,41 +52,61 @@ class _State extends State<EntityForm> {
           ),
         ),
         SimpleDialogOption(
-          child: DropdownButton(
-            isExpanded: true,
-            items: EntityType.values
-                .map(
-                  (value) => DropdownMenuItem(
-                    value: value,
-                    child: Row(
-                      children: [
-                        Ink(
-                          color: EntityTheme(value).background,
-                          child: Padding(
-                            padding: const EdgeInsets.all(3),
-                            child: Icon(
-                              EntityTheme(value).icon,
-                              color: EntityTheme(value).foreground,
-                            ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton(
+              items: EntityType.values
+                  .map(
+                    (value) => DropdownMenuItem(
+                      value: value,
+                      child: Chip(
+                        avatar: Ink(
+                          child: Icon(
+                            EntityTheme(value).icon,
+                            color: EntityTheme(value).foreground,
                           ),
                         ),
-                        Text(' ${EntityTheme(value).typeName}'),
-                      ],
+                        label: Text(EntityTheme(value).typeName),
+                      ),
                     ),
-                  ),
-                )
-                .toList(),
-            onChanged: (value) {
-              widget.changeEntity(
-                Entity(nameController.text, value ?? widget.entity.type),
-              );
-              setState(() {
-                type = value ?? widget.entity.type;
-              });
-            },
-            value: type,
+                  )
+                  .toList(),
+              onChanged: (value) {
+                widget.changeEntity(
+                  Entity(nameController.text, value ?? widget.entity.type),
+                );
+                setState(() {
+                  type = value ?? widget.entity.type;
+                });
+              },
+              value: type,
+            ),
           ),
         ),
+        for (final factor in widget.entity.dependencies)
+          SimpleDialogOption(
+            child: Card(
+              margin: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  const ListTile(title: Text('Factor')),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: factor.map((entity) {
+                      return Chip(
+                        label: Text(entity.name),
+                        avatar: Icon(
+                          EntityTheme(entity.type).icon,
+                          color: EntityTheme(entity.type).foreground,
+                        ),
+                        onDeleted: () {},
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+          ),
         SimpleDialogOption(
           child: Row(
             children: [
