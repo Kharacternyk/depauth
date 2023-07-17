@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:widget_arrows/widget_arrows.dart';
 
-import 'core/entity.dart';
 import 'core/traversable_entity.dart';
-import 'entity_form.dart';
 import 'entity_icon.dart';
 import 'entity_theme.dart';
 import 'fractional_padding.dart';
@@ -11,18 +9,11 @@ import 'scaled_line.dart';
 
 class EntityCard extends StatelessWidget {
   final TraversableEntity entity;
-  final void Function() deleteEntity;
-  final void Function(Entity) changeEntity;
-  final void Function({
-    required int entityId,
-    required int factorId,
-  }) deleteDependency;
+  final VoidCallback onTap;
 
   const EntityCard(
     this.entity, {
-    required this.deleteEntity,
-    required this.changeEntity,
-    required this.deleteDependency,
+    required this.onTap,
     super.key,
   });
 
@@ -79,19 +70,7 @@ class EntityCard extends StatelessWidget {
           margin: EdgeInsets.zero,
           shape: const Border(),
           child: InkWell(
-            onTap: () {
-              showDialog<void>(
-                context: context,
-                builder: (context) {
-                  return EntityForm(
-                    entity,
-                    changeEntity: changeEntity,
-                    deleteEntity: deleteEntity,
-                    deleteDependency: deleteDependency,
-                  );
-                },
-              );
-            },
+            onTap: onTap,
             child: Column(
               children: [
                 if (entity.factors.isNotEmpty)

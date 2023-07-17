@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'core/entity.dart';
 import 'core/entity_type.dart';
 import 'core/traversable_entity.dart';
-import 'core/unique_entity.dart';
 import 'entity_theme.dart';
 
 class EntityForm extends StatefulWidget {
@@ -29,13 +28,6 @@ class EntityForm extends StatefulWidget {
 
 class _State extends State<EntityForm> {
   late final nameController = TextEditingController(text: widget.entity.name);
-  late EntityType type = widget.entity.type;
-  late final Map<int, Map<int, UniqueEntity>> dependencies = {
-    for (final factor in widget.entity.factors)
-      factor.id: {
-        for (final dependency in factor.dependencies) dependency.id: dependency
-      }
-  };
 
   @override
   dispose() {
@@ -52,7 +44,7 @@ class _State extends State<EntityForm> {
             controller: nameController,
             onChanged: (String name) {
               widget.changeEntity(
-                Entity(name, type),
+                Entity(name, widget.entity.type),
               );
             },
             decoration: const InputDecoration(
@@ -81,19 +73,16 @@ class _State extends State<EntityForm> {
                   .toList(),
               onChanged: (value) {
                 widget.changeEntity(
-                  Entity(nameController.text, value ?? widget.entity.type),
+                  Entity(widget.entity.name, value ?? widget.entity.type),
                 );
-                setState(() {
-                  type = value ?? widget.entity.type;
-                });
               },
-              value: type,
+              value: widget.entity.type,
             ),
           ),
         ),
-        for (final factor in dependencies.entries)
+        for (final factor in widget.entity.factors)
           SimpleDialogOption(
-            key: ValueKey(factor.key),
+            key: ValueKey(factor.id),
             child: Card(
               margin: EdgeInsets.zero,
               child: Column(
@@ -102,7 +91,7 @@ class _State extends State<EntityForm> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: factor.value.values.map((entity) {
+                    children: factor.dependencies.map((entity) {
                       return Chip(
                         key: ValueKey(entity.id),
                         label: Text(entity.name),
@@ -112,12 +101,9 @@ class _State extends State<EntityForm> {
                         ),
                         onDeleted: () {
                           widget.deleteDependency(
-                            factorId: factor.key,
+                            factorId: factor.id,
                             entityId: entity.id,
                           );
-                          setState(() {
-                            dependencies[factor.key]?.remove(entity.id);
-                          });
                         },
                       );
                     }).toList(),
@@ -140,12 +126,10 @@ class _State extends State<EntityForm> {
                 ),
               ),
               Expanded(
+                //FIXME
                 child: IconButton(
                   onPressed: () {
                     nameController.text = widget.entity.name;
-                    setState(() {
-                      type = widget.entity.type;
-                    });
                     widget.changeEntity(widget.entity);
                   },
                   icon: const Icon(Icons.undo),

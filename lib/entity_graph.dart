@@ -8,6 +8,7 @@ import 'core/entity_type.dart';
 import 'core/position.dart';
 import 'core/traversable_entity.dart';
 import 'entity_card.dart';
+import 'entity_form.dart';
 import 'entity_placeholder.dart';
 import 'scaled_draggable.dart';
 
@@ -42,11 +43,11 @@ class _State extends State<EntityGraph> {
 
           for (var x = boundaries.start.x; x <= boundaries.end.x; ++x) {
             final position = Position(x, y);
-            final entity = db.getEntity(position);
+            final listenableEntity = db.getEntity(position);
 
             row.add(
               ValueListenableBuilder(
-                valueListenable: entity,
+                valueListenable: listenableEntity,
                 builder: (context, entity, child) {
                   return switch (entity) {
                     TraversableEntity entity => Expanded(
@@ -54,20 +55,39 @@ class _State extends State<EntityGraph> {
                           dragData: EntityFromPositionSource(position),
                           child: EntityCard(
                             entity,
-                            deleteEntity: () {
-                              db.deleteEntity(position);
-                            },
-                            changeEntity: (entity) {
-                              db.changeEntity(position, entity);
-                            },
-                            deleteDependency: ({
-                              required int factorId,
-                              required int entityId,
-                            }) {
-                              db.deleteDependency(
-                                position,
-                                factorId: factorId,
-                                entityId: entityId,
+                            onTap: () {
+                              showDialog<void>(
+                                context: context,
+                                builder: (context) {
+                                  return ValueListenableBuilder(
+                                      valueListenable: listenableEntity,
+                                      builder: (context, entity, child) {
+                                        return switch (entity) {
+                                          TraversableEntity entity =>
+                                            EntityForm(
+                                              entity,
+                                              deleteEntity: () {
+                                                db.deleteEntity(position);
+                                              },
+                                              changeEntity: (entity) {
+                                                db.changeEntity(
+                                                    position, entity);
+                                              },
+                                              deleteDependency: ({
+                                                required int factorId,
+                                                required int entityId,
+                                              }) {
+                                                db.deleteDependency(
+                                                  position,
+                                                  factorId: factorId,
+                                                  entityId: entityId,
+                                                );
+                                              },
+                                            ),
+                                          null => const SizedBox.shrink(),
+                                        };
+                                      });
+                                },
                               );
                             },
                           ),
