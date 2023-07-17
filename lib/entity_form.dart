@@ -40,10 +40,7 @@ class _State extends State<EntityForm> {
             controller: nameController,
             onChanged: (String name) {
               widget.changeEntity(
-                Entity(
-                  name,
-                  widget.entity.type,
-                ),
+                Entity(name, type),
               );
             },
             decoration: const InputDecoration(
