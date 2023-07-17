@@ -81,6 +81,7 @@ class _State extends State<EntityForm> {
         ),
         for (final factor in widget.entity.dependencies)
           SimpleDialogOption(
+            key: ValueKey(factor.id),
             child: Card(
               margin: EdgeInsets.zero,
               child: Column(
@@ -89,8 +90,9 @@ class _State extends State<EntityForm> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: factor.map((entity) {
+                    children: factor.entities.map((entity) {
                       return Chip(
+                        key: ValueKey(entity.id),
                         label: Text(entity.name),
                         avatar: Icon(
                           EntityTheme(entity.type).icon,

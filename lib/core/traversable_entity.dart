@@ -1,7 +1,8 @@
-import 'entity.dart';
+import 'factor.dart';
+import 'unique_entity.dart';
 
-class TraversableEntity extends Entity {
-  final Iterable<Iterable<Entity>> dependencies;
+class TraversableEntity extends UniqueEntity {
+  final Iterable<Factor> dependencies;
 
-  const TraversableEntity(super.name, super.type, this.dependencies);
+  const TraversableEntity(super.id, super.name, super.type, this.dependencies);
 }

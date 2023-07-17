@@ -4,8 +4,10 @@ import 'package:sqlite3/sqlite3.dart';
 import 'boundaries.dart';
 import 'entity.dart';
 import 'entity_type.dart';
+import 'factor.dart';
 import 'position.dart';
 import 'traversable_entity.dart';
+import 'unique_entity.dart';
 
 class Db {
   final String entityDuplicatePrefix;
@@ -45,7 +47,7 @@ class Db {
     where x = ? and y = ?
   ''');
   late final PreparedStatement _getDependenciesStatement = _db.prepare('''
-    select name, type
+    select entities.id, name, type
     from entities
     join dependencies
     on entities.id = entity
@@ -69,13 +71,21 @@ class Db {
     return switch (entityRow) {
       null => null,
       Row entityRow => TraversableEntity(
+          entityRow['id'] as int,
           entityRow['name'] as String,
           EntityType.values[entityRow['type'] as int],
-          _getFactorsStatement.select([entityRow['id']]).map((row) =>
-              _getDependenciesStatement.select([row['id']]).map((row) => Entity(
-                    row['name'] as String,
-                    EntityType.values[row['type'] as int],
-                  ))),
+          _getFactorsStatement.select([entityRow['id']]).map((row) {
+            return Factor(
+              row['id'] as int,
+              _getDependenciesStatement.select([row['id']]).map((row) {
+                return UniqueEntity(
+                  row['id'] as int,
+                  row['name'] as String,
+                  EntityType.values[row['type'] as int],
+                );
+              }),
+            );
+          }),
         ),
     };
   }
