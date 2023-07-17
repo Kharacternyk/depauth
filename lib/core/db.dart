@@ -195,6 +195,32 @@ class Db {
         .first as int;
   }
 
+  late final _deleteDependencyStatement = _db.prepare('''
+    delete from dependencies
+    where entity = ? and factor = ? and exists(
+      select factors.id
+      from factors
+      join entities
+      on factors.entity = entities.id
+      where x = ? and y = ? and factors.id = ?
+    )
+  ''');
+  void deleteDependency(
+    Position position, {
+    required int entityId,
+    required int factorId,
+  }) {
+    _deleteDependencyStatement.execute([
+      entityId,
+      factorId,
+      position.x,
+      position.y,
+      factorId,
+    ]);
+    _updateEntities([position]);
+    _updateDependencies();
+  }
+
   void _updateDependencies() {
     dependencyChangeNotifier._update();
   }

@@ -60,6 +60,16 @@ class _State extends State<EntityGraph> {
                             changeEntity: (entity) {
                               db.changeEntity(position, entity);
                             },
+                            deleteDependency: ({
+                              required int factorId,
+                              required int entityId,
+                            }) {
+                              db.deleteDependency(
+                                position,
+                                factorId: factorId,
+                                entityId: entityId,
+                              );
+                            },
                           ),
                         ),
                       ),

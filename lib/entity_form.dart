@@ -3,17 +3,23 @@ import 'package:flutter/material.dart';
 import 'core/entity.dart';
 import 'core/entity_type.dart';
 import 'core/traversable_entity.dart';
+import 'core/unique_entity.dart';
 import 'entity_theme.dart';
 
 class EntityForm extends StatefulWidget {
   final TraversableEntity entity;
   final void Function(Entity) changeEntity;
-  final VoidCallback deleteEntity;
+  final void Function() deleteEntity;
+  final void Function({
+    required int entityId,
+    required int factorId,
+  }) deleteDependency;
 
   const EntityForm(
     this.entity, {
     required this.changeEntity,
     required this.deleteEntity,
+    required this.deleteDependency,
     super.key,
   });
 
@@ -24,6 +30,12 @@ class EntityForm extends StatefulWidget {
 class _State extends State<EntityForm> {
   late final nameController = TextEditingController(text: widget.entity.name);
   late EntityType type = widget.entity.type;
+  late final Map<int, Map<int, UniqueEntity>> dependencies = {
+    for (final factor in widget.entity.factors)
+      factor.id: {
+        for (final dependency in factor.dependencies) dependency.id: dependency
+      }
+  };
 
   @override
   dispose() {
@@ -79,9 +91,9 @@ class _State extends State<EntityForm> {
             ),
           ),
         ),
-        for (final factor in widget.entity.dependencies)
+        for (final factor in dependencies.entries)
           SimpleDialogOption(
-            key: ValueKey(factor.id),
+            key: ValueKey(factor.key),
             child: Card(
               margin: EdgeInsets.zero,
               child: Column(
@@ -90,7 +102,7 @@ class _State extends State<EntityForm> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: factor.entities.map((entity) {
+                    children: factor.value.values.map((entity) {
                       return Chip(
                         key: ValueKey(entity.id),
                         label: Text(entity.name),
@@ -98,7 +110,15 @@ class _State extends State<EntityForm> {
                           EntityTheme(entity.type).icon,
                           color: EntityTheme(entity.type).foreground,
                         ),
-                        onDeleted: () {},
+                        onDeleted: () {
+                          widget.deleteDependency(
+                            factorId: factor.key,
+                            entityId: entity.id,
+                          );
+                          setState(() {
+                            dependencies[factor.key]?.remove(entity.id);
+                          });
+                        },
                       );
                     }).toList(),
                   ),

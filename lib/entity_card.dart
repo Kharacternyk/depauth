@@ -11,13 +11,18 @@ import 'scaled_line.dart';
 
 class EntityCard extends StatelessWidget {
   final TraversableEntity entity;
-  final VoidCallback deleteEntity;
+  final void Function() deleteEntity;
   final void Function(Entity) changeEntity;
+  final void Function({
+    required int entityId,
+    required int factorId,
+  }) deleteDependency;
 
   const EntityCard(
     this.entity, {
     required this.deleteEntity,
     required this.changeEntity,
+    required this.deleteDependency,
     super.key,
   });
 
@@ -26,8 +31,8 @@ class EntityCard extends StatelessWidget {
     const padding = EdgeInsets.all(8);
     final dependencyIcons = <Widget>[];
 
-    for (final factor in entity.dependencies) {
-      for (final dependency in factor.entities) {
+    for (final factor in entity.factors) {
+      for (final dependency in factor.dependencies) {
         dependencyIcons.add(
           Expanded(
             key: ValueKey((factor.id, dependency.id)),
@@ -82,13 +87,14 @@ class EntityCard extends StatelessWidget {
                     entity,
                     changeEntity: changeEntity,
                     deleteEntity: deleteEntity,
+                    deleteDependency: deleteDependency,
                   );
                 },
               );
             },
             child: Column(
               children: [
-                if (entity.dependencies.isNotEmpty)
+                if (entity.factors.isNotEmpty)
                   Expanded(
                     child: Row(
                       children: dependencyIcons,
