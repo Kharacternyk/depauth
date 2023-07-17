@@ -40,7 +40,7 @@ class Db {
   }
 
   late final PreparedStatement _getEntityStatement = _db.prepare('''
-    select name, type
+    select id, name, type
     from entities
     where x = ? and y = ?
   ''');
@@ -48,30 +48,30 @@ class Db {
     select name, type
     from entities
     join dependencies
-    on name = entity
+    on entities.id = entity
     where factor = ?
     order by x, y
   ''');
   late final PreparedStatement _getFactorsStatement = _db.prepare('''
-    select id
+    select factors.id
     from factors
     join dependencies
-    on id = factor
+    on factors.id = factor
     join entities
-    on dependencies.entity = name
+    on entities.id = dependencies.entity
     where factors.entity = ?
-    group by id
+    group by factors.id
     order by min(entities.x), min(entities.y)
   ''');
   TraversableEntity? _getEntity(Position position) {
-    final row =
+    final entityRow =
         _getEntityStatement.select([position.x, position.y]).firstOrNull;
-    return switch (row) {
+    return switch (entityRow) {
       null => null,
-      Row row => TraversableEntity(
-          row['name'] as String,
-          EntityType.values[row['type'] as int],
-          _getFactorsStatement.select([row['name']]).map((row) =>
+      Row entityRow => TraversableEntity(
+          entityRow['name'] as String,
+          EntityType.values[entityRow['type'] as int],
+          _getFactorsStatement.select([entityRow['id']]).map((row) =>
               _getDependenciesStatement.select([row['id']]).map((row) => Entity(
                     row['name'] as String,
                     EntityType.values[row['type'] as int],
@@ -215,11 +215,11 @@ class Db {
     select distinct sources.x, sources.y
     from entities as sources
     join factors
-    on sources.name = factors.entity
+    on sources.id = factors.entity
     join dependencies
-    on factor = id
+    on factor = factors.id
     join entities as targets
-    on targets.name = dependencies.entity
+    on targets.id = dependencies.entity
     where targets.x = ? and targets.y = ?
   ''');
   Iterable<Position> _getDependantPositions(Position position) =>
@@ -234,52 +234,79 @@ class Db {
       pragma foreign_keys = on;
 
       create table if not exists entities(
-        name text not null primary key check(trim(name) = name),
+        id integer primary key,
+        name text not null,
         type integer not null,
         x integer not null,
-        y integer not null,
-        unique(x, y)
-      ) strict, without rowid;
-
+        y integer not null
+      ) strict;
       create table if not exists factors(
-        id integer not null primary key,
-        entity text not null references entities on update cascade on delete cascade
+        id integer primary key,
+        entity integer not null references entities
+      ) strict;
+      create table if not exists dependencies(
+        id integer primary key,
+        factor integer not null references factors,
+        entity integer not null references entities
       ) strict;
 
-      create table if not exists dependencies(
-        factor integer not null references factors on delete cascade,
-        entity text not null references entities on update cascade on delete cascade,
-        primary key(entity, factor)
-      ) strict, without rowid;
+      create unique index if not exists entity_names on entities(name);
+      create unique index if not exists entity_xs_ys on entities(x, y);
+      create unique index if not exists dependency_factors_entities
+        on dependencies(factor, entity);
+
+      create trigger if not exists after_delete_entity
+      after delete on entities begin
+        delete from factors where entity = old.oid;
+        delete from dependencies where entity = old.oid;
+      end;
+      create trigger if not exists after_delete_factor
+      after delete on factors begin
+        delete from dependencies where factor = old.oid;
+      end;
+      create trigger if not exists before_insert_entity
+      before insert on entities begin
+        select case new.name
+          when trim(new.name) then null
+          else raise(rollback, "trailing whitespace")
+        end;
+      end;
+      create trigger if not exists before_update_entity_name
+      before update of name on entities begin
+        select case new.name
+          when trim(new.name) then null
+          else raise(rollback, "trailing whitespace")
+        end;
+      end;
     ''');
 
     _db.prepare('''
-      insert into entities(name, type, x, y) values(?, ?, ?, ?)
+      insert into entities(id, name, type, x, y) values(?, ?, ?, ?, ?)
     ''')
-      ..execute(['Google', 1, 1, 1])
-      ..execute(['Fastmail', 1, 1, 2])
-      ..execute(['Yubikey', 2, 1, 3])
-      ..execute(['Nazar', 3, 2, 1])
+      ..execute([0, 'Google', 1, 1, 1])
+      ..execute([1, 'Fastmail', 1, 1, 2])
+      ..execute([2, 'Yubikey', 2, 1, 3])
+      ..execute([3, 'Nazar', 3, 2, 1])
       ..dispose();
 
     _db.prepare('''
       insert into factors(id, entity) values(?, ?)
     ''')
-      ..execute([0, 'Google'])
-      ..execute([1, 'Fastmail'])
-      ..execute([2, 'Google'])
-      ..execute([3, 'Fastmail'])
+      ..execute([0, 0])
+      ..execute([1, 1])
+      ..execute([2, 0])
+      ..execute([3, 1])
       ..dispose();
 
     _db.prepare('''
       insert into dependencies(factor, entity) values(?, ?)
     ''')
-      ..execute([0, 'Fastmail'])
-      ..execute([1, 'Google'])
-      ..execute([0, 'Nazar'])
-      ..execute([1, 'Nazar'])
-      ..execute([2, 'Yubikey'])
-      ..execute([3, 'Yubikey'])
+      ..execute([0, 1])
+      ..execute([1, 0])
+      ..execute([0, 3])
+      ..execute([1, 3])
+      ..execute([2, 2])
+      ..execute([3, 2])
       ..dispose();
   }
 
