@@ -125,17 +125,7 @@ class _State extends State<EntityForm> {
                   tooltip: "Done",
                 ),
               ),
-              Expanded(
-                //FIXME
-                child: IconButton(
-                  onPressed: () {
-                    nameController.text = widget.entity.name;
-                    widget.changeEntity(widget.entity);
-                  },
-                  icon: const Icon(Icons.undo),
-                  tooltip: "Undo all changes",
-                ),
-              ),
+              const Spacer(),
               Expanded(
                 child: IconButton(
                   onPressed: () {
