@@ -47,6 +47,7 @@ class _State extends State<EntityGraph> {
 
             row.add(
               ValueListenableBuilder(
+                key: ValueKey(x),
                 valueListenable: listenableEntity,
                 builder: (context, entity, child) {
                   return switch (entity) {
@@ -131,7 +132,7 @@ class _State extends State<EntityGraph> {
             );
           }
 
-          rows.add(Expanded(child: Row(children: row)));
+          rows.add(Expanded(key: ValueKey(y), child: Row(children: row)));
         }
 
         final column = Column(children: rows);
