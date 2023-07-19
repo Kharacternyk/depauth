@@ -96,9 +96,11 @@ class Db {
     where x = ? and y = ?
   ''');
   void moveEntity({required Position from, required Position to}) {
-    _moveEntityStatement.execute(
-      [to.x, to.y, from.x, from.y],
-    );
+    _moveEntityStatement
+      ..execute(
+        [to.x, to.y, from.x, from.y],
+      )
+      ..reset();
 
     _updateEntities([from, to, ..._getDependantPositions(to)]);
     _updateBoundaries();
@@ -111,7 +113,9 @@ class Db {
   void deleteEntity(Position position) {
     final dependants = _getDependantPositions(position);
 
-    _deleteEntityStatement.execute([position.x, position.y]);
+    _deleteEntityStatement
+      ..execute([position.x, position.y])
+      ..reset();
 
     _updateEntities([position, ...dependants]);
     _updateBoundaries();
@@ -139,14 +143,16 @@ class Db {
     entity = _getValidEntity(position, entity);
     final type = entity.type.index;
 
-    _upsertEntityStatement.execute([
-      entity.name,
-      type,
-      position.x,
-      position.y,
-      entity.name,
-      type,
-    ]);
+    _upsertEntityStatement
+      ..execute([
+        entity.name,
+        type,
+        position.x,
+        position.y,
+        entity.name,
+        type,
+      ])
+      ..reset();
   }
 
   Entity _getValidEntity(Position position, Entity entity) {
@@ -210,13 +216,15 @@ class Db {
     required int entityId,
     required int factorId,
   }) {
-    _deleteDependencyStatement.execute([
-      entityId,
-      factorId,
-      position.x,
-      position.y,
-      factorId,
-    ]);
+    _deleteDependencyStatement
+      ..execute([
+        entityId,
+        factorId,
+        position.x,
+        position.y,
+        factorId,
+      ])
+      ..reset();
     _updateEntities([position]);
     _updateDependencies();
   }
