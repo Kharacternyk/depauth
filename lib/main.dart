@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:jovial_svg/jovial_svg.dart';
+import 'package:path/path.dart';
 
+import 'async_resources.dart';
 import 'core/entity_source.dart';
 import 'entity_graph.dart';
 import 'scaled_draggable.dart';
 import 'viewer.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final asyncResources = await AsyncResources.get(const MyApp());
+  runApp(asyncResources);
 }
 
 class MyApp extends StatelessWidget {
@@ -30,7 +34,10 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key, required this.title});
+  const MyHomePage({
+    super.key,
+    required this.title,
+  });
 
   final String title;
 
@@ -55,10 +62,15 @@ class MyHomePage extends StatelessWidget {
           ],
         ),
       ),
-      body: const Viewer(
+      body: Viewer(
         minScale: 1,
         maxScale: 20,
-        child: EntityGraph(),
+        child: EntityGraph(
+          join(
+            AsyncResources.of(context).documentsDirectory,
+            'personal.depauth',
+          ),
+        ),
       ),
       floatingActionButton: ScaledDraggable(
         dragData: const NewEntitySource(),

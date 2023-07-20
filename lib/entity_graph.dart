@@ -13,14 +13,17 @@ import 'entity_placeholder.dart';
 import 'scaled_draggable.dart';
 
 class EntityGraph extends StatefulWidget {
-  const EntityGraph({super.key});
+  final String dbPath;
+
+  const EntityGraph(this.dbPath, {super.key});
 
   @override
   createState() => _State();
 }
 
 class _State extends State<EntityGraph> {
-  final Db db = Db(
+  late final Db db = Db(
+    widget.dbPath,
     entityDuplicatePrefix: ' (',
     entityDuplicateSuffix: ')',
   );

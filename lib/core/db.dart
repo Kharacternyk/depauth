@@ -270,10 +270,11 @@ class Db {
       _getDependantPositionsStatement.select([position.x, position.y]).map(
           (row) => Position(row['x'] as int, row['y'] as int));
 
-  Db({
+  Db(
+    String path, {
     required this.entityDuplicatePrefix,
     required this.entityDuplicateSuffix,
-  }) : _db = sqlite3.openInMemory() {
+  }) : _db = sqlite3.open(path) {
     _db.execute('''
       pragma foreign_keys = on;
 
@@ -325,7 +326,7 @@ class Db {
     ''');
 
     _db.prepare('''
-      insert into entities(id, name, type, x, y) values(?, ?, ?, ?, ?)
+      insert or ignore into entities(id, name, type, x, y) values(?, ?, ?, ?, ?)
     ''')
       ..execute([0, 'Google', 1, 1, 1])
       ..execute([1, 'Fastmail', 1, 1, 2])
@@ -334,7 +335,7 @@ class Db {
       ..dispose();
 
     _db.prepare('''
-      insert into factors(id, entity) values(?, ?)
+      insert or ignore into factors(id, entity) values(?, ?)
     ''')
       ..execute([0, 0])
       ..execute([1, 1])
@@ -343,7 +344,7 @@ class Db {
       ..dispose();
 
     _db.prepare('''
-      insert into dependencies(factor, entity) values(?, ?)
+      insert or ignore into dependencies(factor, entity) values(?, ?)
     ''')
       ..execute([0, 1])
       ..execute([1, 0])
