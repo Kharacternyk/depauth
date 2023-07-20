@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'core/entity.dart';
@@ -28,6 +30,7 @@ class EntityForm extends StatefulWidget {
 
 class _State extends State<EntityForm> {
   late final nameController = TextEditingController(text: widget.entity.name);
+  Timer? _debouncer;
 
   @override
   dispose() {
@@ -43,9 +46,12 @@ class _State extends State<EntityForm> {
           child: TextField(
             controller: nameController,
             onChanged: (String name) {
-              widget.changeEntity(
-                Entity(name, widget.entity.type),
-              );
+              _debouncer?.cancel();
+              _debouncer = Timer(const Duration(milliseconds: 200), () {
+                widget.changeEntity(
+                  Entity(name, widget.entity.type),
+                );
+              });
             },
             decoration: const InputDecoration(
               hintText: 'Name',
