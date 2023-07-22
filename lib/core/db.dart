@@ -110,6 +110,7 @@ class Db {
   Iterable<UniqueEntity> getPossibleDependencies(Id<Factor> id) {
     return _getPossibleDependenciesStatement.select([
       id._value,
+      id._value,
     ]).map((row) {
       return UniqueEntity(
         Id._(row['id'] as int),

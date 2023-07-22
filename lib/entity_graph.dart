@@ -94,7 +94,7 @@ class _State extends State<EntityGraph> {
                                                 Id<Factor> factorId,
                                                 Id<Entity> entityId,
                                               ) {
-                                                db.addDependency(
+                                                db.deleteDependency(
                                                   position,
                                                   factorId,
                                                   entityId,
