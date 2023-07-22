@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'core/entity.dart';
 import 'core/entity_type.dart';
 import 'core/traversable_entity.dart';
+import 'core/unique_entity.dart';
 import 'entity_theme.dart';
 
 class EntityForm extends StatefulWidget {
@@ -15,12 +16,21 @@ class EntityForm extends StatefulWidget {
     required int entityId,
     required int factorId,
   }) deleteDependency;
+  final void Function({
+    required int entityId,
+    required int factorId,
+  }) addDependency;
+  final Iterable<UniqueEntity> Function({
+    required int factorId,
+  }) getPossibleDependencies;
 
   const EntityForm(
     this.entity, {
     required this.changeEntity,
     required this.deleteEntity,
     required this.deleteDependency,
+    required this.addDependency,
+    required this.getPossibleDependencies,
     super.key,
   });
 
@@ -97,22 +107,54 @@ class _State extends State<EntityForm> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: factor.dependencies.map((entity) {
-                      return Chip(
-                        key: ValueKey(entity.id),
-                        label: Text(entity.name),
-                        avatar: Icon(
-                          EntityTheme(entity.type).icon,
-                          color: EntityTheme(entity.type).foreground,
+                    children: [
+                      for (final entity in factor.dependencies)
+                        Chip(
+                          key: ValueKey(entity.id),
+                          label: Text(entity.name),
+                          avatar: Icon(
+                            EntityTheme(entity.type).icon,
+                            color: EntityTheme(entity.type).foreground,
+                          ),
+                          onDeleted: () {
+                            widget.deleteDependency(
+                              factorId: factor.id,
+                              entityId: entity.id,
+                            );
+                          },
                         ),
-                        onDeleted: () {
-                          widget.deleteDependency(
-                            factorId: factor.id,
-                            entityId: entity.id,
-                          );
+                      PopupMenuButton(
+                        onSelected: (entity) {
+                          if (entity case UniqueEntity entity) {
+                            widget.addDependency(
+                              factorId: factor.id,
+                              entityId: entity.id,
+                            );
+                          }
                         },
-                      );
-                    }).toList(),
+                        child: const Chip(
+                          avatar: Icon(Icons.add),
+                          label: Text('Add'),
+                        ),
+                        itemBuilder: (context) {
+                          return [
+                            for (final entity in widget.getPossibleDependencies(
+                                factorId: factor.id))
+                              PopupMenuItem(
+                                value: entity,
+                                child: Chip(
+                                  key: ValueKey(entity.id),
+                                  label: Text(entity.name),
+                                  avatar: Icon(
+                                    EntityTheme(entity.type).icon,
+                                    color: EntityTheme(entity.type).foreground,
+                                  ),
+                                ),
+                              )
+                          ];
+                        },
+                      )
+                    ],
                   ),
                 ],
               ),
@@ -128,7 +170,7 @@ class _State extends State<EntityForm> {
                   },
                   icon: const Icon(Icons.done),
                   color: Theme.of(context).colorScheme.primary,
-                  tooltip: "Done",
+                  tooltip: 'Done',
                 ),
               ),
               const Spacer(),
@@ -140,7 +182,7 @@ class _State extends State<EntityForm> {
                   },
                   icon: const Icon(Icons.delete),
                   color: Theme.of(context).colorScheme.error,
-                  tooltip: "Delete",
+                  tooltip: 'Delete',
                 ),
               ),
             ],

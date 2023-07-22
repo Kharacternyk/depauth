@@ -90,6 +90,38 @@ class Db {
     };
   }
 
+  late final _getPossibleDependenciesStatement = _db.prepare('''
+    select id, name, type
+    from entities
+    where id not in(
+      select entities.id
+      from entities
+      join dependencies
+      on entities.id = entity
+      where factor = ?
+      union select entities.id
+      from entities
+      join factors
+      on entities.id = entity
+      where factors.id = ?
+    )
+    order by y, type, name
+  ''');
+  Iterable<UniqueEntity> getPossibleDependencies({
+    required int factorId,
+  }) {
+    return _getPossibleDependenciesStatement.select([
+      factorId,
+      factorId,
+    ]).map((row) {
+      return UniqueEntity(
+        row['id'] as int,
+        row['name'] as String,
+        EntityType.values[row['type'] as int],
+      );
+    });
+  }
+
   late final _moveEntityStatement = _db.prepare('''
     update entities
     set x = ?, y = ?
@@ -201,32 +233,53 @@ class Db {
         .first as int;
   }
 
+  late final _addDependencyStatement = _db.prepare('''
+    insert into dependencies(entity, factor) values(?, ?)
+  ''');
+  void addDependency(
+    Position position, {
+    required int entityId,
+    required int factorId,
+  }) {
+    assert(_getPositionOfFactor(factorId: factorId) == position);
+    _addDependencyStatement
+      ..execute([entityId, factorId])
+      ..reset();
+    _updateEntities([position]);
+    _updateDependencies();
+  }
+
   late final _deleteDependencyStatement = _db.prepare('''
     delete from dependencies
-    where entity = ? and factor = ? and exists(
-      select factors.id
-      from factors
-      join entities
-      on factors.entity = entities.id
-      where x = ? and y = ? and factors.id = ?
-    )
+    where entity = ? and factor = ?
   ''');
   void deleteDependency(
     Position position, {
     required int entityId,
     required int factorId,
   }) {
+    assert(_getPositionOfFactor(factorId: factorId) == position);
     _deleteDependencyStatement
-      ..execute([
-        entityId,
-        factorId,
-        position.x,
-        position.y,
-        factorId,
-      ])
+      ..execute([entityId, factorId])
       ..reset();
     _updateEntities([position]);
     _updateDependencies();
+  }
+
+  late final _getPositionOfFactorStatement = _db.prepare('''
+    select x, y
+    from entities
+    join factors
+    on entities.id = entity
+    where factors.id = ?
+  ''');
+  Position? _getPositionOfFactor({required int factorId}) {
+    final row = _getPositionOfFactorStatement.select([factorId]).firstOrNull;
+
+    return switch (row) {
+      null => null,
+      Row row => Position(row['x'] as int, row['y'] as int),
+    };
   }
 
   void _updateDependencies() {

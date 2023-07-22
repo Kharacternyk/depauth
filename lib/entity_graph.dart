@@ -70,12 +70,24 @@ class _State extends State<EntityGraph> {
                                           TraversableEntity entity =>
                                             EntityForm(
                                               entity,
+                                              getPossibleDependencies:
+                                                  db.getPossibleDependencies,
                                               deleteEntity: () {
                                                 db.deleteEntity(position);
                                               },
                                               changeEntity: (entity) {
                                                 db.changeEntity(
                                                     position, entity);
+                                              },
+                                              addDependency: ({
+                                                required int factorId,
+                                                required int entityId,
+                                              }) {
+                                                db.addDependency(
+                                                  position,
+                                                  factorId: factorId,
+                                                  entityId: entityId,
+                                                );
                                               },
                                               deleteDependency: ({
                                                 required int factorId,
