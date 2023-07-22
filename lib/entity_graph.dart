@@ -5,6 +5,7 @@ import 'core/db.dart';
 import 'core/entity.dart';
 import 'core/entity_source.dart';
 import 'core/entity_type.dart';
+import 'core/factor.dart';
 import 'core/position.dart';
 import 'core/traversable_entity.dart';
 import 'entity_card.dart';
@@ -79,24 +80,24 @@ class _State extends State<EntityGraph> {
                                                 db.changeEntity(
                                                     position, entity);
                                               },
-                                              addDependency: ({
-                                                required int factorId,
-                                                required int entityId,
-                                              }) {
+                                              addDependency: (
+                                                Id<Factor> factorId,
+                                                Id<Entity> entityId,
+                                              ) {
                                                 db.addDependency(
                                                   position,
-                                                  factorId: factorId,
-                                                  entityId: entityId,
+                                                  factorId,
+                                                  entityId,
                                                 );
                                               },
-                                              deleteDependency: ({
-                                                required int factorId,
-                                                required int entityId,
-                                              }) {
-                                                db.deleteDependency(
+                                              deleteDependency: (
+                                                Id<Factor> factorId,
+                                                Id<Entity> entityId,
+                                              ) {
+                                                db.addDependency(
                                                   position,
-                                                  factorId: factorId,
-                                                  entityId: entityId,
+                                                  factorId,
+                                                  entityId,
                                                 );
                                               },
                                             ),

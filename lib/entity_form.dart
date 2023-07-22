@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'core/db.dart';
 import 'core/entity.dart';
 import 'core/entity_type.dart';
+import 'core/factor.dart';
 import 'core/traversable_entity.dart';
 import 'core/unique_entity.dart';
 import 'entity_theme.dart';
@@ -12,17 +14,9 @@ class EntityForm extends StatefulWidget {
   final TraversableEntity entity;
   final void Function(Entity) changeEntity;
   final void Function() deleteEntity;
-  final void Function({
-    required int entityId,
-    required int factorId,
-  }) deleteDependency;
-  final void Function({
-    required int entityId,
-    required int factorId,
-  }) addDependency;
-  final Iterable<UniqueEntity> Function({
-    required int factorId,
-  }) getPossibleDependencies;
+  final void Function(Id<Factor>, Id<Entity>) deleteDependency;
+  final void Function(Id<Factor>, Id<Entity>) addDependency;
+  final Iterable<UniqueEntity> Function(Id<Factor>) getPossibleDependencies;
 
   const EntityForm(
     this.entity, {
@@ -117,19 +111,13 @@ class _State extends State<EntityForm> {
                             color: EntityTheme(entity.type).foreground,
                           ),
                           onDeleted: () {
-                            widget.deleteDependency(
-                              factorId: factor.id,
-                              entityId: entity.id,
-                            );
+                            widget.deleteDependency(factor.id, entity.id);
                           },
                         ),
                       PopupMenuButton(
                         onSelected: (entity) {
                           if (entity case UniqueEntity entity) {
-                            widget.addDependency(
-                              factorId: factor.id,
-                              entityId: entity.id,
-                            );
+                            widget.addDependency(factor.id, entity.id);
                           }
                         },
                         child: const Chip(
@@ -138,8 +126,8 @@ class _State extends State<EntityForm> {
                         ),
                         itemBuilder: (context) {
                           return [
-                            for (final entity in widget.getPossibleDependencies(
-                                factorId: factor.id))
+                            for (final entity
+                                in widget.getPossibleDependencies(factor.id))
                               PopupMenuItem(
                                 value: entity,
                                 child: Chip(

@@ -20,7 +20,7 @@ class Db {
   late final ValueNotifier<Boundaries> boundaries = ValueNotifier(
     _getBoundaries(),
   );
-  final dependencyChangeNotifier = DependencyChangeNotifier();
+  final dependencyChangeNotifier = _DependencyChangeNotifier();
 
   ValueNotifier<TraversableEntity?> getEntity(Position position) {
     return switch (_entities[position]) {
@@ -71,15 +71,15 @@ class Db {
     return switch (entityRow) {
       null => null,
       Row entityRow => TraversableEntity(
-          entityRow['id'] as int,
+          Id._(entityRow['id'] as int),
           entityRow['name'] as String,
           EntityType.values[entityRow['type'] as int],
           _getFactorsStatement.select([entityRow['id']]).map((row) {
             return Factor(
-              row['id'] as int,
+              Id._(row['id'] as int),
               _getDependenciesStatement.select([row['id']]).map((row) {
                 return UniqueEntity(
-                  row['id'] as int,
+                  Id._(row['id'] as int),
                   row['name'] as String,
                   EntityType.values[row['type'] as int],
                 );
@@ -107,15 +107,12 @@ class Db {
     )
     order by y, type, name
   ''');
-  Iterable<UniqueEntity> getPossibleDependencies({
-    required int factorId,
-  }) {
+  Iterable<UniqueEntity> getPossibleDependencies(Id<Factor> id) {
     return _getPossibleDependenciesStatement.select([
-      factorId,
-      factorId,
+      id._value,
     ]).map((row) {
       return UniqueEntity(
-        row['id'] as int,
+        Id._(row['id'] as int),
         row['name'] as String,
         EntityType.values[row['type'] as int],
       );
@@ -237,13 +234,13 @@ class Db {
     insert into dependencies(entity, factor) values(?, ?)
   ''');
   void addDependency(
-    Position position, {
-    required int entityId,
-    required int factorId,
-  }) {
-    assert(_getPositionOfFactor(factorId: factorId) == position);
+    Position position,
+    Id<Factor> factorId,
+    Id<Entity> entityId,
+  ) {
+    assert(_getPositionOfFactor(factorId) == position);
     _addDependencyStatement
-      ..execute([entityId, factorId])
+      ..execute([entityId._value, factorId._value])
       ..reset();
     _updateEntities([position]);
     _updateDependencies();
@@ -254,13 +251,13 @@ class Db {
     where entity = ? and factor = ?
   ''');
   void deleteDependency(
-    Position position, {
-    required int entityId,
-    required int factorId,
-  }) {
-    assert(_getPositionOfFactor(factorId: factorId) == position);
+    Position position,
+    Id<Factor> factorId,
+    Id<Entity> entityId,
+  ) {
+    assert(_getPositionOfFactor(factorId) == position);
     _deleteDependencyStatement
-      ..execute([entityId, factorId])
+      ..execute([entityId._value, factorId._value])
       ..reset();
     _updateEntities([position]);
     _updateDependencies();
@@ -273,8 +270,8 @@ class Db {
     on entities.id = entity
     where factors.id = ?
   ''');
-  Position? _getPositionOfFactor({required int factorId}) {
-    final row = _getPositionOfFactorStatement.select([factorId]).firstOrNull;
+  Position? _getPositionOfFactor(Id<Factor> id) {
+    final row = _getPositionOfFactorStatement.select([id._value]).firstOrNull;
 
     return switch (row) {
       null => null,
@@ -411,7 +408,21 @@ class Db {
   void dispose() => _db.dispose();
 }
 
-class DependencyChangeNotifier extends ChangeNotifier {
+class Id<T> {
+  final int _value;
+  const Id._(this._value);
+
+  @override
+  bool operator ==(Object other) => other is Id && _value == other._value;
+
+  @override
+  int get hashCode => _value.hashCode;
+
+  @override
+  String toString() => _value.toString();
+}
+
+class _DependencyChangeNotifier extends ChangeNotifier {
   void _update() {
     notifyListeners();
   }
