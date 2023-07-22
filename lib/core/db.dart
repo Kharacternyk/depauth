@@ -414,7 +414,7 @@ class Id<T> {
   const Id._(this._value);
 
   @override
-  bool operator ==(Object other) => other is Id && _value == other._value;
+  bool operator ==(Object other) => other is Id<T> && _value == other._value;
 
   @override
   int get hashCode => _value.hashCode;
