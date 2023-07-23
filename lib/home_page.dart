@@ -16,7 +16,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _State extends State<HomePage> {
-  Widget? drawer;
+  final drawer = ValueNotifier<Widget?>(null);
 
   @override
   build(BuildContext context) {
@@ -43,9 +43,7 @@ class _State extends State<HomePage> {
               maxScale: 20,
               child: EntityGraph(
                 setDrawer: (widget) {
-                  setState(() {
-                    drawer = widget;
-                  });
+                  drawer.value = widget;
                 },
                 join(
                   AsyncResources.of(context).documentsDirectory,
@@ -54,7 +52,12 @@ class _State extends State<HomePage> {
               ),
             ),
           ),
-          drawer ?? const SizedBox.shrink(),
+          ValueListenableBuilder(
+            valueListenable: drawer,
+            builder: (context, drawer, child) {
+              return drawer ?? const SizedBox.shrink();
+            },
+          ),
         ],
       ),
       floatingActionButton: ScaledDraggable(
