@@ -12,6 +12,7 @@ import 'entity_theme.dart';
 
 class EntityForm extends StatefulWidget {
   final TraversableEntity entity;
+  final void Function() closeItself;
   final void Function(Entity) changeEntity;
   final void Function() deleteEntity;
   final void Function(Id<Factor>, Id<Entity>) deleteDependency;
@@ -20,6 +21,7 @@ class EntityForm extends StatefulWidget {
 
   const EntityForm(
     this.entity, {
+    required this.closeItself,
     required this.changeEntity,
     required this.deleteEntity,
     required this.deleteDependency,
@@ -33,7 +35,7 @@ class EntityForm extends StatefulWidget {
 }
 
 class _State extends State<EntityForm> {
-  late final nameController = TextEditingController(text: widget.entity.name);
+  late var nameController = TextEditingController(text: widget.entity.name);
   Timer? _debouncer;
 
   @override
@@ -43,11 +45,20 @@ class _State extends State<EntityForm> {
   }
 
   @override
+  void didUpdateWidget(oldWidget) {
+    if (oldWidget.entity.id != widget.entity.id) {
+      nameController = TextEditingController(text: widget.entity.name);
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
   build(context) {
-    return SimpleDialog(
-      children: [
-        SimpleDialogOption(
-          child: TextField(
+    return Drawer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
             controller: nameController,
             onChanged: (String name) {
               _debouncer?.cancel();
@@ -61,9 +72,7 @@ class _State extends State<EntityForm> {
               hintText: 'Name',
             ),
           ),
-        ),
-        SimpleDialogOption(
-          child: DropdownButtonHideUnderline(
+          DropdownButtonHideUnderline(
             child: DropdownButton(
               items: EntityType.values
                   .map(
@@ -89,73 +98,57 @@ class _State extends State<EntityForm> {
               value: widget.entity.type,
             ),
           ),
-        ),
-        for (final factor in widget.entity.factors)
-          SimpleDialogOption(
-            key: ValueKey(factor.id),
-            child: Card(
-              margin: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  const ListTile(title: Text('Factor')),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final entity in factor.dependencies)
-                        Chip(
-                          key: ValueKey(entity.id),
-                          label: Text(entity.name),
-                          avatar: Icon(
-                            EntityTheme(entity.type).icon,
-                            color: EntityTheme(entity.type).foreground,
-                          ),
-                          onDeleted: () {
-                            widget.deleteDependency(factor.id, entity.id);
-                          },
-                        ),
-                      PopupMenuButton(
-                        onSelected: (entity) {
-                          if (entity case UniqueEntity entity) {
-                            widget.addDependency(factor.id, entity.id);
-                          }
-                        },
-                        child: const Chip(
-                          avatar: Icon(Icons.add),
-                          label: Text('Add'),
-                        ),
-                        itemBuilder: (context) {
-                          return [
-                            for (final entity
-                                in widget.getPossibleDependencies(factor.id))
-                              PopupMenuItem(
-                                value: entity,
-                                child: Chip(
-                                  key: ValueKey(entity.id),
-                                  label: Text(entity.name),
-                                  avatar: Icon(
-                                    EntityTheme(entity.type).icon,
-                                    color: EntityTheme(entity.type).foreground,
-                                  ),
-                                ),
-                              )
-                          ];
-                        },
-                      )
-                    ],
+          for (final factor in widget.entity.factors)
+            Wrap(
+              key: ValueKey(factor.id),
+              spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                for (final entity in factor.dependencies)
+                  Chip(
+                    key: ValueKey(entity.id),
+                    label: Text(entity.name),
+                    avatar: Icon(
+                      EntityTheme(entity.type).icon,
+                      color: EntityTheme(entity.type).foreground,
+                    ),
+                    onDeleted: () {
+                      widget.deleteDependency(factor.id, entity.id);
+                    },
                   ),
-                ],
-              ),
+                PopupMenuButton(
+                  onSelected: (entity) {
+                    if (entity case UniqueEntity entity) {
+                      widget.addDependency(factor.id, entity.id);
+                    }
+                  },
+                  icon: const Icon(Icons.add),
+                  itemBuilder: (context) {
+                    return [
+                      for (final entity
+                          in widget.getPossibleDependencies(factor.id))
+                        PopupMenuItem(
+                          value: entity,
+                          child: Chip(
+                            key: ValueKey(entity.id),
+                            label: Text(entity.name),
+                            avatar: Icon(
+                              EntityTheme(entity.type).icon,
+                              color: EntityTheme(entity.type).foreground,
+                            ),
+                          ),
+                        )
+                    ];
+                  },
+                )
+              ],
             ),
-          ),
-        SimpleDialogOption(
-          child: Row(
+          Row(
             children: [
               Expanded(
                 child: IconButton(
-                  onPressed: () {
-                    Navigator.maybePop(context);
-                  },
+                  onPressed: widget.closeItself,
                   icon: const Icon(Icons.done),
                   color: Theme.of(context).colorScheme.primary,
                   tooltip: 'Done',
@@ -165,8 +158,8 @@ class _State extends State<EntityForm> {
               Expanded(
                 child: IconButton(
                   onPressed: () {
+                    widget.closeItself();
                     widget.deleteEntity();
-                    Navigator.maybePop(context);
                   },
                   icon: const Icon(Icons.delete),
                   color: Theme.of(context).colorScheme.error,
@@ -175,8 +168,8 @@ class _State extends State<EntityForm> {
               ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

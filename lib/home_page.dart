@@ -16,7 +16,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _State extends State<HomePage> {
-  Widget? sideBar;
+  Widget? drawer;
 
   @override
   build(BuildContext context) {
@@ -35,15 +35,27 @@ class _State extends State<HomePage> {
           scale: 0.1,
         ),
       ),
-      body: Viewer(
-        minScale: 1,
-        maxScale: 20,
-        child: EntityGraph(
-          join(
-            AsyncResources.of(context).documentsDirectory,
-            'personal.depauth',
+      body: Row(
+        children: [
+          Expanded(
+            child: Viewer(
+              minScale: 1,
+              maxScale: 20,
+              child: EntityGraph(
+                setDrawer: (widget) {
+                  setState(() {
+                    drawer = widget;
+                  });
+                },
+                join(
+                  AsyncResources.of(context).documentsDirectory,
+                  'personal.depauth',
+                ),
+              ),
+            ),
           ),
-        ),
+          drawer ?? const SizedBox.shrink(),
+        ],
       ),
       floatingActionButton: ScaledDraggable(
         dragData: const NewEntitySource(),

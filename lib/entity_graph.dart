@@ -15,8 +15,9 @@ import 'scaled_draggable.dart';
 
 class EntityGraph extends StatefulWidget {
   final String dbPath;
+  final void Function(Widget?) setDrawer;
 
-  const EntityGraph(this.dbPath, {super.key});
+  const EntityGraph(this.dbPath, {required this.setDrawer, super.key});
 
   @override
   createState() => _State();
@@ -61,51 +62,51 @@ class _State extends State<EntityGraph> {
                           child: EntityCard(
                             entity,
                             onTap: () {
-                              showDialog<void>(
-                                context: context,
-                                builder: (context) {
-                                  return ValueListenableBuilder(
-                                      valueListenable: listenableEntity,
-                                      builder: (context, entity, child) {
-                                        return switch (entity) {
-                                          TraversableEntity entity =>
-                                            EntityForm(
-                                              entity,
-                                              getPossibleDependencies:
-                                                  db.getPossibleDependencies,
-                                              deleteEntity: () {
-                                                db.deleteEntity(position);
-                                              },
-                                              changeEntity: (entity) {
-                                                db.changeEntity(
-                                                    position, entity);
-                                              },
-                                              addDependency: (
-                                                Id<Factor> factorId,
-                                                Id<Entity> entityId,
-                                              ) {
-                                                db.addDependency(
-                                                  position,
-                                                  factorId,
-                                                  entityId,
-                                                );
-                                              },
-                                              deleteDependency: (
-                                                Id<Factor> factorId,
-                                                Id<Entity> entityId,
-                                              ) {
-                                                db.deleteDependency(
-                                                  position,
-                                                  factorId,
-                                                  entityId,
-                                                );
-                                              },
-                                            ),
-                                          null => const SizedBox.shrink(),
-                                        };
-                                      });
-                                },
+                              widget.setDrawer(
+                                ValueListenableBuilder(
+                                  valueListenable: listenableEntity,
+                                  builder: (context, entity, child) {
+                                    return switch (entity) {
+                                      TraversableEntity entity => EntityForm(
+                                          entity,
+                                          closeItself: () {
+                                            widget.setDrawer(null);
+                                          },
+                                          getPossibleDependencies:
+                                              db.getPossibleDependencies,
+                                          deleteEntity: () {
+                                            db.deleteEntity(position);
+                                          },
+                                          changeEntity: (entity) {
+                                            db.changeEntity(position, entity);
+                                          },
+                                          addDependency: (
+                                            Id<Factor> factorId,
+                                            Id<Entity> entityId,
+                                          ) {
+                                            db.addDependency(
+                                              position,
+                                              factorId,
+                                              entityId,
+                                            );
+                                          },
+                                          deleteDependency: (
+                                            Id<Factor> factorId,
+                                            Id<Entity> entityId,
+                                          ) {
+                                            db.deleteDependency(
+                                              position,
+                                              factorId,
+                                              entityId,
+                                            );
+                                          },
+                                        ),
+                                      null => const SizedBox.shrink(),
+                                    };
+                                  },
+                                ),
                               );
+                              Scaffold.of(context).openEndDrawer();
                             },
                           ),
                         ),
