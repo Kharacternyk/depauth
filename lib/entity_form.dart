@@ -54,7 +54,8 @@ class _State extends State<EntityForm> {
 
   @override
   build(context) {
-    return Drawer(
+    return Material(
+      color: Theme.of(context).colorScheme.secondaryContainer,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -144,29 +145,11 @@ class _State extends State<EntityForm> {
                 )
               ],
             ),
-          Row(
-            children: [
-              Expanded(
-                child: IconButton(
-                  onPressed: widget.closeItself,
-                  icon: const Icon(Icons.done),
-                  color: Theme.of(context).colorScheme.primary,
-                  tooltip: 'Done',
-                ),
-              ),
-              const Spacer(),
-              Expanded(
-                child: IconButton(
-                  onPressed: () {
-                    widget.closeItself();
-                    widget.deleteEntity();
-                  },
-                  icon: const Icon(Icons.delete),
-                  color: Theme.of(context).colorScheme.error,
-                  tooltip: 'Delete',
-                ),
-              ),
-            ],
+          IconButton(
+            onPressed: widget.deleteEntity,
+            icon: const Icon(Icons.delete),
+            color: Theme.of(context).colorScheme.error,
+            tooltip: 'Delete',
           ),
         ],
       ),

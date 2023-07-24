@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jovial_svg/jovial_svg.dart';
+import 'package:multi_split_view/multi_split_view.dart';
 import 'package:path/path.dart';
 
 import 'async_resources.dart';
@@ -22,6 +23,7 @@ class _State extends State<HomePage> {
   build(BuildContext context) {
     const addEntityTooltip =
         "Drag this button onto an empty space to create a new entity.";
+    final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -35,10 +37,21 @@ class _State extends State<HomePage> {
           scale: 0.1,
         ),
       ),
-      body: Row(
-        children: [
-          Expanded(
-            child: Viewer(
+      body: MultiSplitViewTheme(
+        data: MultiSplitViewThemeData(
+          dividerPainter: DividerPainters.grooved1(
+            backgroundColor: colors.secondaryContainer,
+            color: colors.onSecondaryContainer,
+            highlightedColor: colors.primary,
+          ),
+        ),
+        child: MultiSplitView(
+          axis: switch (MediaQuery.of(context).orientation) {
+            Orientation.portrait => Axis.vertical,
+            Orientation.landscape => Axis.horizontal,
+          },
+          children: [
+            Viewer(
               minScale: 1,
               maxScale: 20,
               child: EntityGraph(
@@ -51,14 +64,14 @@ class _State extends State<HomePage> {
                 ),
               ),
             ),
-          ),
-          ValueListenableBuilder(
-            valueListenable: drawer,
-            builder: (context, drawer, child) {
-              return drawer ?? const SizedBox.shrink();
-            },
-          ),
-        ],
+            ValueListenableBuilder(
+              valueListenable: drawer,
+              builder: (context, drawer, child) {
+                return drawer ?? const SizedBox.shrink();
+              },
+            ),
+          ],
+        ),
       ),
       floatingActionButton: ScaledDraggable(
         dragData: const NewEntitySource(),
