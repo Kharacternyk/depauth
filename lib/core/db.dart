@@ -57,13 +57,13 @@ class Db {
   late final PreparedStatement _getFactorsStatement = _db.prepare('''
     select factors.id
     from factors
-    join dependencies
+    left join dependencies
     on factors.id = factor
-    join entities
+    left join entities
     on entities.id = dependencies.entity
     where factors.entity = ?
     group by factors.id
-    order by min(entities.x), min(entities.y)
+    order by count(entities.id) desc, min(entities.x), min(entities.y)
   ''');
   TraversableEntity? _getEntity(Position position) {
     final entityRow =
