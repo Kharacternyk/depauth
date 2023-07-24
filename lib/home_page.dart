@@ -17,26 +17,30 @@ class HomePage extends StatefulWidget {
 }
 
 class _State extends State<HomePage> {
-  final drawer = ValueNotifier<Widget?>(null);
+  final sideBar = ValueNotifier<Widget?>(null);
 
   @override
   build(BuildContext context) {
     const addEntityTooltip =
         "Drag this button onto an empty space to create a new entity.";
     final colors = Theme.of(context).colorScheme;
+    final defaultSideBar = Card(
+      child: Column(
+        children: [
+          FittedBox(
+            child: ScalableImageWidget.fromSISource(
+              si: ScalableImageSource.fromSI(
+                DefaultAssetBundle.of(context),
+                'assets/logo.si',
+              ),
+            ),
+          ),
+          const Text('Press on a card to edit it.'),
+        ],
+      ),
+    );
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
-        title: ScalableImageWidget.fromSISource(
-          si: ScalableImageSource.fromSI(
-            DefaultAssetBundle.of(context),
-            'assets/logo.si',
-          ),
-          scale: 0.1,
-        ),
-      ),
       body: MultiSplitViewTheme(
         data: MultiSplitViewThemeData(
           dividerPainter: DividerPainters.grooved1(
@@ -57,8 +61,9 @@ class _State extends State<HomePage> {
               minScale: 1,
               maxScale: 20,
               child: EntityGraph(
-                setDrawer: (widget) {
-                  drawer.value = widget;
+                defaultSideBar: defaultSideBar,
+                setSideBar: (widget) {
+                  sideBar.value = widget;
                 },
                 join(
                   AsyncResources.of(context).documentsDirectory,
@@ -67,9 +72,9 @@ class _State extends State<HomePage> {
               ),
             ),
             ValueListenableBuilder(
-              valueListenable: drawer,
-              builder: (context, drawer, child) {
-                return drawer ?? const SizedBox.shrink();
+              valueListenable: sideBar,
+              builder: (context, sideBar, child) {
+                return sideBar ?? defaultSideBar;
               },
             ),
           ],

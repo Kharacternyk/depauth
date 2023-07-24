@@ -15,9 +15,15 @@ import 'scaled_draggable.dart';
 
 class EntityGraph extends StatefulWidget {
   final String dbPath;
-  final void Function(Widget?) setDrawer;
+  final void Function(Widget) setSideBar;
+  final Widget defaultSideBar;
 
-  const EntityGraph(this.dbPath, {required this.setDrawer, super.key});
+  const EntityGraph(
+    this.dbPath, {
+    required this.setSideBar,
+    required this.defaultSideBar,
+    super.key,
+  });
 
   @override
   createState() => _State();
@@ -62,7 +68,7 @@ class _State extends State<EntityGraph> {
                           child: EntityCard(
                             entity,
                             onTap: () {
-                              widget.setDrawer(
+                              widget.setSideBar(
                                 ValueListenableBuilder(
                                   valueListenable: listenableEntity,
                                   builder: (context, entity, child) {
@@ -98,12 +104,11 @@ class _State extends State<EntityGraph> {
                                             );
                                           },
                                         ),
-                                      null => const SizedBox.shrink(),
+                                      null => widget.defaultSideBar,
                                     };
                                   },
                                 ),
                               );
-                              Scaffold.of(context).openEndDrawer();
                             },
                           ),
                         ),
