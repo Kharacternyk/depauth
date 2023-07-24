@@ -51,7 +51,6 @@ class _State extends State<HomePage> {
           },
           initialAreas: [
             Area(weight: 0.7),
-            Area(minimalSize: 100),
           ],
           children: [
             Viewer(

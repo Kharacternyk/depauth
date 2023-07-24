@@ -52,12 +52,15 @@ class _State extends State<EntityForm> {
 
   @override
   build(context) {
-    return Card(
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
+    final colors = Theme.of(context).colorScheme;
+    var factorIndex = 0;
+
+    return ListView(
+      children: [
+        Card(
+          child: ListTile(
+            leading: const Icon(Icons.edit),
+            title: TextField(
               controller: nameController,
               onChanged: (String name) {
                 _debouncer?.cancel();
@@ -71,7 +74,12 @@ class _State extends State<EntityForm> {
                 hintText: 'Name',
               ),
             ),
-            DropdownButtonHideUnderline(
+          ),
+        ),
+        Card(
+          child: ListTile(
+            leading: const Icon(Icons.category),
+            title: DropdownButtonHideUnderline(
               child: DropdownButton(
                 isExpanded: true,
                 items: EntityType.values
@@ -98,8 +106,19 @@ class _State extends State<EntityForm> {
                 value: widget.entity.type,
               ),
             ),
-            for (final factor in widget.entity.factors)
-              Wrap(
+          ),
+        ),
+        for (final factor in widget.entity.factors)
+          Card(
+            child: ListTile(
+              leading: Badge(
+                isLabelVisible: widget.entity.factors.length > 1,
+                backgroundColor: colors.primaryContainer,
+                textColor: colors.onPrimaryContainer,
+                label: Text((++factorIndex).toString()),
+                child: const Icon(Icons.link),
+              ),
+              title: Wrap(
                 key: ValueKey(factor.id),
                 spacing: 8,
                 runSpacing: 8,
@@ -144,15 +163,19 @@ class _State extends State<EntityForm> {
                   )
                 ],
               ),
-            IconButton(
+            ),
+          ),
+        Card(
+          child: ListTile(
+            title: IconButton(
               onPressed: widget.deleteEntity,
               icon: const Icon(Icons.delete),
               color: Theme.of(context).colorScheme.error,
               tooltip: 'Delete',
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }
