@@ -12,7 +12,6 @@ import 'entity_theme.dart';
 
 class EntityForm extends StatefulWidget {
   final TraversableEntity entity;
-  final void Function() closeItself;
   final void Function(Entity) changeEntity;
   final void Function() deleteEntity;
   final void Function(Id<Factor>, Id<Entity>) deleteDependency;
@@ -21,7 +20,6 @@ class EntityForm extends StatefulWidget {
 
   const EntityForm(
     this.entity, {
-    required this.closeItself,
     required this.changeEntity,
     required this.deleteEntity,
     required this.deleteDependency,
@@ -54,104 +52,106 @@ class _State extends State<EntityForm> {
 
   @override
   build(context) {
-    return Material(
-      color: Theme.of(context).colorScheme.secondaryContainer,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TextField(
-            controller: nameController,
-            onChanged: (String name) {
-              _debouncer?.cancel();
-              _debouncer = Timer(const Duration(milliseconds: 200), () {
-                widget.changeEntity(
-                  Entity(name, widget.entity.type),
-                );
-              });
-            },
-            decoration: const InputDecoration(
-              hintText: 'Name',
-            ),
-          ),
-          DropdownButtonHideUnderline(
-            child: DropdownButton(
-              items: EntityType.values
-                  .map(
-                    (value) => DropdownMenuItem(
-                      value: value,
-                      child: Chip(
-                        avatar: Ink(
-                          child: Icon(
-                            EntityTheme(value).icon,
-                            color: EntityTheme(value).foreground,
-                          ),
-                        ),
-                        label: Text(EntityTheme(value).typeName),
-                      ),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                widget.changeEntity(
-                  Entity(widget.entity.name, value ?? widget.entity.type),
-                );
+    return Card(
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: nameController,
+              onChanged: (String name) {
+                _debouncer?.cancel();
+                _debouncer = Timer(const Duration(milliseconds: 200), () {
+                  widget.changeEntity(
+                    Entity(name, widget.entity.type),
+                  );
+                });
               },
-              value: widget.entity.type,
+              decoration: const InputDecoration(
+                hintText: 'Name',
+              ),
             ),
-          ),
-          for (final factor in widget.entity.factors)
-            Wrap(
-              key: ValueKey(factor.id),
-              spacing: 8,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                for (final entity in factor.dependencies)
-                  Chip(
-                    key: ValueKey(entity.id),
-                    label: Text(entity.name),
-                    avatar: Icon(
-                      EntityTheme(entity.type).icon,
-                      color: EntityTheme(entity.type).foreground,
-                    ),
-                    onDeleted: () {
-                      widget.deleteDependency(factor.id, entity.id);
-                    },
-                  ),
-                PopupMenuButton(
-                  onSelected: (entity) {
-                    if (entity case UniqueEntity entity) {
-                      widget.addDependency(factor.id, entity.id);
-                    }
-                  },
-                  icon: const Icon(Icons.add),
-                  itemBuilder: (context) {
-                    return [
-                      for (final entity
-                          in widget.getPossibleDependencies(factor.id))
-                        PopupMenuItem(
-                          value: entity,
-                          child: Chip(
-                            key: ValueKey(entity.id),
-                            label: Text(entity.name),
-                            avatar: Icon(
-                              EntityTheme(entity.type).icon,
-                              color: EntityTheme(entity.type).foreground,
+            DropdownButtonHideUnderline(
+              child: DropdownButton(
+                isExpanded: true,
+                items: EntityType.values
+                    .map(
+                      (value) => DropdownMenuItem(
+                        value: value,
+                        child: Chip(
+                          avatar: Ink(
+                            child: Icon(
+                              EntityTheme(value).icon,
+                              color: EntityTheme(value).foreground,
                             ),
                           ),
-                        )
-                    ];
-                  },
-                )
-              ],
+                          label: Text(EntityTheme(value).typeName),
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  widget.changeEntity(
+                    Entity(widget.entity.name, value ?? widget.entity.type),
+                  );
+                },
+                value: widget.entity.type,
+              ),
             ),
-          IconButton(
-            onPressed: widget.deleteEntity,
-            icon: const Icon(Icons.delete),
-            color: Theme.of(context).colorScheme.error,
-            tooltip: 'Delete',
-          ),
-        ],
+            for (final factor in widget.entity.factors)
+              Wrap(
+                key: ValueKey(factor.id),
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  for (final entity in factor.dependencies)
+                    Chip(
+                      key: ValueKey(entity.id),
+                      label: Text(entity.name),
+                      avatar: Icon(
+                        EntityTheme(entity.type).icon,
+                        color: EntityTheme(entity.type).foreground,
+                      ),
+                      onDeleted: () {
+                        widget.deleteDependency(factor.id, entity.id);
+                      },
+                    ),
+                  PopupMenuButton(
+                    onSelected: (entity) {
+                      if (entity case UniqueEntity entity) {
+                        widget.addDependency(factor.id, entity.id);
+                      }
+                    },
+                    icon: const Icon(Icons.add),
+                    itemBuilder: (context) {
+                      return [
+                        for (final entity
+                            in widget.getPossibleDependencies(factor.id))
+                          PopupMenuItem(
+                            value: entity,
+                            child: Chip(
+                              key: ValueKey(entity.id),
+                              label: Text(entity.name),
+                              avatar: Icon(
+                                EntityTheme(entity.type).icon,
+                                color: EntityTheme(entity.type).foreground,
+                              ),
+                            ),
+                          )
+                      ];
+                    },
+                  )
+                ],
+              ),
+            IconButton(
+              onPressed: widget.deleteEntity,
+              icon: const Icon(Icons.delete),
+              color: Theme.of(context).colorScheme.error,
+              tooltip: 'Delete',
+            ),
+          ],
+        ),
       ),
     );
   }

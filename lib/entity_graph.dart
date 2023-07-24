@@ -69,9 +69,6 @@ class _State extends State<EntityGraph> {
                                     return switch (entity) {
                                       TraversableEntity entity => EntityForm(
                                           entity,
-                                          closeItself: () {
-                                            widget.setDrawer(null);
-                                          },
                                           getPossibleDependencies:
                                               db.getPossibleDependencies,
                                           deleteEntity: () {

@@ -40,8 +40,7 @@ class _State extends State<HomePage> {
       body: MultiSplitViewTheme(
         data: MultiSplitViewThemeData(
           dividerPainter: DividerPainters.grooved1(
-            backgroundColor: colors.secondaryContainer,
-            color: colors.onSecondaryContainer,
+            color: colors.onSurface,
             highlightedColor: colors.primary,
           ),
         ),
@@ -50,6 +49,10 @@ class _State extends State<HomePage> {
             Orientation.portrait => Axis.vertical,
             Orientation.landscape => Axis.horizontal,
           },
+          initialAreas: [
+            Area(weight: 0.7),
+            Area(minimalSize: 100),
+          ],
           children: [
             Viewer(
               minScale: 1,
