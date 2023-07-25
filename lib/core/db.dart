@@ -275,6 +275,18 @@ class Db {
     _updateEntities([position]);
   }
 
+  late final _removeFactorStatement = _db.prepare('''
+    delete from factors where id = ?
+  ''');
+  void removeFactor(Position position, Id<Factor> factorId) {
+    assert(_getPositionOfFactor(factorId) == position);
+    _removeFactorStatement
+      ..execute()
+      ..reset();
+    _updateEntities([position]);
+    _updateDependencies();
+  }
+
   late final _getPositionOfFactorStatement = _db.prepare('''
     select x, y
     from entities
