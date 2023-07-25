@@ -24,18 +24,19 @@ class _State extends State<HomePage> {
     const addEntityTooltip =
         "Drag this button onto an empty space to create a new entity.";
     final colors = Theme.of(context).colorScheme;
-    final defaultSideBar = Column(
-      children: [
-        FittedBox(
-          child: ScalableImageWidget.fromSISource(
+    final defaultSideBar = FittedBox(
+      child: Column(
+        children: [
+          ScalableImageWidget.fromSISource(
             si: ScalableImageSource.fromSI(
               DefaultAssetBundle.of(context),
               'assets/logo.si',
             ),
+            scale: 0.2,
           ),
-        ),
-        const Text('Press on a card to edit it.'),
-      ],
+          const Text('Press on a card to edit it.'),
+        ],
+      ),
     );
 
     return Scaffold(
@@ -82,19 +83,40 @@ class _State extends State<HomePage> {
           ],
         ),
       ),
-      floatingActionButton: ScaledDraggable(
-        dragData: const NewEntitySource(),
-        child: FloatingActionButton(
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(addEntityTooltip),
-                showCloseIcon: true,
+      bottomNavigationBar: BottomAppBar(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            FloatingActionButton(
+              backgroundColor: colors.errorContainer,
+              foregroundColor: colors.onErrorContainer,
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(addEntityTooltip),
+                    showCloseIcon: true,
+                  ),
+                );
+              },
+              tooltip: addEntityTooltip,
+              child: const Icon(Icons.delete),
+            ),
+            ScaledDraggable(
+              dragData: const NewEntitySource(),
+              child: FloatingActionButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(addEntityTooltip),
+                      showCloseIcon: true,
+                    ),
+                  );
+                },
+                tooltip: addEntityTooltip,
+                child: const Icon(Icons.add),
               ),
-            );
-          },
-          tooltip: addEntityTooltip,
-          child: const Icon(Icons.add),
+            ),
+          ],
         ),
       ),
     );
