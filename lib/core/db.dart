@@ -264,6 +264,17 @@ class Db {
     _updateDependencies();
   }
 
+  late final _addFactorStatement = _db.prepare('''
+    insert into factors(entity) values(?)
+  ''');
+  void addFactor(Position position, Id<Entity> entityId) {
+    assert(_getEntity(position)?.id == entityId);
+    _addFactorStatement
+      ..execute([entityId._value])
+      ..reset();
+    _updateEntities([position]);
+  }
+
   late final _getPositionOfFactorStatement = _db.prepare('''
     select x, y
     from entities

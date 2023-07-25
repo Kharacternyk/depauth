@@ -103,6 +103,9 @@ class _State extends State<EntityGraph> {
                                               entityId,
                                             );
                                           },
+                                          addFactor: () {
+                                            db.addFactor(position, entity.id);
+                                          },
                                         ),
                                       null => widget.defaultSideBar,
                                     };

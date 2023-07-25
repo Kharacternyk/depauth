@@ -14,6 +14,7 @@ class EntityForm extends StatefulWidget {
   final TraversableEntity entity;
   final void Function(Entity) changeEntity;
   final void Function() deleteEntity;
+  final void Function() addFactor;
   final void Function(Id<Factor>, Id<Entity>) deleteDependency;
   final void Function(Id<Factor>, Id<Entity>) addDependency;
   final Iterable<UniqueEntity> Function(Id<Factor>) getPossibleDependencies;
@@ -22,6 +23,7 @@ class EntityForm extends StatefulWidget {
     this.entity, {
     required this.changeEntity,
     required this.deleteEntity,
+    required this.addFactor,
     required this.deleteDependency,
     required this.addDependency,
     required this.getPossibleDependencies,
@@ -165,6 +167,20 @@ class _State extends State<EntityForm> {
               ),
             ),
           ),
+        Card(
+          child: ListTile(
+            leading: Badge(
+              backgroundColor: colors.primaryContainer,
+              textColor: colors.onPrimaryContainer,
+              label: const Text("+"),
+              child: const Icon(Icons.link),
+            ),
+            title: IconButton(
+              onPressed: widget.addFactor,
+              icon: const Icon(Icons.add),
+            ),
+          ),
+        ),
         Card(
           child: ListTile(
             title: IconButton(
