@@ -121,6 +121,7 @@ class _State extends State<EntityGraph> {
                             case EntityFromPositionSource source:
                               db.moveEntity(
                                   from: source.position, to: position);
+                              widget.setSideBar(widget.defaultSideBar);
                             case NewEntitySource _:
                               db.createEntity(
                                 position,
