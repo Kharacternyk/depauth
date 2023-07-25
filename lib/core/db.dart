@@ -247,17 +247,17 @@ class Db {
     _updateDependencies();
   }
 
-  late final _deleteDependencyStatement = _db.prepare('''
+  late final _removeDependencyStatement = _db.prepare('''
     delete from dependencies
     where entity = ? and factor = ?
   ''');
-  void deleteDependency(
+  void removeDependency(
     Position position,
     Id<Factor> factorId,
     Id<Entity> entityId,
   ) {
     assert(_getPositionOfFactor(factorId) == position);
-    _deleteDependencyStatement
+    _removeDependencyStatement
       ..execute([entityId._value, factorId._value])
       ..reset();
     _updateEntities([position]);

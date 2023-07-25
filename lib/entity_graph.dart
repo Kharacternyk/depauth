@@ -84,11 +84,11 @@ class _State extends State<EntityGraph> {
                                 entityId,
                               );
                             },
-                            deleteDependency: (
+                            removeDependency: (
                               Id<Factor> factorId,
                               Id<Entity> entityId,
                             ) {
-                              db.deleteDependency(
+                              db.removeDependency(
                                 position,
                                 factorId,
                                 entityId,

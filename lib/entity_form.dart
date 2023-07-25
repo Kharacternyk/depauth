@@ -15,7 +15,7 @@ class EntityForm extends StatefulWidget {
   final void Function(Entity) changeEntity;
   final void Function() deleteEntity;
   final void Function() addFactor;
-  final void Function(Id<Factor>, Id<Entity>) deleteDependency;
+  final void Function(Id<Factor>, Id<Entity>) removeDependency;
   final void Function(Id<Factor>, Id<Entity>) addDependency;
   final Iterable<UniqueEntity> Function(Id<Factor>) getPossibleDependencies;
 
@@ -24,7 +24,7 @@ class EntityForm extends StatefulWidget {
     required this.changeEntity,
     required this.deleteEntity,
     required this.addFactor,
-    required this.deleteDependency,
+    required this.removeDependency,
     required this.addDependency,
     required this.getPossibleDependencies,
     super.key,
@@ -135,7 +135,7 @@ class _State extends State<EntityForm> {
                         color: EntityTheme(entity.type).foreground,
                       ),
                       onDeleted: () {
-                        widget.deleteDependency(factor.id, entity.id);
+                        widget.removeDependency(factor.id, entity.id);
                       },
                     ),
                   PopupMenuButton(
