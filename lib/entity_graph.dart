@@ -51,7 +51,6 @@ class EntityGraph extends StatelessWidget {
                         TraversableEntity entity => EntityForm(
                             entity,
                             position: position,
-                            getPossibleDependencies: db.getPossibleDependencies,
                             changeEntity: (entity) {
                               db.changeEntity(position, entity);
                             },

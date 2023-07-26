@@ -90,36 +90,6 @@ class Db {
     };
   }
 
-  late final _getPossibleDependenciesStatement = _db.prepare('''
-    select id, name, type
-    from entities
-    where id not in(
-      select entities.id
-      from entities
-      join dependencies
-      on entities.id = entity
-      where factor = ?
-      union select entities.id
-      from entities
-      join factors
-      on entities.id = entity
-      where factors.id = ?
-    )
-    order by y, type, name
-  ''');
-  Iterable<UniqueEntity> getPossibleDependencies(Id<Factor> id) {
-    return _getPossibleDependenciesStatement.select([
-      id._value,
-      id._value,
-    ]).map((row) {
-      return UniqueEntity(
-        Id._(row['id'] as int),
-        row['name'] as String,
-        EntityType.values[row['type'] as int],
-      );
-    });
-  }
-
   late final _moveEntityStatement = _db.prepare('''
     update entities
     set x = ?, y = ?

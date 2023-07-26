@@ -10,7 +10,6 @@ import 'core/factor.dart';
 import 'core/position.dart';
 import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
-import 'core/unique_entity.dart';
 import 'entity_theme.dart';
 import 'late_widget.dart';
 import 'scaled_draggable.dart';
@@ -21,7 +20,6 @@ class EntityForm extends StatefulWidget {
   final void Function(Entity) changeEntity;
   final void Function() addFactor;
   final void Function(Id<Factor>, Id<Entity>) addDependency;
-  final Iterable<UniqueEntity> Function(Id<Factor>) getPossibleDependencies;
 
   const EntityForm(
     this.entity, {
@@ -29,7 +27,6 @@ class EntityForm extends StatefulWidget {
     required this.changeEntity,
     required this.addFactor,
     required this.addDependency,
-    required this.getPossibleDependencies,
     super.key,
   });
 
