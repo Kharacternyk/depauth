@@ -4,7 +4,8 @@ import 'package:multi_split_view/multi_split_view.dart';
 import 'package:path/path.dart';
 
 import 'async_resources.dart';
-import 'core/entity_source.dart';
+import 'core/db.dart';
+import 'core/traveler.dart';
 import 'entity_graph.dart';
 import 'scaled_draggable.dart';
 import 'viewer.dart';
@@ -18,11 +19,34 @@ class HomePage extends StatefulWidget {
 
 class _State extends State<HomePage> {
   final sideBar = ValueNotifier<Widget?>(null);
+  Db? db;
+
+  @override
+  dispose() {
+    db?.dispose();
+    super.dispose();
+  }
 
   @override
   build(BuildContext context) {
-    const addEntityTooltip =
+    final Db db;
+    switch (this.db) {
+      case null:
+        db = Db(
+          join(
+            AsyncResources.of(context).documentsDirectory,
+            'personal.depauth',
+          ),
+          entityDuplicatePrefix: ' (',
+          entityDuplicateSuffix: ')',
+        );
+      case Db db_:
+        db = db_;
+    }
+
+    const addButtonTooltip =
         "Drag this button onto an empty space to create a new entity.";
+    const deleteButtonTooltip = "Drag onto this button to delete";
     final colors = Theme.of(context).colorScheme;
     final defaultSideBar = FittedBox(
       child: Column(
@@ -61,14 +85,11 @@ class _State extends State<HomePage> {
               minScale: 1,
               maxScale: 20,
               child: EntityGraph(
+                db,
                 defaultSideBar: defaultSideBar,
                 setSideBar: (widget) {
                   sideBar.value = widget;
                 },
-                join(
-                  AsyncResources.of(context).documentsDirectory,
-                  'personal.depauth',
-                ),
               ),
             ),
             Material(
@@ -87,32 +108,48 @@ class _State extends State<HomePage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            FloatingActionButton(
-              backgroundColor: colors.errorContainer,
-              foregroundColor: colors.onErrorContainer,
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(addEntityTooltip),
-                    showCloseIcon: true,
-                  ),
+            DragTarget<DeletableTraveler>(
+              builder: (context, candidate, rejected) {
+                return FloatingActionButton(
+                  backgroundColor: colors.errorContainer,
+                  foregroundColor: colors.onErrorContainer,
+                  onPressed: () {
+                    ScaffoldMessenger.of(context)
+                      ..hideCurrentSnackBar()
+                      ..showSnackBar(
+                        const SnackBar(
+                          content: Text(deleteButtonTooltip),
+                          showCloseIcon: true,
+                        ),
+                      );
+                  },
+                  tooltip: deleteButtonTooltip,
+                  child: const Icon(Icons.delete),
                 );
               },
-              tooltip: addEntityTooltip,
-              child: const Icon(Icons.delete),
+              onAccept: (traveler) {
+                switch (traveler) {
+                  case EntityTraveler traveler:
+                    db.deleteEntity(traveler.position);
+                  case FactorTraveler traveler:
+                    db.removeFactor(traveler.position, traveler.id);
+                }
+              },
             ),
             ScaledDraggable(
-              dragData: const NewEntitySource(),
+              dragData: const CreationTraveler(),
               child: FloatingActionButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(addEntityTooltip),
-                      showCloseIcon: true,
-                    ),
-                  );
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(
+                      const SnackBar(
+                        content: Text(addButtonTooltip),
+                        showCloseIcon: true,
+                      ),
+                    );
                 },
-                tooltip: addEntityTooltip,
+                tooltip: addButtonTooltip,
                 child: const Icon(Icons.add),
               ),
             ),

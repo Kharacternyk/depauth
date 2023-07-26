@@ -6,14 +6,16 @@ import 'core/db.dart';
 import 'core/entity.dart';
 import 'core/entity_type.dart';
 import 'core/factor.dart';
+import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
 import 'core/unique_entity.dart';
 import 'entity_theme.dart';
+import 'scaled_draggable.dart';
 
 class EntityForm extends StatefulWidget {
   final TraversableEntity entity;
+  final FactorTraveler Function(Id<Factor>) factorTravelerFactory;
   final void Function(Entity) changeEntity;
-  final void Function() deleteEntity;
   final void Function() addFactor;
   final void Function(Id<Factor>, Id<Entity>) removeDependency;
   final void Function(Id<Factor>, Id<Entity>) addDependency;
@@ -21,8 +23,8 @@ class EntityForm extends StatefulWidget {
 
   const EntityForm(
     this.entity, {
+    required this.factorTravelerFactory,
     required this.changeEntity,
-    required this.deleteEntity,
     required this.addFactor,
     required this.removeDependency,
     required this.addDependency,
@@ -111,59 +113,62 @@ class _State extends State<EntityForm> {
           ),
         ),
         for (final factor in widget.entity.factors)
-          Card(
-            child: ListTile(
-              leading: Badge(
-                isLabelVisible: widget.entity.factors.length > 1,
-                backgroundColor: colors.primaryContainer,
-                textColor: colors.onPrimaryContainer,
-                label: Text((++factorIndex).toString()),
-                child: const Icon(Icons.link),
-              ),
-              title: Wrap(
-                key: ValueKey(factor.id),
-                spacing: 8,
-                runSpacing: 8,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  for (final entity in factor.dependencies)
-                    Chip(
-                      key: ValueKey(entity.id),
-                      label: Text(entity.name),
-                      avatar: Icon(
-                        EntityTheme(entity.type).icon,
-                        color: EntityTheme(entity.type).foreground,
+          ScaledDraggable(
+            dragData: widget.factorTravelerFactory(factor.id),
+            child: Card(
+              child: ListTile(
+                leading: Badge(
+                  isLabelVisible: widget.entity.factors.length > 1,
+                  backgroundColor: colors.primaryContainer,
+                  textColor: colors.onPrimaryContainer,
+                  label: Text((++factorIndex).toString()),
+                  child: const Icon(Icons.link),
+                ),
+                title: Wrap(
+                  key: ValueKey(factor.id),
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    for (final entity in factor.dependencies)
+                      Chip(
+                        key: ValueKey(entity.id),
+                        label: Text(entity.name),
+                        avatar: Icon(
+                          EntityTheme(entity.type).icon,
+                          color: EntityTheme(entity.type).foreground,
+                        ),
+                        onDeleted: () {
+                          widget.removeDependency(factor.id, entity.id);
+                        },
                       ),
-                      onDeleted: () {
-                        widget.removeDependency(factor.id, entity.id);
+                    PopupMenuButton(
+                      onSelected: (entity) {
+                        if (entity case UniqueEntity entity) {
+                          widget.addDependency(factor.id, entity.id);
+                        }
                       },
-                    ),
-                  PopupMenuButton(
-                    onSelected: (entity) {
-                      if (entity case UniqueEntity entity) {
-                        widget.addDependency(factor.id, entity.id);
-                      }
-                    },
-                    icon: const Icon(Icons.add),
-                    itemBuilder: (context) {
-                      return [
-                        for (final entity
-                            in widget.getPossibleDependencies(factor.id))
-                          PopupMenuItem(
-                            value: entity,
-                            child: Chip(
-                              key: ValueKey(entity.id),
-                              label: Text(entity.name),
-                              avatar: Icon(
-                                EntityTheme(entity.type).icon,
-                                color: EntityTheme(entity.type).foreground,
+                      icon: const Icon(Icons.add),
+                      itemBuilder: (context) {
+                        return [
+                          for (final entity
+                              in widget.getPossibleDependencies(factor.id))
+                            PopupMenuItem(
+                              value: entity,
+                              child: Chip(
+                                key: ValueKey(entity.id),
+                                label: Text(entity.name),
+                                avatar: Icon(
+                                  EntityTheme(entity.type).icon,
+                                  color: EntityTheme(entity.type).foreground,
+                                ),
                               ),
-                            ),
-                          )
-                      ];
-                    },
-                  )
-                ],
+                            )
+                        ];
+                      },
+                    )
+                  ],
+                ),
               ),
             ),
           ),
@@ -178,16 +183,6 @@ class _State extends State<EntityForm> {
             title: IconButton(
               onPressed: widget.addFactor,
               icon: const Icon(Icons.add),
-            ),
-          ),
-        ),
-        Card(
-          child: ListTile(
-            title: IconButton(
-              onPressed: widget.deleteEntity,
-              icon: const Icon(Icons.delete),
-              color: Theme.of(context).colorScheme.error,
-              tooltip: 'Delete',
             ),
           ),
         ),

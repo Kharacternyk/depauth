@@ -3,44 +3,27 @@ import 'package:widget_arrows/widget_arrows.dart';
 
 import 'core/db.dart';
 import 'core/entity.dart';
-import 'core/entity_source.dart';
 import 'core/entity_type.dart';
 import 'core/factor.dart';
 import 'core/position.dart';
+import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
 import 'entity_card.dart';
 import 'entity_form.dart';
 import 'entity_placeholder.dart';
 import 'scaled_draggable.dart';
 
-class EntityGraph extends StatefulWidget {
-  final String dbPath;
+class EntityGraph extends StatelessWidget {
+  final Db db;
   final void Function(Widget) setSideBar;
   final Widget defaultSideBar;
 
   const EntityGraph(
-    this.dbPath, {
+    this.db, {
     required this.setSideBar,
     required this.defaultSideBar,
     super.key,
   });
-
-  @override
-  createState() => _State();
-}
-
-class _State extends State<EntityGraph> {
-  late final Db db = Db(
-    widget.dbPath,
-    entityDuplicatePrefix: ' (',
-    entityDuplicateSuffix: ')',
-  );
-
-  @override
-  dispose() {
-    db.dispose();
-    super.dispose();
-  }
 
   @override
   build(context) {
@@ -68,8 +51,8 @@ class _State extends State<EntityGraph> {
                         TraversableEntity entity => EntityForm(
                             entity,
                             getPossibleDependencies: db.getPossibleDependencies,
-                            deleteEntity: () {
-                              db.deleteEntity(position);
+                            factorTravelerFactory: (id) {
+                              return FactorTraveler(position, id);
                             },
                             changeEntity: (entity) {
                               db.changeEntity(position, entity);
@@ -98,7 +81,7 @@ class _State extends State<EntityGraph> {
                               db.addFactor(position, entity.id);
                             },
                           ),
-                        null => widget.defaultSideBar,
+                        null => defaultSideBar,
                       };
                     },
                   );
@@ -106,23 +89,23 @@ class _State extends State<EntityGraph> {
                   return switch (entity) {
                     TraversableEntity entity => Expanded(
                         child: ScaledDraggable(
-                          dragData: EntityFromPositionSource(position),
+                          dragData: EntityTraveler(position),
                           child: EntityCard(
                             entity,
                             onTap: () {
-                              widget.setSideBar(entityForm);
+                              setSideBar(entityForm);
                             },
                           ),
                         ),
                       ),
-                    null => EntityPlaceholder<EntitySource>(
+                    null => EntityPlaceholder<SourceTraveler>(
                         onDragAccepted: (source) {
                           switch (source) {
-                            case EntityFromPositionSource source:
+                            case EntityTraveler source:
                               db.moveEntity(
                                   from: source.position, to: position);
-                              widget.setSideBar(widget.defaultSideBar);
-                            case NewEntitySource _:
+                              setSideBar(defaultSideBar);
+                            case CreationTraveler _:
                               db.createEntity(
                                 position,
                                 const Entity(
@@ -130,7 +113,7 @@ class _State extends State<EntityGraph> {
                                   EntityType.generic,
                                 ),
                               );
-                              widget.setSideBar(entityForm);
+                              setSideBar(entityForm);
                           }
                         },
                         icon: switch ((

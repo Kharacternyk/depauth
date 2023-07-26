@@ -281,7 +281,7 @@ class Db {
   void removeFactor(Position position, Id<Factor> factorId) {
     assert(_getPositionOfFactor(factorId) == position);
     _removeFactorStatement
-      ..execute()
+      ..execute([factorId._value])
       ..reset();
     _updateEntities([position]);
     _updateDependencies();
