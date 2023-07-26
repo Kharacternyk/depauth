@@ -232,7 +232,7 @@ class Db {
   }
 
   late final _addDependencyStatement = _db.prepare('''
-    insert into dependencies(entity, factor) values(?, ?)
+    insert or ignore into dependencies(entity, factor) values(?, ?)
   ''');
   void addDependency(
     Position position,

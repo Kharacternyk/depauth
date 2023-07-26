@@ -77,7 +77,7 @@ class EntityGraph extends StatelessWidget {
                   return switch (entity) {
                     TraversableEntity entity => Expanded(
                         child: ScaledDraggable(
-                          dragData: EntityTraveler(position),
+                          dragData: EntityTraveler(position, entity.id),
                           child: EntityCard(
                             entity,
                             onTap: () {

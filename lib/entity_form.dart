@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'core/db.dart';
 import 'core/entity.dart';
 import 'core/entity_type.dart';
+import 'core/enumerate.dart';
 import 'core/factor.dart';
 import 'core/position.dart';
 import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
 import 'core/unique_entity.dart';
 import 'entity_theme.dart';
+import 'late_widget.dart';
 import 'scaled_draggable.dart';
 
 class EntityForm extends StatefulWidget {
@@ -56,7 +58,6 @@ class _State extends State<EntityForm> {
   @override
   build(context) {
     final colors = Theme.of(context).colorScheme;
-    var factorIndex = 0;
 
     final children = [
       Card(
@@ -110,68 +111,54 @@ class _State extends State<EntityForm> {
           ),
         ),
       ),
-      for (final factor in widget.entity.factors)
-        ScaledDraggable(
-          dragData: FactorTraveler(widget.position, factor.id),
-          child: Card(
-            child: ListTile(
-              leading: Badge(
-                isLabelVisible: widget.entity.factors.length > 1,
-                backgroundColor: colors.primaryContainer,
-                textColor: colors.onPrimaryContainer,
-                label: Text((++factorIndex).toString()),
-                child: const Icon(Icons.link),
-              ),
-              title: Wrap(
-                key: ValueKey(factor.id),
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  for (final entity in factor.dependencies)
-                    ScaledDraggable(
-                      needsMaterial: true,
-                      dragData: DependencyTraveler(
-                        widget.position,
-                        factor.id,
-                        entity.id,
+      for (final (index, factor) in enumerate(widget.entity.factors))
+        DragTarget<EntityTraveler>(
+          onAccept: (traveler) {
+            widget.addDependency(factor.id, traveler.id);
+          },
+          builder: (context, candidate, rejected) {
+            return LateWidget(
+              () {
+                return ScaledDraggable(
+                  dragData: FactorTraveler(widget.position, factor.id),
+                  child: Card(
+                    child: ListTile(
+                      leading: Badge(
+                        isLabelVisible: widget.entity.factors.length > 1,
+                        backgroundColor: colors.primaryContainer,
+                        textColor: colors.onPrimaryContainer,
+                        label: Text((index + 1).toString()),
+                        child: const Icon(Icons.link),
                       ),
-                      child: Chip(
-                        key: ValueKey(entity.id),
-                        label: Text(entity.name),
-                        avatar: Icon(
-                          EntityTheme(entity.type).icon,
-                          color: EntityTheme(entity.type).foreground,
-                        ),
-                      ),
-                    ),
-                  PopupMenuButton(
-                    onSelected: (entity) {
-                      if (entity case UniqueEntity entity) {
-                        widget.addDependency(factor.id, entity.id);
-                      }
-                    },
-                    icon: const Icon(Icons.add),
-                    itemBuilder: (context) {
-                      return [
-                        for (final entity
-                            in widget.getPossibleDependencies(factor.id))
-                          PopupMenuItem(
-                            value: entity,
-                            child: Chip(
-                              key: ValueKey(entity.id),
-                              label: Text(entity.name),
-                              avatar: Icon(
-                                EntityTheme(entity.type).icon,
-                                color: EntityTheme(entity.type).foreground,
+                      title: Wrap(
+                        key: ValueKey(factor.id),
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          for (final entity in factor.dependencies)
+                            ScaledDraggable(
+                              needsMaterial: true,
+                              dragData: DependencyTraveler(
+                                widget.position,
+                                factor.id,
+                                entity.id,
+                              ),
+                              child: Chip(
+                                key: ValueKey(entity.id),
+                                label: Text(entity.name),
+                                avatar: Icon(
+                                  EntityTheme(entity.type).icon,
+                                  color: EntityTheme(entity.type).foreground,
+                                ),
                               ),
                             ),
-                          )
-                      ];
-                    },
+                        ],
+                      ),
+                    ),
                   ),
-                ],
-              ),
-            ),
-          ),
+                );
+              },
+            );
+          },
         ),
     ];
 

@@ -9,8 +9,9 @@ sealed class DeletableTraveler {}
 
 class EntityTraveler implements SourceTraveler, DeletableTraveler {
   final Position position;
+  final Id<Entity> id;
 
-  const EntityTraveler(this.position);
+  const EntityTraveler(this.position, this.id);
 }
 
 class CreationTraveler implements SourceTraveler {
