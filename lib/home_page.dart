@@ -46,7 +46,7 @@ class _State extends State<HomePage> {
 
     const addButtonTooltip =
         "Drag this button onto an empty space to create a new entity.";
-    const deleteButtonTooltip = "Drag onto this button to delete";
+    const deleteButtonTooltip = "Drag onto this button to delete.";
     final colors = Theme.of(context).colorScheme;
     final defaultSideBar = FittedBox(
       child: Column(
