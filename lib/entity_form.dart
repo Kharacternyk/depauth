@@ -58,137 +58,145 @@ class _State extends State<EntityForm> {
     final colors = Theme.of(context).colorScheme;
     var factorIndex = 0;
 
-    return ListView(
-      children: [
-        Card(
-          child: ListTile(
-            leading: const Icon(Icons.edit),
-            title: TextField(
-              controller: nameController,
-              onChanged: (String name) {
-                _debouncer?.cancel();
-                _debouncer = Timer(const Duration(milliseconds: 200), () {
-                  widget.changeEntity(
-                    Entity(name, widget.entity.type),
-                  );
-                });
+    final children = [
+      Card(
+        child: ListTile(
+          leading: const Icon(Icons.edit),
+          title: TextField(
+            controller: nameController,
+            onChanged: (String name) {
+              _debouncer?.cancel();
+              _debouncer = Timer(const Duration(milliseconds: 200), () {
+                widget.changeEntity(
+                  Entity(name, widget.entity.type),
+                );
+              });
+            },
+            decoration: const InputDecoration(
+              hintText: 'Name',
+            ),
+          ),
+        ),
+      ),
+      Card(
+        child: ListTile(
+          leading: const Icon(Icons.category),
+          title: DropdownButtonHideUnderline(
+            child: DropdownButton(
+              isExpanded: true,
+              items: EntityType.values
+                  .map(
+                    (value) => DropdownMenuItem(
+                      value: value,
+                      child: Chip(
+                        avatar: Ink(
+                          child: Icon(
+                            EntityTheme(value).icon,
+                            color: EntityTheme(value).foreground,
+                          ),
+                        ),
+                        label: Text(EntityTheme(value).typeName),
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                widget.changeEntity(
+                  Entity(widget.entity.name, value ?? widget.entity.type),
+                );
               },
-              decoration: const InputDecoration(
-                hintText: 'Name',
-              ),
+              value: widget.entity.type,
             ),
           ),
         ),
-        Card(
-          child: ListTile(
-            leading: const Icon(Icons.category),
-            title: DropdownButtonHideUnderline(
-              child: DropdownButton(
-                isExpanded: true,
-                items: EntityType.values
-                    .map(
-                      (value) => DropdownMenuItem(
-                        value: value,
-                        child: Chip(
-                          avatar: Ink(
-                            child: Icon(
-                              EntityTheme(value).icon,
-                              color: EntityTheme(value).foreground,
-                            ),
-                          ),
-                          label: Text(EntityTheme(value).typeName),
-                        ),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  widget.changeEntity(
-                    Entity(widget.entity.name, value ?? widget.entity.type),
-                  );
-                },
-                value: widget.entity.type,
+      ),
+      for (final factor in widget.entity.factors)
+        ScaledDraggable(
+          dragData: FactorTraveler(widget.position, factor.id),
+          child: Card(
+            child: ListTile(
+              leading: Badge(
+                isLabelVisible: widget.entity.factors.length > 1,
+                backgroundColor: colors.primaryContainer,
+                textColor: colors.onPrimaryContainer,
+                label: Text((++factorIndex).toString()),
+                child: const Icon(Icons.link),
               ),
-            ),
-          ),
-        ),
-        for (final factor in widget.entity.factors)
-          ScaledDraggable(
-            dragData: FactorTraveler(widget.position, factor.id),
-            child: Card(
-              child: ListTile(
-                leading: Badge(
-                  isLabelVisible: widget.entity.factors.length > 1,
-                  backgroundColor: colors.primaryContainer,
-                  textColor: colors.onPrimaryContainer,
-                  label: Text((++factorIndex).toString()),
-                  child: const Icon(Icons.link),
-                ),
-                title: Wrap(
-                  key: ValueKey(factor.id),
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    for (final entity in factor.dependencies)
-                      ScaledDraggable(
-                        needsMaterial: true,
-                        dragData: DependencyTraveler(
-                          widget.position,
-                          factor.id,
-                          entity.id,
-                        ),
-                        child: Chip(
-                          key: ValueKey(entity.id),
-                          label: Text(entity.name),
-                          avatar: Icon(
-                            EntityTheme(entity.type).icon,
-                            color: EntityTheme(entity.type).foreground,
-                          ),
+              title: Wrap(
+                key: ValueKey(factor.id),
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  for (final entity in factor.dependencies)
+                    ScaledDraggable(
+                      needsMaterial: true,
+                      dragData: DependencyTraveler(
+                        widget.position,
+                        factor.id,
+                        entity.id,
+                      ),
+                      child: Chip(
+                        key: ValueKey(entity.id),
+                        label: Text(entity.name),
+                        avatar: Icon(
+                          EntityTheme(entity.type).icon,
+                          color: EntityTheme(entity.type).foreground,
                         ),
                       ),
-                    PopupMenuButton(
-                      onSelected: (entity) {
-                        if (entity case UniqueEntity entity) {
-                          widget.addDependency(factor.id, entity.id);
-                        }
-                      },
-                      icon: const Icon(Icons.add),
-                      itemBuilder: (context) {
-                        return [
-                          for (final entity
-                              in widget.getPossibleDependencies(factor.id))
-                            PopupMenuItem(
-                              value: entity,
-                              child: Chip(
-                                key: ValueKey(entity.id),
-                                label: Text(entity.name),
-                                avatar: Icon(
-                                  EntityTheme(entity.type).icon,
-                                  color: EntityTheme(entity.type).foreground,
-                                ),
+                    ),
+                  PopupMenuButton(
+                    onSelected: (entity) {
+                      if (entity case UniqueEntity entity) {
+                        widget.addDependency(factor.id, entity.id);
+                      }
+                    },
+                    icon: const Icon(Icons.add),
+                    itemBuilder: (context) {
+                      return [
+                        for (final entity
+                            in widget.getPossibleDependencies(factor.id))
+                          PopupMenuItem(
+                            value: entity,
+                            child: Chip(
+                              key: ValueKey(entity.id),
+                              label: Text(entity.name),
+                              avatar: Icon(
+                                EntityTheme(entity.type).icon,
+                                color: EntityTheme(entity.type).foreground,
                               ),
-                            )
-                        ];
-                      },
-                    )
-                  ],
-                ),
+                            ),
+                          )
+                      ];
+                    },
+                  ),
+                ],
               ),
             ),
           ),
-        Card(
-          child: ListTile(
-            leading: Badge(
-              backgroundColor: colors.primaryContainer,
-              textColor: colors.onPrimaryContainer,
-              label: const Text("+"),
-              child: const Icon(Icons.link),
-            ),
-            title: IconButton(
-              onPressed: widget.addFactor,
-              icon: const Icon(Icons.add),
-            ),
-          ),
         ),
-      ],
+    ];
+
+    return DragTarget<CreationTraveler>(
+      builder: (context, candidate, rejected) {
+        return ListView(
+          children: [
+            ...children,
+            if (candidate.isNotEmpty)
+              Card(
+                child: ListTile(
+                  leading: Badge(
+                    backgroundColor: colors.primaryContainer,
+                    textColor: colors.onPrimaryContainer,
+                    label: const Text("+"),
+                    child: const Icon(Icons.link),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+      onAccept: (_) {
+        widget.addFactor();
+      },
     );
   }
 }
