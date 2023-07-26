@@ -34,7 +34,10 @@ class ScaledDraggable<DragDataType extends Object> extends StatelessWidget {
           },
           child: SizedBox.fromSize(
             size: renderBox.size,
-            child: child,
+            child: Opacity(
+              opacity: 0.5,
+              child: child,
+            ),
           ),
         );
       }),
