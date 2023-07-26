@@ -6,6 +6,7 @@ import 'core/db.dart';
 import 'core/entity.dart';
 import 'core/entity_type.dart';
 import 'core/factor.dart';
+import 'core/position.dart';
 import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
 import 'core/unique_entity.dart';
@@ -14,19 +15,17 @@ import 'scaled_draggable.dart';
 
 class EntityForm extends StatefulWidget {
   final TraversableEntity entity;
-  final FactorTraveler Function(Id<Factor>) factorTravelerFactory;
+  final Position position;
   final void Function(Entity) changeEntity;
   final void Function() addFactor;
-  final void Function(Id<Factor>, Id<Entity>) removeDependency;
   final void Function(Id<Factor>, Id<Entity>) addDependency;
   final Iterable<UniqueEntity> Function(Id<Factor>) getPossibleDependencies;
 
   const EntityForm(
     this.entity, {
-    required this.factorTravelerFactory,
+    required this.position,
     required this.changeEntity,
     required this.addFactor,
-    required this.removeDependency,
     required this.addDependency,
     required this.getPossibleDependencies,
     super.key,
@@ -114,7 +113,7 @@ class _State extends State<EntityForm> {
         ),
         for (final factor in widget.entity.factors)
           ScaledDraggable(
-            dragData: widget.factorTravelerFactory(factor.id),
+            dragData: FactorTraveler(widget.position, factor.id),
             child: Card(
               child: ListTile(
                 leading: Badge(
@@ -126,21 +125,24 @@ class _State extends State<EntityForm> {
                 ),
                 title: Wrap(
                   key: ValueKey(factor.id),
-                  spacing: 8,
-                  runSpacing: 8,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     for (final entity in factor.dependencies)
-                      Chip(
-                        key: ValueKey(entity.id),
-                        label: Text(entity.name),
-                        avatar: Icon(
-                          EntityTheme(entity.type).icon,
-                          color: EntityTheme(entity.type).foreground,
+                      ScaledDraggable(
+                        needsMaterial: true,
+                        dragData: DependencyTraveler(
+                          widget.position,
+                          factor.id,
+                          entity.id,
                         ),
-                        onDeleted: () {
-                          widget.removeDependency(factor.id, entity.id);
-                        },
+                        child: Chip(
+                          key: ValueKey(entity.id),
+                          label: Text(entity.name),
+                          avatar: Icon(
+                            EntityTheme(entity.type).icon,
+                            color: EntityTheme(entity.type).foreground,
+                          ),
+                        ),
                       ),
                     PopupMenuButton(
                       onSelected: (entity) {

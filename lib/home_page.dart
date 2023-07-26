@@ -133,6 +133,12 @@ class _State extends State<HomePage> {
                     db.deleteEntity(traveler.position);
                   case FactorTraveler traveler:
                     db.removeFactor(traveler.position, traveler.id);
+                  case DependencyTraveler traveler:
+                    db.removeDependency(
+                      traveler.position,
+                      traveler.factorId,
+                      traveler.entityId,
+                    );
                 }
               },
             ),

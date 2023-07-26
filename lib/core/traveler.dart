@@ -1,4 +1,5 @@
 import 'db.dart';
+import 'entity.dart';
 import 'factor.dart';
 import 'position.dart';
 
@@ -21,4 +22,12 @@ class FactorTraveler implements DeletableTraveler {
   final Id<Factor> id;
 
   const FactorTraveler(this.position, this.id);
+}
+
+class DependencyTraveler implements DeletableTraveler {
+  final Position position;
+  final Id<Factor> factorId;
+  final Id<Entity> entityId;
+
+  const DependencyTraveler(this.position, this.factorId, this.entityId);
 }

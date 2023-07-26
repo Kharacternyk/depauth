@@ -6,10 +6,12 @@ import 'viewer.dart';
 class ScaledDraggable<DragDataType extends Object> extends StatelessWidget {
   final Widget child;
   final DragDataType dragData;
+  final bool needsMaterial;
 
   const ScaledDraggable({
     required this.dragData,
     required this.child,
+    this.needsMaterial = false,
     super.key,
   });
 
@@ -18,6 +20,13 @@ class ScaledDraggable<DragDataType extends Object> extends StatelessWidget {
     return Draggable(
       feedback: LateWidget(() {
         final renderBox = context.findRenderObject() as RenderBox;
+        final child = needsMaterial
+            ? Material(
+                type: MaterialType.transparency,
+                child: this.child,
+              )
+            : this.child;
+
         return Transform.scale(
           scale: switch (Scale.maybeOf(context)) {
             null => 1,

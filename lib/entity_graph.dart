@@ -50,10 +50,8 @@ class EntityGraph extends StatelessWidget {
                       return switch (entity) {
                         TraversableEntity entity => EntityForm(
                             entity,
+                            position: position,
                             getPossibleDependencies: db.getPossibleDependencies,
-                            factorTravelerFactory: (id) {
-                              return FactorTraveler(position, id);
-                            },
                             changeEntity: (entity) {
                               db.changeEntity(position, entity);
                             },
@@ -62,16 +60,6 @@ class EntityGraph extends StatelessWidget {
                               Id<Entity> entityId,
                             ) {
                               db.addDependency(
-                                position,
-                                factorId,
-                                entityId,
-                              );
-                            },
-                            removeDependency: (
-                              Id<Factor> factorId,
-                              Id<Entity> entityId,
-                            ) {
-                              db.removeDependency(
                                 position,
                                 factorId,
                                 entityId,
