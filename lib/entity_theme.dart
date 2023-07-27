@@ -25,6 +25,9 @@ class EntityTheme {
   static final _green = _seedScheme(Colors.green);
   static final _blue = _seedScheme(Colors.blue);
   static final _yellow = _seedScheme(Colors.yellow);
+  static final _orange = _seedScheme(Colors.orange);
+  static final _purple = _seedScheme(Colors.deepPurple);
+  static final _teal = _seedScheme(Colors.teal);
 
   static EntityTheme _fromScheme(
     ColorScheme scheme,
@@ -45,6 +48,10 @@ class EntityTheme {
   static final _webService = _fromScheme(_blue, Icons.web, 'Web Service');
   static final _person = _fromScheme(_red, Icons.person, 'Person');
   static final _hardwareKey = _fromScheme(_green, Icons.key, 'Hardware Key');
+  static final _phoneNumber = _fromScheme(_purple, Icons.phone, 'Phone Number');
+  static final _device = _fromScheme(_teal, Icons.devices, 'Device');
+  static final _paymentInformation =
+      _fromScheme(_orange, Icons.credit_card, 'Payment Information');
 
   factory EntityTheme(EntityType type) {
     return switch (type) {
@@ -52,6 +59,9 @@ class EntityTheme {
       EntityType.hardwareKey => _hardwareKey,
       EntityType.webService => _webService,
       EntityType.person => _person,
+      EntityType.phoneNumber => _phoneNumber,
+      EntityType.device => _device,
+      EntityType.paymentInformation => _paymentInformation,
     };
   }
 }

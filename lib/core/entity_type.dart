@@ -3,4 +3,7 @@ enum EntityType {
   webService,
   hardwareKey,
   person,
+  phoneNumber,
+  device,
+  paymentInformation,
 }
