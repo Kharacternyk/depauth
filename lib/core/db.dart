@@ -368,35 +368,6 @@ class Db {
         end;
       end;
     ''');
-
-    _db.prepare('''
-      insert or ignore into entities(id, name, type, x, y) values(?, ?, ?, ?, ?)
-    ''')
-      ..execute([0, 'Google', 1, 1, 1])
-      ..execute([1, 'Fastmail', 1, 1, 2])
-      ..execute([2, 'Yubikey', 2, 1, 3])
-      ..execute([3, 'Nazar', 3, 2, 1])
-      ..dispose();
-
-    _db.prepare('''
-      insert or ignore into factors(id, entity) values(?, ?)
-    ''')
-      ..execute([0, 0])
-      ..execute([1, 1])
-      ..execute([2, 0])
-      ..execute([3, 1])
-      ..dispose();
-
-    _db.prepare('''
-      insert or ignore into dependencies(factor, entity) values(?, ?)
-    ''')
-      ..execute([0, 1])
-      ..execute([1, 0])
-      ..execute([0, 3])
-      ..execute([1, 3])
-      ..execute([2, 2])
-      ..execute([3, 2])
-      ..dispose();
   }
 
   void dispose() => _db.dispose();
