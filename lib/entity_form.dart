@@ -11,7 +11,6 @@ import 'core/position.dart';
 import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
 import 'entity_theme.dart';
-import 'late_widget.dart';
 import 'scaled_draggable.dart';
 
 class EntityForm extends StatefulWidget {
@@ -114,46 +113,43 @@ class _State extends State<EntityForm> {
             widget.addDependency(factor.id, traveler.id);
           },
           builder: (context, candidate, rejected) {
-            return LateWidget(
-              () {
-                return ScaledDraggable(
-                  dragData: FactorTraveler(widget.position, factor.id),
-                  child: Card(
-                    child: ListTile(
-                      leading: Badge(
-                        isLabelVisible: widget.entity.factors.length > 1,
-                        backgroundColor: colors.primaryContainer,
-                        textColor: colors.onPrimaryContainer,
-                        label: Text((index + 1).toString()),
-                        child: const Icon(Icons.link),
-                      ),
-                      title: Wrap(
-                        key: ValueKey(factor.id),
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          for (final entity in factor.dependencies)
-                            ScaledDraggable(
-                              needsMaterial: true,
-                              dragData: DependencyTraveler(
-                                widget.position,
-                                factor.id,
-                                entity.id,
-                              ),
-                              child: Chip(
-                                key: ValueKey(entity.id),
-                                label: Text(entity.name),
-                                avatar: Icon(
-                                  EntityTheme(entity.type).icon,
-                                  color: EntityTheme(entity.type).foreground,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
+            return ScaledDraggable(
+              dragData: FactorTraveler(widget.position, factor.id),
+              child: Card(
+                color: candidate.isNotEmpty ? colors.primaryContainer : null,
+                child: ListTile(
+                  leading: Badge(
+                    isLabelVisible: widget.entity.factors.length > 1,
+                    backgroundColor: colors.primaryContainer,
+                    textColor: colors.onPrimaryContainer,
+                    label: Text((index + 1).toString()),
+                    child: const Icon(Icons.link),
                   ),
-                );
-              },
+                  title: Wrap(
+                    key: ValueKey(factor.id),
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      for (final entity in factor.dependencies)
+                        ScaledDraggable(
+                          needsMaterial: true,
+                          dragData: DependencyTraveler(
+                            widget.position,
+                            factor.id,
+                            entity.id,
+                          ),
+                          child: Chip(
+                            key: ValueKey(entity.id),
+                            label: Text(entity.name),
+                            avatar: Icon(
+                              EntityTheme(entity.type).icon,
+                              color: EntityTheme(entity.type).foreground,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
             );
           },
         ),

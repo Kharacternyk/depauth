@@ -111,8 +111,12 @@ class _State extends State<HomePage> {
             DragTarget<DeletableTraveler>(
               builder: (context, candidate, rejected) {
                 return FloatingActionButton(
-                  backgroundColor: colors.errorContainer,
-                  foregroundColor: colors.onErrorContainer,
+                  backgroundColor: candidate.isNotEmpty
+                      ? colors.error
+                      : colors.errorContainer,
+                  foregroundColor: candidate.isNotEmpty
+                      ? colors.onError
+                      : colors.onErrorContainer,
                   onPressed: () {
                     ScaffoldMessenger.of(context)
                       ..hideCurrentSnackBar()
