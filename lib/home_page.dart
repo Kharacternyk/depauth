@@ -106,7 +106,7 @@ class _State extends State<HomePage> {
       ),
       bottomNavigationBar: BottomAppBar(
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
             DragTarget<DeletableTraveler>(
               builder: (context, candidate, rejected) {
@@ -146,6 +146,7 @@ class _State extends State<HomePage> {
                 }
               },
             ),
+            const SizedBox(width: 8),
             ScaledDraggable(
               dragData: const CreationTraveler(),
               child: FloatingActionButton(

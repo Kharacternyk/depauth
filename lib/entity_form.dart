@@ -135,6 +135,8 @@ class _State extends State<EntityForm> {
                   ),
                   title: Wrap(
                     key: ValueKey(factor.id),
+                    spacing: 4,
+                    runSpacing: 4,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       for (final entity in factor.dependencies)
