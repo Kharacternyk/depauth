@@ -64,6 +64,16 @@ class EntityGraph extends StatelessWidget {
                                 entityId,
                               );
                             },
+                            removeDependency: (
+                              Id<Factor> factorId,
+                              Id<Entity> entityId,
+                            ) {
+                              db.removeDependency(
+                                position,
+                                factorId,
+                                entityId,
+                              );
+                            },
                             addFactor: () {
                               db.addFactor(position, entity.id);
                             },
@@ -85,7 +95,7 @@ class EntityGraph extends StatelessWidget {
                           ),
                         ),
                       ),
-                    null => EntityPlaceholder<SourceTraveler>(
+                    null => EntityPlaceholder<GrabbableTraveler>(
                         onDragAccepted: (source) {
                           switch (source) {
                             case EntityTraveler source:

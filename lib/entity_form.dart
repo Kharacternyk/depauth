@@ -19,6 +19,7 @@ class EntityForm extends StatefulWidget {
   final void Function(Entity) changeEntity;
   final void Function() addFactor;
   final void Function(Id<Factor>, Id<Entity>) addDependency;
+  final void Function(Id<Factor>, Id<Entity>) removeDependency;
 
   const EntityForm(
     this.entity, {
@@ -26,6 +27,7 @@ class EntityForm extends StatefulWidget {
     required this.changeEntity,
     required this.addFactor,
     required this.addDependency,
+    required this.removeDependency,
     super.key,
   });
 
@@ -108,9 +110,15 @@ class _State extends State<EntityForm> {
         ),
       ),
       for (final (index, factor) in enumerate(widget.entity.factors))
-        DragTarget<EntityTraveler>(
+        DragTarget<DependableTraveler>(
           onAccept: (traveler) {
-            widget.addDependency(factor.id, traveler.id);
+            switch (traveler) {
+              case EntityTraveler traveler:
+                widget.addDependency(factor.id, traveler.id);
+              case DependencyTraveler traveler:
+                widget.removeDependency(traveler.factorId, traveler.entityId);
+                widget.addDependency(factor.id, traveler.entityId);
+            }
           },
           builder: (context, candidate, rejected) {
             return ScaledDraggable(
