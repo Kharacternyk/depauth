@@ -63,7 +63,7 @@ class Db {
     on entities.id = dependencies.entity
     where factors.entity = ?
     group by factors.id
-    order by count(entities.id) desc, min(entities.x), min(entities.y)
+    order by min(entities.x), min(entities.y)
   ''');
   TraversableEntity? _getEntity(Position position) {
     final entityRow =
