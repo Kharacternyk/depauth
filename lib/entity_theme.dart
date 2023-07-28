@@ -28,6 +28,9 @@ class EntityTheme {
   static final _orange = _seedScheme(Colors.orange);
   static final _purple = _seedScheme(Colors.deepPurple);
   static final _teal = _seedScheme(Colors.teal);
+  static final _grey = _seedScheme(Colors.grey);
+  static final _pink = _seedScheme(Colors.pink);
+  static final _lime = _seedScheme(Colors.lime);
 
   static EntityTheme _fromScheme(
     ColorScheme scheme,
@@ -45,23 +48,32 @@ class EntityTheme {
 
   static final _generic =
       _fromScheme(_yellow, Icons.category, 'Generic Entity');
-  static final _webService = _fromScheme(_blue, Icons.web, 'Web Service');
-  static final _person = _fromScheme(_red, Icons.person, 'Person');
+  static final _webService = _fromScheme(_blue, Icons.cloud, 'Web Service');
+  static final _knowledge =
+      _fromScheme(_red, Icons.pattern, 'Secret Knowledge (Passwords)');
+  static final _biometrics =
+      _fromScheme(_pink, Icons.fingerprint, 'Biometrics');
   static final _hardwareKey = _fromScheme(_green, Icons.key, 'Hardware Key');
   static final _phoneNumber = _fromScheme(_purple, Icons.phone, 'Phone Number');
   static final _device = _fromScheme(_teal, Icons.devices, 'Device');
+  static final _application = _fromScheme(_grey, Icons.widgets, 'Application');
   static final _paymentInformation =
       _fromScheme(_orange, Icons.credit_card, 'Payment Information');
+  static final _operatingSystem =
+      _fromScheme(_lime, Icons.settings_applications, 'Operating System');
 
   factory EntityTheme(EntityType type) {
     return switch (type) {
       EntityType.generic => _generic,
       EntityType.hardwareKey => _hardwareKey,
       EntityType.webService => _webService,
-      EntityType.person => _person,
+      EntityType.knowledge => _knowledge,
+      EntityType.biometrics => _biometrics,
       EntityType.phoneNumber => _phoneNumber,
       EntityType.device => _device,
+      EntityType.application => _application,
       EntityType.paymentInformation => _paymentInformation,
+      EntityType.operatingSystem => _operatingSystem,
     };
   }
 }

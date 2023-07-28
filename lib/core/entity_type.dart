@@ -2,8 +2,11 @@ enum EntityType {
   generic,
   webService,
   hardwareKey,
-  person,
+  knowledge,
+  biometrics,
   phoneNumber,
   device,
+  application,
   paymentInformation,
+  operatingSystem,
 }
