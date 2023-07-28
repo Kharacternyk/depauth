@@ -50,7 +50,7 @@ class EntityTheme {
       _fromScheme(_yellow, Icons.category, 'Generic Entity');
   static final _webService = _fromScheme(_blue, Icons.cloud, 'Web Service');
   static final _knowledge =
-      _fromScheme(_red, Icons.pattern, 'Secret Knowledge (Passwords)');
+      _fromScheme(_red, Icons.password, 'Secret Knowledge');
   static final _biometrics =
       _fromScheme(_pink, Icons.fingerprint, 'Biometrics');
   static final _hardwareKey = _fromScheme(_green, Icons.key, 'Hardware Key');
