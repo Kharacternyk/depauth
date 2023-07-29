@@ -42,12 +42,12 @@ class Db {
   }
 
   late final PreparedStatement _getEntityStatement = _db.prepare('''
-    select id, name, type
+    select id, name, type, lost, compromised
     from entities
     where x = ? and y = ?
   ''');
   late final PreparedStatement _getDependenciesStatement = _db.prepare('''
-    select entities.id, name, type
+    select entities.id, name, type, lost, compromised
     from entities
     join dependencies
     on entities.id = entity
@@ -74,7 +74,9 @@ class Db {
           Id._(entityRow['id'] as int),
           entityRow['name'] as String,
           EntityType.values[entityRow['type'] as int],
-          _getFactorsStatement.select([entityRow['id']]).map((row) {
+          compromised: entityRow['compromised'] as int != 0,
+          lost: entityRow['lost'] as int != 0,
+          factors: _getFactorsStatement.select([entityRow['id']]).map((row) {
             return Factor(
               Id._(row['id'] as int),
               _getDependenciesStatement.select([row['id']]).map((row) {
@@ -82,6 +84,8 @@ class Db {
                   Id._(row['id'] as int),
                   row['name'] as String,
                   EntityType.values[row['type'] as int],
+                  lost: row['lost'] as int != 0,
+                  compromised: row['compromised'] as int != 0,
                 );
               }),
             );
@@ -134,10 +138,10 @@ class Db {
   }
 
   late final _upsertEntityStatement = _db.prepare('''
-    insert into entities(name, type, x, y)
-    values(?, ?, ?, ?)
+    insert into entities(name, type, x, y, lost, compromised)
+    values(?, ?, ?, ?, ?, ?)
     on conflict(x, y)
-    do update set name = ?, type = ?
+    do update set name = ?, type = ?, lost = ?, compromised = ?
   ''');
   void _upsertEntity(Position position, Entity entity) {
     entity = _getValidEntity(position, entity);
@@ -149,8 +153,12 @@ class Db {
         type,
         position.x,
         position.y,
+        entity.lost ? 1 : 0,
+        entity.compromised ? 1 : 0,
         entity.name,
         type,
+        entity.lost ? 1 : 0,
+        entity.compromised ? 1 : 0,
       ])
       ..reset();
   }
@@ -159,6 +167,8 @@ class Db {
     entity = Entity(
       entity.name.trim(),
       entity.type,
+      lost: entity.lost,
+      compromised: entity.compromised,
     );
     final i = _getEntityDuplicateIndex(position, entity);
 
@@ -166,6 +176,8 @@ class Db {
       return Entity(
         '${entity.name}$entityDuplicatePrefix$i$entityDuplicateSuffix'.trim(),
         entity.type,
+        lost: entity.lost,
+        compromised: entity.compromised,
       );
     }
 
@@ -327,7 +339,9 @@ class Db {
         name text not null,
         type integer not null,
         x integer not null,
-        y integer not null
+        y integer not null,
+        lost int not null,
+        compromised int not null
       ) strict;
       create table if not exists factors(
         id integer primary key,

@@ -67,7 +67,12 @@ class _State extends State<EntityForm> {
               _debouncer?.cancel();
               _debouncer = Timer(const Duration(milliseconds: 200), () {
                 widget.changeEntity(
-                  Entity(name, widget.entity.type),
+                  Entity(
+                    name,
+                    widget.entity.type,
+                    lost: widget.entity.lost,
+                    compromised: widget.entity.compromised,
+                  ),
                 );
               });
             },
@@ -101,12 +106,63 @@ class _State extends State<EntityForm> {
                   .toList(),
               onChanged: (value) {
                 widget.changeEntity(
-                  Entity(widget.entity.name, value ?? widget.entity.type),
+                  Entity(
+                    widget.entity.name,
+                    value ?? widget.entity.type,
+                    lost: widget.entity.lost,
+                    compromised: widget.entity.compromised,
+                  ),
                 );
               },
               value: widget.entity.type,
             ),
           ),
+        ),
+      ),
+      Card(
+        child: CheckboxListTile(
+          title: const Text(
+            'Lost',
+            overflow: TextOverflow.fade,
+            softWrap: false,
+          ),
+          activeColor: colors.error,
+          value: widget.entity.lost,
+          selected: widget.entity.lost,
+          secondary: const Icon(Icons.not_listed_location),
+          onChanged: (value) {
+            widget.changeEntity(
+              Entity(
+                widget.entity.name,
+                widget.entity.type,
+                lost: value ?? false,
+                compromised: widget.entity.compromised,
+              ),
+            );
+          },
+        ),
+      ),
+      Card(
+        child: CheckboxListTile(
+          title: const Text(
+            'Compromised',
+            overflow: TextOverflow.fade,
+            softWrap: false,
+          ),
+          activeColor: colors.error,
+          value: widget.entity.compromised,
+          selected: widget.entity.compromised,
+          secondary: const Icon(Icons.report),
+          onChanged: (value) {
+            widget.changeEntity(
+              Entity(
+                widget.entity.name,
+                widget.entity.type,
+                lost: widget.entity.lost,
+                compromised: value ?? false,
+              ),
+            );
+          },
         ),
       ),
       for (final (index, factor) in enumerate(widget.entity.factors))

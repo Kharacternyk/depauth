@@ -109,6 +109,8 @@ class EntityGraph extends StatelessWidget {
                                 const Entity(
                                   'New Entity',
                                   EntityType.generic,
+                                  lost: false,
+                                  compromised: false,
                                 ),
                               );
                               setSideBar(entityForm);
