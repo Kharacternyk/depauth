@@ -62,6 +62,11 @@ class _State extends State<EntityForm> {
   @override
   build(context) {
     final colors = Theme.of(context).colorScheme;
+    const tileShape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(
+        Radius.circular(12),
+      ),
+    );
 
     final children = [
       Card(
@@ -113,6 +118,7 @@ class _State extends State<EntityForm> {
       ),
       Card(
         child: CheckboxListTile(
+          shape: tileShape,
           title: const Text(
             'Lost',
             overflow: TextOverflow.fade,
@@ -129,6 +135,7 @@ class _State extends State<EntityForm> {
       ),
       Card(
         child: CheckboxListTile(
+          shape: tileShape,
           title: const Text(
             'Compromised',
             overflow: TextOverflow.fade,
