@@ -16,7 +16,10 @@ import 'scaled_draggable.dart';
 class EntityForm extends StatefulWidget {
   final TraversableEntity entity;
   final Position position;
-  final void Function(Entity) changeEntity;
+  final void Function(String) changeName;
+  final void Function(EntityType) changeType;
+  final void Function(bool) toggleLost;
+  final void Function(bool) toggleCompromised;
   final void Function() addFactor;
   final void Function(Id<Factor>, Id<Entity>) addDependency;
   final void Function(Id<Factor>, Id<Entity>) removeDependency;
@@ -24,7 +27,10 @@ class EntityForm extends StatefulWidget {
   const EntityForm(
     this.entity, {
     required this.position,
-    required this.changeEntity,
+    required this.changeName,
+    required this.changeType,
+    required this.toggleLost,
+    required this.toggleCompromised,
     required this.addFactor,
     required this.addDependency,
     required this.removeDependency,
@@ -66,14 +72,7 @@ class _State extends State<EntityForm> {
             onChanged: (String name) {
               _debouncer?.cancel();
               _debouncer = Timer(const Duration(milliseconds: 200), () {
-                widget.changeEntity(
-                  Entity(
-                    name,
-                    widget.entity.type,
-                    lost: widget.entity.lost,
-                    compromised: widget.entity.compromised,
-                  ),
-                );
+                widget.changeName(name);
               });
             },
             decoration: const InputDecoration(
@@ -105,14 +104,7 @@ class _State extends State<EntityForm> {
                   )
                   .toList(),
               onChanged: (value) {
-                widget.changeEntity(
-                  Entity(
-                    widget.entity.name,
-                    value ?? widget.entity.type,
-                    lost: widget.entity.lost,
-                    compromised: widget.entity.compromised,
-                  ),
-                );
+                widget.changeType(value ?? widget.entity.type);
               },
               value: widget.entity.type,
             ),
@@ -131,14 +123,7 @@ class _State extends State<EntityForm> {
           selected: widget.entity.lost,
           secondary: const Icon(Icons.not_listed_location),
           onChanged: (value) {
-            widget.changeEntity(
-              Entity(
-                widget.entity.name,
-                widget.entity.type,
-                lost: value ?? false,
-                compromised: widget.entity.compromised,
-              ),
-            );
+            widget.toggleLost(value ?? false);
           },
         ),
       ),
@@ -154,14 +139,7 @@ class _State extends State<EntityForm> {
           selected: widget.entity.compromised,
           secondary: const Icon(Icons.report),
           onChanged: (value) {
-            widget.changeEntity(
-              Entity(
-                widget.entity.name,
-                widget.entity.type,
-                lost: widget.entity.lost,
-                compromised: value ?? false,
-              ),
-            );
+            widget.toggleCompromised(value ?? false);
           },
         ),
       ),

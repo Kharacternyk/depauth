@@ -3,7 +3,6 @@ import 'package:widget_arrows/widget_arrows.dart';
 
 import 'core/db.dart';
 import 'core/entity.dart';
-import 'core/entity_type.dart';
 import 'core/factor.dart';
 import 'core/position.dart';
 import 'core/traveler.dart';
@@ -51,8 +50,17 @@ class EntityGraph extends StatelessWidget {
                         TraversableEntity entity => EntityForm(
                             entity,
                             position: position,
-                            changeEntity: (entity) {
-                              db.changeEntity(position, entity);
+                            changeName: (name) {
+                              db.changeName(position, name);
+                            },
+                            changeType: (type) {
+                              db.changeType(position, type);
+                            },
+                            toggleLost: (value) {
+                              db.toggleLost(position, value);
+                            },
+                            toggleCompromised: (value) {
+                              db.toggleCompromised(position, value);
                             },
                             addDependency: (
                               Id<Factor> factorId,
@@ -104,15 +112,7 @@ class EntityGraph extends StatelessWidget {
                                   from: source.position, to: position);
                               setSideBar(defaultSideBar);
                             case CreationTraveler _:
-                              db.createEntity(
-                                position,
-                                const Entity(
-                                  'New Entity',
-                                  EntityType.generic,
-                                  lost: false,
-                                  compromised: false,
-                                ),
-                              );
+                              db.createEntity(position, 'New Entity');
                               setSideBar(entityForm);
                           }
                         },

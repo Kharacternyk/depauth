@@ -1,7 +1,7 @@
+import 'entity.dart';
 import 'factor.dart';
-import 'unique_entity.dart';
 
-class TraversableEntity extends UniqueEntity {
+class TraversableEntity extends Entity {
   final Iterable<Factor> factors;
 
   const TraversableEntity(

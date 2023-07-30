@@ -7,7 +7,6 @@ import 'entity_type.dart';
 import 'factor.dart';
 import 'position.dart';
 import 'traversable_entity.dart';
-import 'unique_entity.dart';
 
 class Db {
   final String entityDuplicatePrefix;
@@ -71,7 +70,7 @@ class Db {
     return switch (entityRow) {
       null => null,
       Row entityRow => TraversableEntity(
-          Id._(entityRow['id'] as int),
+          Id<Entity>._(entityRow['id'] as int),
           entityRow['name'] as String,
           EntityType.values[entityRow['type'] as int],
           compromised: entityRow['compromised'] as int != 0,
@@ -80,7 +79,7 @@ class Db {
             return Factor(
               Id._(row['id'] as int),
               _getDependenciesStatement.select([row['id']]).map((row) {
-                return UniqueEntity(
+                return Entity(
                   Id._(row['id'] as int),
                   row['name'] as String,
                   EntityType.values[row['type'] as int],
@@ -125,63 +124,96 @@ class Db {
     _updateBoundaries();
   }
 
-  void createEntity(Position position, Entity entity) {
-    _upsertEntity(position, entity);
+  late final _createEntityStatement = _db.prepare('''
+    insert into entities(name, type, x, y, lost, compromised)
+    values(?, 0, ?, ?, 0, 0)
+  ''');
+  void createEntity(Position position, String name) {
+    _createEntityStatement
+      ..execute([
+        _getValidName(position, name),
+        position.x,
+        position.y,
+      ])
+      ..reset();
     _updateEntities([position]);
     _updateBoundaries();
   }
 
-  void changeEntity(Position position, Entity entity) {
-    _upsertEntity(position, entity);
+  late final _changeNameStatement = _db.prepare('''
+    update entities
+    set name = ?
+    where x = ? and y = ?
+  ''');
+  void changeName(Position position, String name) {
+    _changeNameStatement
+      ..execute([
+        _getValidName(position, name),
+        position.x,
+        position.y,
+      ])
+      ..reset();
+    _updateEntities([position, ..._getDependantPositions(position)]);
+  }
+
+  late final _changeTypeStatement = _db.prepare('''
+    update entities
+    set type = ?
+    where x = ? and y = ?
+  ''');
+  void changeType(Position position, EntityType type) {
+    _changeTypeStatement
+      ..execute([
+        type.index,
+        position.x,
+        position.y,
+      ])
+      ..reset();
     _updateEntities([position, ..._getDependantPositions(position)]);
     _updateDependencies();
   }
 
-  late final _upsertEntityStatement = _db.prepare('''
-    insert into entities(name, type, x, y, lost, compromised)
-    values(?, ?, ?, ?, ?, ?)
-    on conflict(x, y)
-    do update set name = ?, type = ?, lost = ?, compromised = ?
+  late final _toggleCompromisedStatement = _db.prepare('''
+    update entities
+    set compromised = ?
+    where x = ? and y =?
   ''');
-  void _upsertEntity(Position position, Entity entity) {
-    entity = _getValidEntity(position, entity);
-    final type = entity.type.index;
-
-    _upsertEntityStatement
+  void toggleCompromised(Position position, bool value) {
+    _toggleCompromisedStatement
       ..execute([
-        entity.name,
-        type,
+        value ? 1 : 0,
         position.x,
         position.y,
-        entity.lost ? 1 : 0,
-        entity.compromised ? 1 : 0,
-        entity.name,
-        type,
-        entity.lost ? 1 : 0,
-        entity.compromised ? 1 : 0,
       ])
       ..reset();
+    _updateEntities([position]);
   }
 
-  Entity _getValidEntity(Position position, Entity entity) {
-    entity = Entity(
-      entity.name.trim(),
-      entity.type,
-      lost: entity.lost,
-      compromised: entity.compromised,
-    );
-    final i = _getEntityDuplicateIndex(position, entity);
+  late final _toggleLostStatement = _db.prepare('''
+    update entities
+    set lost = ?
+    where x = ? and y = ?
+  ''');
+  void toggleLost(Position position, bool value) {
+    _toggleLostStatement
+      ..execute([
+        value ? 1 : 0,
+        position.x,
+        position.y,
+      ])
+      ..reset();
+    _updateEntities([position]);
+  }
+
+  String _getValidName(Position position, String name) {
+    name = name.trim();
+    final i = _getEntityDuplicateIndex(position, name);
 
     if (i > 0) {
-      return Entity(
-        '${entity.name}$entityDuplicatePrefix$i$entityDuplicateSuffix'.trim(),
-        entity.type,
-        lost: entity.lost,
-        compromised: entity.compromised,
-      );
+      return '$name$entityDuplicatePrefix$i$entityDuplicateSuffix'.trim();
     }
 
-    return entity;
+    return name;
   }
 
   late final _getEntityDuplicateIndexStatement = _db.prepare('''
@@ -198,13 +230,13 @@ class Db {
     select max(i)
     from duplicateIndices
   ''');
-  int _getEntityDuplicateIndex(Position position, Entity entity) {
+  int _getEntityDuplicateIndex(Position position, String name) {
     return _getEntityDuplicateIndexStatement
         .select([
-          entity.name,
+          name,
           entityDuplicatePrefix,
           entityDuplicateSuffix,
-          entity.name,
+          name,
           position.x,
           position.y,
         ])
