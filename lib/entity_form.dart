@@ -125,8 +125,8 @@ class _State extends State<EntityForm> {
             softWrap: false,
           ),
           activeColor: colors.error,
-          value: widget.entity.lost.own,
-          selected: widget.entity.lost.own,
+          value: widget.entity.lost,
+          selected: widget.entity.lost,
           secondary: const Icon(Icons.not_listed_location),
           onChanged: (value) {
             widget.toggleLost(value ?? false);
@@ -142,8 +142,8 @@ class _State extends State<EntityForm> {
             softWrap: false,
           ),
           activeColor: colors.error,
-          value: widget.entity.compromised.own,
-          selected: widget.entity.compromised.own,
+          value: widget.entity.compromised,
+          selected: widget.entity.compromised,
           secondary: const Icon(Icons.report),
           onChanged: (value) {
             widget.toggleCompromised(value ?? false);

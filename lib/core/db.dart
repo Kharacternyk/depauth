@@ -6,7 +6,6 @@ import 'entity.dart';
 import 'entity_type.dart';
 import 'factor.dart';
 import 'position.dart';
-import 'trait.dart';
 import 'traversable_entity.dart';
 
 class Db {
@@ -42,14 +41,12 @@ class Db {
   }
 
   late final PreparedStatement _getEntityStatement = _db.prepare('''
-    select id, name, type, lost_own, lost_inherited, compromised_own,
-      compromised_inherited
+    select id, name, type, lost, compromised
     from entities
     where x = ? and y = ?
   ''');
   late final PreparedStatement _getDependenciesStatement = _db.prepare('''
-    select entities.id, name, type, lost_own, lost_inherited, compromised_own,
-      compromised_inherited
+    select entities.id, name, type, lost, compromised
     from entities
     join dependencies
     on entities.id = entity
@@ -76,14 +73,8 @@ class Db {
           Id<Entity>._(entityRow['id'] as int),
           entityRow['name'] as String,
           EntityType.values[entityRow['type'] as int],
-          compromised: Trait(
-            own: entityRow['compromised_own'] as int > 0,
-            inherited: entityRow['compromised_inherited'] as int > 0,
-          ),
-          lost: Trait(
-            own: entityRow['lost_own'] as int > 0,
-            inherited: entityRow['lost_inherited'] as int > 0,
-          ),
+          compromised: entityRow['compromised'] as int != 0,
+          lost: entityRow['lost'] as int != 0,
           factors: _getFactorsStatement.select([entityRow['id']]).map((row) {
             return Factor(
               Id._(row['id'] as int),
@@ -92,14 +83,8 @@ class Db {
                   Id._(row['id'] as int),
                   row['name'] as String,
                   EntityType.values[row['type'] as int],
-                  compromised: Trait(
-                    own: row['compromised_own'] as int > 0,
-                    inherited: row['compromised_inherited'] as int > 0,
-                  ),
-                  lost: Trait(
-                    own: row['lost_own'] as int > 0,
-                    inherited: row['lost_inherited'] as int > 0,
-                  ),
+                  lost: row['lost'] as int != 0,
+                  compromised: row['compromised'] as int != 0,
                 );
               }),
             );
@@ -140,9 +125,8 @@ class Db {
   }
 
   late final _createEntityStatement = _db.prepare('''
-    insert into entities(name, type, x, y, lost_own, lost_inherited, compromised_own,
-      compromised_inherited)
-    values(?, 0, ?, ?, 0, 0, 0, 0)
+    insert into entities(name, type, x, y, lost, compromised)
+    values(?, 0, ?, ?, 0, 0)
   ''');
   void createEntity(Position position, String name) {
     _createEntityStatement
@@ -191,8 +175,8 @@ class Db {
 
   late final _toggleCompromisedStatement = _db.prepare('''
     update entities
-    set compromised_own = ?
-    where x = ? and y = ?
+    set compromised = ?
+    where x = ? and y =?
   ''');
   void toggleCompromised(Position position, bool value) {
     _toggleCompromisedStatement
@@ -207,7 +191,7 @@ class Db {
 
   late final _toggleLostStatement = _db.prepare('''
     update entities
-    set lost_own = ?
+    set lost = ?
     where x = ? and y = ?
   ''');
   void toggleLost(Position position, bool value) {
@@ -388,10 +372,8 @@ class Db {
         type integer not null,
         x integer not null,
         y integer not null,
-        lost_own int not null,
-        lost_inherited int not null,
-        compromised_own int not null,
-        compromised_inherited int not null
+        lost int not null,
+        compromised int not null
       ) strict;
       create table if not exists factors(
         id integer primary key,

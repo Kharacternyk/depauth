@@ -1,13 +1,12 @@
 import 'db.dart';
 import 'entity_type.dart';
-import 'trait.dart';
 
 class Entity {
   final Id<Entity> id;
   final String name;
   final EntityType type;
-  final Trait lost;
-  final Trait compromised;
+  final bool lost;
+  final bool compromised;
 
   const Entity(
     this.id,
