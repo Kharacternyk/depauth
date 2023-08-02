@@ -40,12 +40,12 @@ class Db {
     return entity;
   }
 
-  late final PreparedStatement _getEntityStatement = _db.prepare('''
+  late final _getEntityStatement = _db.prepare('''
     select id, name, type, lost, compromised
     from entities
     where x = ? and y = ?
   ''');
-  late final PreparedStatement _getDependenciesStatement = _db.prepare('''
+  late final _getDependenciesStatement = _db.prepare('''
     select entities.id, name, type, lost, compromised
     from entities
     join dependencies
@@ -53,7 +53,7 @@ class Db {
     where factor = ?
     order by x, y
   ''');
-  late final PreparedStatement _getFactorsStatement = _db.prepare('''
+  late final _getFactorsStatement = _db.prepare('''
     select factors.id
     from factors
     left join dependencies
