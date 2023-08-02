@@ -372,8 +372,8 @@ class Db {
         type integer not null,
         x integer not null,
         y integer not null,
-        lost int not null,
-        compromised int not null
+        lost integer not null,
+        compromised integer not null
       ) strict;
       create table if not exists factors(
         id integer primary key,
@@ -392,12 +392,12 @@ class Db {
 
       create trigger if not exists after_delete_entity
       after delete on entities begin
-        delete from factors where entity = old.oid;
-        delete from dependencies where entity = old.oid;
+        delete from factors where entity = old.id;
+        delete from dependencies where entity = old.id;
       end;
       create trigger if not exists after_delete_factor
       after delete on factors begin
-        delete from dependencies where factor = old.oid;
+        delete from dependencies where factor = old.id;
       end;
       create trigger if not exists before_insert_entity
       before insert on entities begin
