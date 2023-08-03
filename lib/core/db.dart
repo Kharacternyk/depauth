@@ -126,7 +126,7 @@ class Db {
 
   late final _createEntityStatement = _db.prepare('''
     insert into entities(name, type, x, y, lost, compromised)
-    values(?, 0, ?, ?, 0, 0)
+    values(?, 0, ?, ?, false, false)
   ''');
   void createEntity(Position position, String name) {
     _createEntityStatement
@@ -190,8 +190,9 @@ class Db {
   }
 
   late final _toggleLostStatement = _db.prepare('''
-    update entities
-    set lost = ?
+    insert into avalanche_entities(id, value)
+    select id, ?
+    from entities
     where x = ? and y = ?
   ''');
   void toggleLost(Position position, bool value) {
@@ -202,7 +203,7 @@ class Db {
         position.y,
       ])
       ..reset();
-    _updateEntities([position]);
+    _propagateLost();
   }
 
   String _getValidName(Position position, String name) {
@@ -279,7 +280,7 @@ class Db {
   }
 
   late final _addFactorStatement = _db.prepare('''
-    insert into factors(entity) values(?)
+    insert into factors(entity, lost, compromised) values(?, false, false)
   ''');
   void addFactor(Position position, Id<Entity> entityId) {
     assert(_getEntity(position)?.id == entityId);
@@ -358,6 +359,94 @@ class Db {
       _getDependantPositionsStatement.select([position.x, position.y]).map(
           (row) => Position(row['x'] as int, row['y'] as int));
 
+  late final _propagateLostStatements = _db.prepareMultiple('''
+    insert into avalanche_factors(id, value)
+    select factors.id, exists (
+      select factor
+      from dependencies
+      join entities
+      on dependencies.entity = entities.id
+      left join avalanche_entities
+      on entities.id = avalanche_entities.id
+      where factor = factors.id
+      group by factor
+      having min(coalesce(avalanche_entities.value, entities.lost)) = true
+    )
+    from factors
+    join dependencies
+    on dependencies.factor = factors.id
+    join avalanche_entities
+    on dependencies.entity = avalanche_entities.id
+    join entities
+    on dependencies.entity = entities.id
+    where entities.lost <> avalanche_entities.value;
+
+    update entities
+    set lost = avalanche_entities.value
+    from avalanche_entities
+    where entities.id = avalanche_entities.id;
+
+    insert into avalanche_entities
+    select entities.id, exists (
+      select factors.id
+      from factors
+      left join avalanche_factors
+      on factors.id = avalanche_factors.id
+      where entity = entities.id
+      and coalesce(avalanche_factors.value, factors.lost) = true
+    )
+    from entities
+    join factors
+    on entities.id = factors.entity
+    join avalanche_factors
+    on factors.id = avalanche_factors.id
+    where factors.lost <> avalanche_factors.value;
+
+    update factors
+    set lost = avalanche_factors.value
+    from avalanche_factors
+    where factors.id = avalanche_factors.id;
+  ''');
+  late final _getPropagatedPositionsStatement = _db.prepare('''
+    select x, y
+    from entities
+    join avalanche_entities
+    on entities.id = avalanche_entities.id
+    where entities.lost <> avalanche_entities.value
+  ''');
+  late final _deleteAvalanchesStatements = _db.prepareMultiple('''
+    delete from avalanche_factors;
+    delete from avalanche_entities;
+  ''');
+
+  void _propagateLost() {
+    for (;;) {
+      final positions = _getPropagatedPositionsStatement.select().map((row) {
+        return Position(
+          row['x'] as int,
+          row['y'] as int,
+        );
+      });
+
+      if (positions.isEmpty) {
+        for (final statement in _deleteAvalanchesStatements) {
+          statement
+            ..execute()
+            ..reset();
+        }
+        return;
+      }
+
+      for (final statement in _propagateLostStatements) {
+        statement
+          ..execute()
+          ..reset();
+      }
+
+      _updateEntities(positions);
+    }
+  }
+
   Db(
     String path, {
     required this.entityDuplicatePrefix,
@@ -377,13 +466,23 @@ class Db {
       ) strict;
       create table if not exists factors(
         id integer primary key,
-        entity integer not null references entities
+        entity integer not null references entities,
+        lost integer not null,
+        compromised integer not null
       ) strict;
       create table if not exists dependencies(
         id integer primary key,
         factor integer not null references factors,
         entity integer not null references entities
       ) strict;
+      create table if not exists avalanche_entities(
+        id integer primary key references entities,
+        value integer not null
+      ) strict, without rowid;
+      create table if not exists avalanche_factors(
+        id integer primary key references entities,
+        value integer not null
+      ) strict, without rowid;
 
       create unique index if not exists entity_names on entities(name);
       create unique index if not exists entity_xs_ys on entities(x, y);
