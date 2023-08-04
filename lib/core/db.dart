@@ -6,6 +6,8 @@ import 'entity.dart';
 import 'entity_type.dart';
 import 'factor.dart';
 import 'position.dart';
+import 'query.dart';
+import 'statement.dart';
 import 'traversable_entity.dart';
 
 class Db {
@@ -40,12 +42,12 @@ class Db {
     return entity;
   }
 
-  late final _getEntityStatement = _sql('''
+  late final _entityQuery = Query(_db, '''
     select id, name, type, lost, compromised
     from entities
     where x = ? and y = ?
   ''');
-  late final _getDependenciesStatement = _sql('''
+  late final _dependenciesQuery = Query(_db, '''
     select entities.id, name, type, lost, compromised
     from entities
     join dependencies
@@ -53,7 +55,7 @@ class Db {
     where factor = ?
     order by x, y
   ''');
-  late final _getFactorsStatement = _sql('''
+  late final _factorsQuery = Query(_db, '''
     select factors.id
     from factors
     left join dependencies
@@ -65,8 +67,7 @@ class Db {
     order by min(entities.x), min(entities.y)
   ''');
   TraversableEntity? _getEntity(Position position) {
-    final entityRow =
-        _getEntityStatement.select([position.x, position.y]).firstOrNull;
+    final entityRow = _entityQuery.select([position.x, position.y]).firstOrNull;
     return switch (entityRow) {
       null => null,
       Row entityRow => TraversableEntity(
@@ -75,10 +76,10 @@ class Db {
           EntityType.values[entityRow['type'] as int],
           compromised: entityRow['compromised'] as int != 0,
           lost: entityRow['lost'] as int != 0,
-          factors: _getFactorsStatement.select([entityRow['id']]).map((row) {
+          factors: _factorsQuery.select([entityRow['id']]).map((row) {
             return Factor(
               Id._(row['id'] as int),
-              _getDependenciesStatement.select([row['id']]).map((row) {
+              _dependenciesQuery.select([row['id']]).map((row) {
                 return Entity(
                   Id._(row['id'] as int),
                   row['name'] as String,
@@ -93,116 +94,98 @@ class Db {
     };
   }
 
-  late final _moveEntityStatement = _sql('''
+  late final _moveEntityStatement = Statement(_db, '''
     update entities
     set x = ?, y = ?
     where x = ? and y = ?
   ''');
   void moveEntity({required Position from, required Position to}) {
-    _moveEntityStatement
-      ..execute(
-        [to.x, to.y, from.x, from.y],
-      )
-      ..reset();
-
+    _moveEntityStatement.execute([to.x, to.y, from.x, from.y]);
     _updateEntities([from, to, ..._getDependantPositions(to)]);
     _updateBoundaries();
   }
 
-  late final _deleteEntityStatement = _sql('''
+  late final _deleteEntityStatement = Statement(_db, '''
     delete from entities
     where x = ? and y = ?
   ''');
   void deleteEntity(Position position) {
     final dependants = _getDependantPositions(position);
 
-    _deleteEntityStatement
-      ..execute([position.x, position.y])
-      ..reset();
-
+    _deleteEntityStatement.execute([position.x, position.y]);
     _updateEntities([position, ...dependants]);
     _updateBoundaries();
   }
 
-  late final _createEntityStatement = _sql('''
+  late final _createEntityStatement = Statement(_db, '''
     insert into entities(name, type, x, y, lost, compromised)
     values(?, 0, ?, ?, false, false)
   ''');
   void createEntity(Position position, String name) {
-    _createEntityStatement
-      ..execute([
-        _getValidName(position, name),
-        position.x,
-        position.y,
-      ])
-      ..reset();
+    _createEntityStatement.execute([
+      _getValidName(position, name),
+      position.x,
+      position.y,
+    ]);
     _updateEntities([position]);
     _updateBoundaries();
   }
 
-  late final _changeNameStatement = _sql('''
+  late final _changeNameStatement = Statement(_db, '''
     update entities
     set name = ?
     where x = ? and y = ?
   ''');
   void changeName(Position position, String name) {
-    _changeNameStatement
-      ..execute([
-        _getValidName(position, name),
-        position.x,
-        position.y,
-      ])
-      ..reset();
+    _changeNameStatement.execute([
+      _getValidName(position, name),
+      position.x,
+      position.y,
+    ]);
     _updateEntities([position, ..._getDependantPositions(position)]);
   }
 
-  late final _changeTypeStatement = _sql('''
+  late final _changeTypeStatement = Statement(_db, '''
     update entities
     set type = ?
     where x = ? and y = ?
   ''');
   void changeType(Position position, EntityType type) {
-    _changeTypeStatement
-      ..execute([
-        type.index,
-        position.x,
-        position.y,
-      ])
-      ..reset();
+    _changeTypeStatement.execute([
+      type.index,
+      position.x,
+      position.y,
+    ]);
     _updateEntities([position, ..._getDependantPositions(position)]);
     _updateDependencies();
   }
 
-  late final _toggleCompromisedStatement = _sql('''
+  late final _toggleCompromisedStatement = Statement(_db, '''
     update entities
     set compromised = ?
     where x = ? and y =?
   ''');
   void toggleCompromised(Position position, bool value) {
-    _toggleCompromisedStatement
-      ..execute([
-        value ? 1 : 0,
-        position.x,
-        position.y,
-      ])
-      ..reset();
+    _toggleCompromisedStatement.execute([
+      value ? 1 : 0,
+      position.x,
+      position.y,
+    ]);
     _updateEntities([position]);
   }
 
-  late final _toggleLostStatement = _sql('''
+  late final _toggleLostStatement = Statement(_db, '''
     insert into avalanche_entities(id, value)
     select id, ?
     from entities
     where x = ? and y = ?
   ''');
   void toggleLost(Position position, bool value) {
-    _toggleLostStatement
-      ..execute([
-        value ? 1 : 0,
-        position.x,
-        position.y,
-      ])
-      ..reset();
+    _toggleLostStatement.execute([
+      value ? 1 : 0,
+      position.x,
+      position.y,
+    ]);
     _propagateLost();
   }
 
@@ -217,7 +200,7 @@ class Db {
     return name;
   }
 
-  late final _getEntityDuplicateIndexStatement = _sql('''
+  late final _entityDuplicateIndexQuery = Query(_db, '''
     with recursive duplicateIndices(i) as(
       select 0
       union all
@@ -232,7 +215,7 @@ class Db {
     from duplicateIndices
   ''');
   int _getEntityDuplicateIndex(Position position, String name) {
-    return _getEntityDuplicateIndexStatement
+    return _entityDuplicateIndexQuery
         .select([
           name,
           entityDuplicatePrefix,
@@ -246,7 +229,7 @@ class Db {
         .first as int;
   }
 
-  late final _addDependencyStatement = _sql('''
+  late final _addDependencyStatement = Statement(_db, '''
     insert or ignore into dependencies(entity, factor) values(?, ?)
   ''');
   void addDependency(
@@ -255,14 +238,12 @@ class Db {
     Id<Entity> entityId,
   ) {
     assert(_getPositionOfFactor(factorId) == position);
-    _addDependencyStatement
-      ..execute([entityId._value, factorId._value])
-      ..reset();
+    _addDependencyStatement.execute([entityId._value, factorId._value]);
     _updateEntities([position]);
     _updateDependencies();
   }
 
-  late final _removeDependencyStatement = _sql('''
+  late final _removeDependencyStatement = Statement(_db, '''
     delete from dependencies
     where entity = ? and factor = ?
   ''');
@@ -272,37 +253,31 @@ class Db {
     Id<Entity> entityId,
   ) {
     assert(_getPositionOfFactor(factorId) == position);
-    _removeDependencyStatement
-      ..execute([entityId._value, factorId._value])
-      ..reset();
+    _removeDependencyStatement.execute([entityId._value, factorId._value]);
     _updateEntities([position]);
     _updateDependencies();
   }
 
-  late final _addFactorStatement = _sql('''
+  late final _addFactorStatement = Statement(_db, '''
     insert into factors(entity, lost, compromised) values(?, false, false)
   ''');
   void addFactor(Position position, Id<Entity> entityId) {
     assert(_getEntity(position)?.id == entityId);
-    _addFactorStatement
-      ..execute([entityId._value])
-      ..reset();
+    _addFactorStatement.execute([entityId._value]);
     _updateEntities([position]);
   }
 
-  late final _removeFactorStatement = _sql('''
+  late final _removeFactorStatement = Statement(_db, '''
     delete from factors where id = ?
   ''');
   void removeFactor(Position position, Id<Factor> factorId) {
     assert(_getPositionOfFactor(factorId) == position);
-    _removeFactorStatement
-      ..execute([factorId._value])
-      ..reset();
+    _removeFactorStatement.execute([factorId._value]);
     _updateEntities([position]);
     _updateDependencies();
   }
 
-  late final _getPositionOfFactorStatement = _sql('''
+  late final _positionOfFactorQuery = Query(_db, '''
     select x, y
     from entities
     join factors
@@ -310,7 +285,7 @@ class Db {
     where factors.id = ?
   ''');
   Position? _getPositionOfFactor(Id<Factor> id) {
-    final row = _getPositionOfFactorStatement.select([id._value]).firstOrNull;
+    final row = _positionOfFactorQuery.select([id._value]).firstOrNull;
 
     return switch (row) {
       null => null,
@@ -332,19 +307,19 @@ class Db {
     }
   }
 
-  late final _getBoundariesStatement = _sql('''
+  late final _boundariesQuery = Query(_db, '''
     select min(x) - 1, min(y) - 1, max(x) + 1, max(y) + 1
     from entities
   ''');
   Boundaries _getBoundaries() {
-    final values = _getBoundariesStatement.select().first.values;
+    final values = _boundariesQuery.select().first.values;
     return Boundaries(
       Position(values[0] as int? ?? 0, values[1] as int? ?? 0),
       Position(values[2] as int? ?? 0, values[3] as int? ?? 0),
     );
   }
 
-  late final _getDependantPositionsStatement = _sql('''
+  late final _dependantPositionsQuery = Query(_db, '''
     select distinct sources.x, sources.y
     from entities as sources
     join factors
@@ -356,10 +331,10 @@ class Db {
     where targets.x = ? and targets.y = ?
   ''');
   Iterable<Position> _getDependantPositions(Position position) =>
-      _getDependantPositionsStatement.select([position.x, position.y]).map(
+      _dependantPositionsQuery.select([position.x, position.y]).map(
           (row) => Position(row['x'] as int, row['y'] as int));
 
-  late final _propagateLostStatements = _sqls('''
+  late final _propagateLostStatement = Statement(_db, '''
     insert into avalanche_factors(id, value)
     select factors.id, exists (
       select factor
@@ -407,21 +382,21 @@ class Db {
     from avalanche_factors
     where factors.id = avalanche_factors.id;
   ''');
-  late final _getPropagatedPositionsStatement = _sql('''
+  late final _propagatedPositionsQuery = Query(_db, '''
     select x, y
     from entities
     join avalanche_entities
     on entities.id = avalanche_entities.id
     where entities.lost <> avalanche_entities.value
   ''');
-  late final _deleteAvalanchesStatements = _sqls('''
+  late final _deleteAvalanchesStatement = Statement(_db, '''
     delete from avalanche_factors;
     delete from avalanche_entities;
   ''');
 
   void _propagateLost() {
     for (;;) {
-      final positions = _getPropagatedPositionsStatement.select().map((row) {
+      final positions = _propagatedPositionsQuery.select().map((row) {
         return Position(
           row['x'] as int,
           row['y'] as int,
@@ -429,20 +404,11 @@ class Db {
       });
 
       if (positions.isEmpty) {
-        for (final statement in _deleteAvalanchesStatements) {
-          statement
-            ..execute()
-            ..reset();
-        }
+        _deleteAvalanchesStatement.execute();
         return;
       }
 
-      for (final statement in _propagateLostStatements) {
-        statement
-          ..execute()
-          ..reset();
-      }
-
+      _propagateLostStatement.execute();
       _updateEntities(positions);
     }
   }
@@ -516,14 +482,6 @@ class Db {
   }
 
   void dispose() => _db.dispose();
-
-  PreparedStatement _sql(String sql) {
-    return _db.prepare(sql, persistent: true);
-  }
-
-  List<PreparedStatement> _sqls(String sql) {
-    return _db.prepareMultiple(sql, persistent: true);
-  }
 }
 
 class Id<T> {
