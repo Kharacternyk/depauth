@@ -186,7 +186,7 @@ class Db {
       position.x,
       position.y,
     ]);
-    _propagateLost();
+    _propagateLoss();
   }
 
   String _getValidName(Position position, String name) {
@@ -334,7 +334,7 @@ class Db {
       _dependantPositionsQuery.select([position.x, position.y]).map(
           (row) => Position(row['x'] as int, row['y'] as int));
 
-  late final _propagateLostStatement = Statement(_db, '''
+  late final _propagateLossStatement = Statement(_db, '''
     insert into avalanche_factors(id, value)
     select factors.id, exists (
       select factor
@@ -382,36 +382,40 @@ class Db {
     from avalanche_factors
     where factors.id = avalanche_factors.id;
   ''');
-  late final _propagatedPositionsQuery = Query(_db, '''
-    select x, y
-    from entities
-    join avalanche_entities
-    on entities.id = avalanche_entities.id
-    where entities.lost <> avalanche_entities.value
-  ''');
-  late final _deleteAvalanchesStatement = Statement(_db, '''
-    delete from avalanche_factors;
-    delete from avalanche_entities;
-  ''');
-
-  void _propagateLost() {
+  void _propagateLoss() {
     for (;;) {
-      final positions = _propagatedPositionsQuery.select().map((row) {
-        return Position(
-          row['x'] as int,
-          row['y'] as int,
-        );
-      });
+      final positions = getLossPropagatedPositions();
 
       if (positions.isEmpty) {
         _deleteAvalanchesStatement.execute();
         return;
       }
 
-      _propagateLostStatement.execute();
+      _propagateLossStatement.execute();
       _updateEntities(positions);
     }
   }
+
+  late final _lossPropagatedPositionsQuery = Query(_db, '''
+    select x, y
+    from entities
+    join avalanche_entities
+    on entities.id = avalanche_entities.id
+    where entities.lost <> avalanche_entities.value
+  ''');
+  Iterable<Position> getLossPropagatedPositions() {
+    return _lossPropagatedPositionsQuery.select().map((row) {
+      return Position(
+        row['x'] as int,
+        row['y'] as int,
+      );
+    });
+  }
+
+  late final _deleteAvalanchesStatement = Statement(_db, '''
+    delete from avalanche_factors;
+    delete from avalanche_entities;
+  ''');
 
   Db(
     String path, {
