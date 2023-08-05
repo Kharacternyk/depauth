@@ -43,12 +43,12 @@ class Db {
   }
 
   late final _entityQuery = Query(_db, '''
-    select id, name, type, lost, compromised
+    select id, name, type, soft_lost, compromised
     from entities
     where x = ? and y = ?
   ''');
   late final _dependenciesQuery = Query(_db, '''
-    select entities.id, name, type, lost, compromised
+    select entities.id, name, type, soft_lost, compromised
     from entities
     join dependencies
     on entities.id = entity
@@ -75,7 +75,7 @@ class Db {
           entityRow['name'] as String,
           EntityType.values[entityRow['type'] as int],
           compromised: entityRow['compromised'] as int != 0,
-          lost: entityRow['lost'] as int != 0,
+          lost: entityRow['soft_lost'] as int != 0,
           factors: _factorsQuery.select([entityRow['id']]).map((row) {
             return Factor(
               Id._(row['id'] as int),
@@ -84,7 +84,7 @@ class Db {
                   Id._(row['id'] as int),
                   row['name'] as String,
                   EntityType.values[row['type'] as int],
-                  lost: row['lost'] as int != 0,
+                  lost: row['soft_lost'] as int != 0,
                   compromised: row['compromised'] as int != 0,
                 );
               }),
@@ -118,8 +118,8 @@ class Db {
   }
 
   late final _createEntityStatement = Statement(_db, '''
-    insert into entities(name, type, x, y, lost, compromised)
-    values(?, 0, ?, ?, false, false)
+    insert into entities(name, type, x, y, soft_lost, hard_lost, compromised)
+    values(?, 0, ?, ?, false, false, false)
   ''');
   void createEntity(Position position, String name) {
     _createEntityStatement.execute([
@@ -175,9 +175,8 @@ class Db {
   }
 
   late final _toggleLostStatement = Statement(_db, '''
-    insert into avalanche_entities(id, value)
-    select id, ?
-    from entities
+    update entities
+    set hard_lost = ?
     where x = ? and y = ?
   ''');
   void toggleLost(Position position, bool value) {
@@ -186,7 +185,7 @@ class Db {
       position.x,
       position.y,
     ]);
-    _propagateLoss();
+    _updateEntityLoss(position);
   }
 
   String _getValidName(Position position, String name) {
@@ -334,6 +333,22 @@ class Db {
       _dependantPositionsQuery.select([position.x, position.y]).map(
           (row) => Position(row['x'] as int, row['y'] as int));
 
+  late final _updateEntityLossStatement = Statement(_db, '''
+    insert into avalanche_entities(id, value)
+    select id, hard_lost or exists (
+      select factors.id
+      from factors
+      where entity = entities.id
+      and factors.lost = true
+    )
+    from entities
+    where x = ? and y = ?
+  ''');
+  void _updateEntityLoss(Position position) {
+    _updateEntityLossStatement.execute([position.x, position.y]);
+    _propagateLoss();
+  }
+
   late final _propagateLossStatement = Statement(_db, '''
     insert into avalanche_factors(id, value)
     select factors.id, exists (
@@ -345,7 +360,7 @@ class Db {
       on entities.id = avalanche_entities.id
       where factor = factors.id
       group by factor
-      having min(coalesce(avalanche_entities.value, entities.lost)) = true
+      having min(coalesce(avalanche_entities.value, entities.soft_lost)) = true
     )
     from factors
     join dependencies
@@ -354,10 +369,10 @@ class Db {
     on dependencies.entity = avalanche_entities.id
     join entities
     on dependencies.entity = entities.id
-    where entities.lost <> avalanche_entities.value;
+    where entities.soft_lost <> avalanche_entities.value;
 
     update entities
-    set lost = avalanche_entities.value
+    set soft_lost = avalanche_entities.value
     from avalanche_entities
     where entities.id = avalanche_entities.id;
 
@@ -384,7 +399,7 @@ class Db {
   ''');
   void _propagateLoss() {
     for (;;) {
-      final positions = getLossPropagatedPositions();
+      final positions = _getLossPropagatedPositions();
 
       if (positions.isEmpty) {
         _deleteAvalanchesStatement.execute();
@@ -401,9 +416,9 @@ class Db {
     from entities
     join avalanche_entities
     on entities.id = avalanche_entities.id
-    where entities.lost <> avalanche_entities.value
+    where entities.soft_lost <> avalanche_entities.value
   ''');
-  Iterable<Position> getLossPropagatedPositions() {
+  Iterable<Position> _getLossPropagatedPositions() {
     return _lossPropagatedPositionsQuery.select().map((row) {
       return Position(
         row['x'] as int,
@@ -431,7 +446,8 @@ class Db {
         type integer not null,
         x integer not null,
         y integer not null,
-        lost integer not null,
+        soft_lost integer not null,
+        hard_lost integer not null,
         compromised integer not null
       ) strict;
       create table if not exists factors(
