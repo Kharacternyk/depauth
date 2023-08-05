@@ -292,20 +292,6 @@ class Db {
     };
   }
 
-  void _updateDependencies() {
-    dependencyChangeNotifier._update();
-  }
-
-  void _updateBoundaries() {
-    boundaries.value = _getBoundaries();
-  }
-
-  void _updateEntities(Iterable<Position> positions) {
-    for (final position in positions) {
-      _entities[position]?.target?.value = _getEntity(position);
-    }
-  }
-
   late final _boundariesQuery = Query(_db, '''
     select min(x) - 1, min(y) - 1, max(x) + 1, max(y) + 1
     from entities
@@ -431,6 +417,20 @@ class Db {
     delete from avalanche_factors;
     delete from avalanche_entities;
   ''');
+
+  void _updateDependencies() {
+    dependencyChangeNotifier._update();
+  }
+
+  void _updateBoundaries() {
+    boundaries.value = _getBoundaries();
+  }
+
+  void _updateEntities(Iterable<Position> positions) {
+    for (final position in positions) {
+      _entities[position]?.target?.value = _getEntity(position);
+    }
+  }
 
   Db(
     String path, {
