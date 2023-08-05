@@ -488,14 +488,14 @@ class Db {
       before insert on entities begin
         select case new.name
           when trim(new.name) then null
-          else raise(rollback, "trailing whitespace")
+          else raise(rollback, 'trailing whitespace')
         end;
       end;
       create trigger if not exists before_update_entity_name
       before update of name on entities begin
         select case new.name
           when trim(new.name) then null
-          else raise(rollback, "trailing whitespace")
+          else raise(rollback, 'trailing whitespace')
         end;
       end;
     ''');
