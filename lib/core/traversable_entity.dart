@@ -5,7 +5,7 @@ class TraversableEntity extends Entity {
   final Iterable<Factor> factors;
 
   const TraversableEntity(
-    super.id,
+    super.identity,
     super.name,
     super.type, {
     required this.factors,

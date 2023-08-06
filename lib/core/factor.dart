@@ -1,9 +1,9 @@
-import 'db.dart';
 import 'entity.dart';
+import 'storage.dart';
 
 class Factor {
-  final Id<Factor> id;
+  final Identity<Factor> identity;
   final Iterable<Entity> dependencies;
 
-  const Factor(this.id, this.dependencies);
+  const Factor(this.identity, this.dependencies);
 }

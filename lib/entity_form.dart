@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'core/db.dart';
 import 'core/entity.dart';
 import 'core/entity_type.dart';
 import 'core/enumerate.dart';
 import 'core/factor.dart';
 import 'core/position.dart';
+import 'core/storage.dart';
 import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
 import 'entity_theme.dart';
@@ -21,8 +21,8 @@ class EntityForm extends StatefulWidget {
   final void Function(bool) toggleLost;
   final void Function(bool) toggleCompromised;
   final void Function() addFactor;
-  final void Function(Id<Factor>, Id<Entity>) addDependency;
-  final void Function(Id<Factor>, Id<Entity>) removeDependency;
+  final void Function(Identity<Factor>, Identity<Entity>) addDependency;
+  final void Function(Identity<Factor>, Identity<Entity>) removeDependency;
 
   const EntityForm(
     this.entity, {
@@ -53,7 +53,7 @@ class _State extends State<EntityForm> {
 
   @override
   void didUpdateWidget(oldWidget) {
-    if (oldWidget.entity.id != widget.entity.id) {
+    if (oldWidget.entity.identity != widget.entity.identity) {
       nameController = TextEditingController(text: widget.entity.name);
     }
     super.didUpdateWidget(oldWidget);
@@ -155,15 +155,15 @@ class _State extends State<EntityForm> {
           onAccept: (traveler) {
             switch (traveler) {
               case EntityTraveler traveler:
-                widget.addDependency(factor.id, traveler.id);
+                widget.addDependency(factor.identity, traveler.entity);
               case DependencyTraveler traveler:
-                widget.removeDependency(traveler.factorId, traveler.entityId);
-                widget.addDependency(factor.id, traveler.entityId);
+                widget.removeDependency(traveler.factor, traveler.entity);
+                widget.addDependency(factor.identity, traveler.entity);
             }
           },
           builder: (context, candidate, rejected) {
             return ScaledDraggable(
-              dragData: FactorTraveler(widget.position, factor.id),
+              dragData: FactorTraveler(widget.position, factor.identity),
               child: Card(
                 color: candidate.isNotEmpty ? colors.primaryContainer : null,
                 child: ListTile(
@@ -175,7 +175,7 @@ class _State extends State<EntityForm> {
                     child: const Icon(Icons.link),
                   ),
                   title: Wrap(
-                    key: ValueKey(factor.id),
+                    key: ValueKey(factor.identity),
                     spacing: 4,
                     runSpacing: 4,
                     crossAxisAlignment: WrapCrossAlignment.center,
@@ -185,11 +185,11 @@ class _State extends State<EntityForm> {
                           needsMaterial: true,
                           dragData: DependencyTraveler(
                             widget.position,
-                            factor.id,
-                            entity.id,
+                            factor.identity,
+                            entity.identity,
                           ),
                           child: Chip(
-                            key: ValueKey(entity.id),
+                            key: ValueKey(entity.identity),
                             label: Text(entity.name),
                             avatar: Icon(
                               EntityTheme(entity.type).icon,

@@ -1,7 +1,7 @@
-import 'db.dart';
 import 'entity.dart';
 import 'factor.dart';
 import 'position.dart';
+import 'storage.dart';
 
 sealed class GrabbableTraveler {}
 
@@ -12,9 +12,9 @@ sealed class DependableTraveler {}
 class EntityTraveler
     implements GrabbableTraveler, DeletableTraveler, DependableTraveler {
   final Position position;
-  final Id<Entity> id;
+  final Identity<Entity> entity;
 
-  const EntityTraveler(this.position, this.id);
+  const EntityTraveler(this.position, this.entity);
 }
 
 class CreationTraveler implements GrabbableTraveler {
@@ -23,15 +23,15 @@ class CreationTraveler implements GrabbableTraveler {
 
 class FactorTraveler implements DeletableTraveler {
   final Position position;
-  final Id<Factor> id;
+  final Identity<Factor> factor;
 
-  const FactorTraveler(this.position, this.id);
+  const FactorTraveler(this.position, this.factor);
 }
 
 class DependencyTraveler implements DeletableTraveler, DependableTraveler {
   final Position position;
-  final Id<Factor> factorId;
-  final Id<Entity> entityId;
+  final Identity<Factor> factor;
+  final Identity<Entity> entity;
 
-  const DependencyTraveler(this.position, this.factorId, this.entityId);
+  const DependencyTraveler(this.position, this.factor, this.entity);
 }

@@ -4,7 +4,7 @@ import 'package:multi_split_view/multi_split_view.dart';
 import 'package:path/path.dart';
 
 import 'async_resources.dart';
-import 'core/db.dart';
+import 'core/storage.dart';
 import 'core/traveler.dart';
 import 'entity_graph.dart';
 import 'scaled_draggable.dart';
@@ -19,20 +19,20 @@ class HomePage extends StatefulWidget {
 
 class _State extends State<HomePage> {
   final sideBar = ValueNotifier<Widget?>(null);
-  Db? db;
+  Storage? storage;
 
   @override
   dispose() {
-    db?.dispose();
+    storage?.dispose();
     super.dispose();
   }
 
   @override
   build(BuildContext context) {
-    final Db db;
-    switch (this.db) {
+    final Storage storage;
+    switch (this.storage) {
       case null:
-        db = Db(
+        storage = Storage(
           join(
             AsyncResources.of(context).documentsDirectory,
             'personal.depauth',
@@ -40,8 +40,8 @@ class _State extends State<HomePage> {
           entityDuplicatePrefix: ' (',
           entityDuplicateSuffix: ')',
         );
-      case Db db_:
-        db = db_;
+      case Storage storage_:
+        storage = storage_;
     }
 
     const addButtonTooltip =
@@ -85,7 +85,7 @@ class _State extends State<HomePage> {
               minScale: 1,
               maxScale: 20,
               child: EntityGraph(
-                db,
+                storage,
                 defaultSideBar: defaultSideBar,
                 setSideBar: (widget) {
                   sideBar.value = widget;
@@ -134,14 +134,14 @@ class _State extends State<HomePage> {
               onAccept: (traveler) {
                 switch (traveler) {
                   case EntityTraveler traveler:
-                    db.deleteEntity(traveler.position);
+                    storage.deleteEntity(traveler.position);
                   case FactorTraveler traveler:
-                    db.removeFactor(traveler.position, traveler.id);
+                    storage.removeFactor(traveler.position, traveler.factor);
                   case DependencyTraveler traveler:
-                    db.removeDependency(
+                    storage.removeDependency(
                       traveler.position,
-                      traveler.factorId,
-                      traveler.entityId,
+                      traveler.factor,
+                      traveler.entity,
                     );
                 }
               },

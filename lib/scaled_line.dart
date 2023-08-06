@@ -6,21 +6,21 @@ import 'viewer.dart';
 class ScaledLine extends StatelessWidget {
   final Widget child;
   final Color color;
-  final String targetId;
-  final String id;
+  final String targetName;
+  final String name;
 
   const ScaledLine({
     required this.child,
     required this.color,
-    required this.targetId,
-    required this.id,
+    required this.targetName,
+    required this.name,
     super.key,
   });
 
   @override
   build(context) {
     return ArrowElement(
-      id: id,
+      id: name,
       color: color,
       sourceAnchor: Alignment.topCenter,
       targetAnchor: Alignment.bottomCenter,
@@ -30,7 +30,7 @@ class ScaledLine extends StatelessWidget {
             null => 1,
             Scale scale => 1 / scale.value,
           },
-      targetId: targetId,
+      targetId: targetName,
       child: child,
     );
   }

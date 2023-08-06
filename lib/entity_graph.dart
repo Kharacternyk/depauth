@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:widget_arrows/widget_arrows.dart';
 
-import 'core/db.dart';
 import 'core/entity.dart';
 import 'core/factor.dart';
 import 'core/position.dart';
+import 'core/storage.dart';
 import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
 import 'entity_card.dart';
@@ -13,12 +13,12 @@ import 'entity_placeholder.dart';
 import 'scaled_draggable.dart';
 
 class EntityGraph extends StatelessWidget {
-  final Db db;
+  final Storage storage;
   final void Function(Widget) setSideBar;
   final Widget defaultSideBar;
 
   const EntityGraph(
-    this.db, {
+    this.storage, {
     required this.setSideBar,
     required this.defaultSideBar,
     super.key,
@@ -27,7 +27,7 @@ class EntityGraph extends StatelessWidget {
   @override
   build(context) {
     return ValueListenableBuilder(
-      valueListenable: db.boundaries,
+      valueListenable: storage.boundaries,
       builder: (context, boundaries, child) {
         final rows = <Expanded>[];
 
@@ -36,7 +36,7 @@ class EntityGraph extends StatelessWidget {
 
           for (var x = boundaries.start.x; x <= boundaries.end.x; ++x) {
             final position = Position(x, y);
-            final listenableEntity = db.getEntity(position);
+            final listenableEntity = storage.getEntity(position);
 
             row.add(
               ValueListenableBuilder(
@@ -51,39 +51,39 @@ class EntityGraph extends StatelessWidget {
                             entity,
                             position: position,
                             changeName: (name) {
-                              db.changeName(position, name);
+                              storage.changeName(position, name);
                             },
                             changeType: (type) {
-                              db.changeType(position, type);
+                              storage.changeType(position, type);
                             },
                             toggleLost: (value) {
-                              db.toggleLost(position, value);
+                              storage.toggleLost(position, value);
                             },
                             toggleCompromised: (value) {
-                              db.toggleCompromised(position, value);
+                              storage.toggleCompromised(position, value);
                             },
                             addDependency: (
-                              Id<Factor> factorId,
-                              Id<Entity> entityId,
+                              Identity<Factor> factor,
+                              Identity<Entity> entity,
                             ) {
-                              db.addDependency(
+                              storage.addDependency(
                                 position,
-                                factorId,
-                                entityId,
+                                factor,
+                                entity,
                               );
                             },
                             removeDependency: (
-                              Id<Factor> factorId,
-                              Id<Entity> entityId,
+                              Identity<Factor> factor,
+                              Identity<Entity> entity,
                             ) {
-                              db.removeDependency(
+                              storage.removeDependency(
                                 position,
-                                factorId,
-                                entityId,
+                                factor,
+                                entity,
                               );
                             },
                             addFactor: () {
-                              db.addFactor(position, entity.id);
+                              storage.addFactor(position, entity.identity);
                             },
                           ),
                         null => defaultSideBar,
@@ -95,7 +95,7 @@ class EntityGraph extends StatelessWidget {
                     TraversableEntity entity => Expanded(
                         child: ScaledDraggable(
                           keepsSpace: false,
-                          dragData: EntityTraveler(position, entity.id),
+                          dragData: EntityTraveler(position, entity.identity),
                           child: EntityCard(
                             entity,
                             onTap: () {
@@ -108,11 +108,11 @@ class EntityGraph extends StatelessWidget {
                         onDragAccepted: (source) {
                           switch (source) {
                             case EntityTraveler source:
-                              db.moveEntity(
+                              storage.moveEntity(
                                   from: source.position, to: position);
                               setSideBar(defaultSideBar);
                             case CreationTraveler _:
-                              db.createEntity(position, 'New Entity');
+                              storage.createEntity(position, 'New Entity');
                               setSideBar(entityForm);
                           }
                         },
@@ -144,7 +144,7 @@ class EntityGraph extends StatelessWidget {
         final column = Column(children: rows);
 
         return ListenableBuilder(
-          listenable: db.dependencyChangeNotifier,
+          listenable: storage.dependencyChangeNotifier,
           builder: (context, child) => ArrowContainer(
             key: UniqueKey(),
             child: column,

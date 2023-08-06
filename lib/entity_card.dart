@@ -26,11 +26,11 @@ class EntityCard extends StatelessWidget {
       for (final dependency in factor.dependencies) {
         dependencyIcons.add(
           Expanded(
-            key: ValueKey((factor.id, dependency.id)),
+            key: ValueKey((factor.identity, dependency.identity)),
             child: ScaledLine(
-              id: '${factor.id}:${dependency.id}',
+              name: '${factor.identity}:${dependency.identity}',
               color: EntityTheme(dependency.type).arrow.withOpacity(0.5),
-              targetId: dependency.id.toString(),
+              targetName: dependency.identity.toString(),
               child: EntityIcon(
                 dependency.type,
                 padding: padding,
@@ -64,7 +64,7 @@ class EntityCard extends StatelessWidget {
     return FractionalPadding(
       childSizeFactor: 6,
       child: ArrowElement(
-        id: entity.id.toString(),
+        id: entity.identity.toString(),
         child: Card(
           elevation: 10,
           margin: EdgeInsets.zero,

@@ -1,15 +1,15 @@
-import 'db.dart';
 import 'entity_type.dart';
+import 'storage.dart';
 
 class Entity {
-  final Id<Entity> id;
+  final Identity<Entity> identity;
   final String name;
   final EntityType type;
   final bool lost;
   final bool compromised;
 
   const Entity(
-    this.id,
+    this.identity,
     this.name,
     this.type, {
     required this.lost,

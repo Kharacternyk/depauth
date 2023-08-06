@@ -10,11 +10,11 @@ import 'query.dart';
 import 'statement.dart';
 import 'traversable_entity.dart';
 
-class Db {
+class Storage {
   final String entityDuplicatePrefix;
   final String entityDuplicateSuffix;
 
-  final Database _db;
+  final Database _database;
   final Map<Position, WeakReference<ValueNotifier<TraversableEntity?>>>
       _entities = {};
 
@@ -42,28 +42,28 @@ class Db {
     return entity;
   }
 
-  late final _entityQuery = Query(_db, '''
-    select id, name, type, lost, compromised
+  late final _entityQuery = Query(_database, '''
+    select identity, name, type, lost, compromised
     from entities
     where x = ? and y = ?
   ''');
-  late final _dependenciesQuery = Query(_db, '''
-    select entities.id, name, type, lost, compromised
+  late final _dependenciesQuery = Query(_database, '''
+    select entities.identity, name, type, lost, compromised
     from entities
     join dependencies
-    on entities.id = entity
+    on entities.identity = entity
     where factor = ?
     order by x, y
   ''');
-  late final _factorsQuery = Query(_db, '''
-    select factors.id
+  late final _factorsQuery = Query(_database, '''
+    select factors.identity
     from factors
     left join dependencies
-    on factors.id = factor
+    on factors.identity = factor
     left join entities
-    on entities.id = dependencies.entity
+    on entities.identity = dependencies.entity
     where factors.entity = ?
-    group by factors.id
+    group by factors.identity
     order by min(entities.x), min(entities.y)
   ''');
   TraversableEntity? _getEntity(Position position) {
@@ -71,17 +71,17 @@ class Db {
     return switch (row) {
       null => null,
       Row row => TraversableEntity(
-          Id<Entity>._(row['id'] as int),
+          Identity<Entity>._(row['identity'] as int),
           row['name'] as String,
           EntityType.values[row['type'] as int],
           compromised: row['compromised'] as int != 0,
           lost: row['lost'] as int != 0,
-          factors: _factorsQuery.select([row['id']]).map((row) {
+          factors: _factorsQuery.select([row['identity']]).map((row) {
             return Factor(
-              Id._(row['id'] as int),
-              _dependenciesQuery.select([row['id']]).map((row) {
+              Identity._(row['identity'] as int),
+              _dependenciesQuery.select([row['identity']]).map((row) {
                 return Entity(
-                  Id._(row['id'] as int),
+                  Identity._(row['identity'] as int),
                   row['name'] as String,
                   EntityType.values[row['type'] as int],
                   compromised: row['compromised'] as int != 0,
@@ -94,7 +94,7 @@ class Db {
     };
   }
 
-  late final _moveEntityStatement = Statement(_db, '''
+  late final _moveEntityStatement = Statement(_database, '''
     update entities
     set x = ?, y = ?
     where x = ? and y = ?
@@ -105,7 +105,7 @@ class Db {
     _updateBoundaries();
   }
 
-  late final _deleteEntityStatement = Statement(_db, '''
+  late final _deleteEntityStatement = Statement(_database, '''
     delete from entities
     where x = ? and y = ?
   ''');
@@ -117,7 +117,7 @@ class Db {
     _updateBoundaries();
   }
 
-  late final _createEntityStatement = Statement(_db, '''
+  late final _createEntityStatement = Statement(_database, '''
     insert into entities(name, type, x, y, lost, compromised)
     values(?, 0, ?, ?, false, false)
   ''');
@@ -131,7 +131,7 @@ class Db {
     _updateBoundaries();
   }
 
-  late final _changeNameStatement = Statement(_db, '''
+  late final _changeNameStatement = Statement(_database, '''
     update entities
     set name = ?
     where x = ? and y = ?
@@ -145,7 +145,7 @@ class Db {
     _updateEntities([position, ..._getDependantPositions(position)]);
   }
 
-  late final _changeTypeStatement = Statement(_db, '''
+  late final _changeTypeStatement = Statement(_database, '''
     update entities
     set type = ?
     where x = ? and y = ?
@@ -160,7 +160,7 @@ class Db {
     _updateDependencies();
   }
 
-  late final _toggleCompromisedStatement = Statement(_db, '''
+  late final _toggleCompromisedStatement = Statement(_database, '''
     update entities
     set compromised = ?
     where x = ? and y = ?
@@ -174,7 +174,7 @@ class Db {
     _updateEntities([position]);
   }
 
-  late final _toggleLostStatement = Statement(_db, '''
+  late final _toggleLostStatement = Statement(_database, '''
     update entities
     set lost = ?
     where x = ? and y = ?
@@ -199,7 +199,7 @@ class Db {
     return name;
   }
 
-  late final _entityDuplicateIndexQuery = Query(_db, '''
+  late final _entityDuplicateIndexQuery = Query(_database, '''
     with recursive duplicateIndices(i) as(
       select 0
       union all
@@ -228,63 +228,63 @@ class Db {
         .first as int;
   }
 
-  late final _addDependencyStatement = Statement(_db, '''
+  late final _addDependencyStatement = Statement(_database, '''
     insert or ignore into dependencies(entity, factor) values(?, ?)
   ''');
   void addDependency(
     Position position,
-    Id<Factor> factorId,
-    Id<Entity> entityId,
+    Identity<Factor> factor,
+    Identity<Entity> entity,
   ) {
-    assert(_getPositionOfFactor(factorId) == position);
-    _addDependencyStatement.execute([entityId._value, factorId._value]);
+    assert(_getPositionOfFactor(factor) == position);
+    _addDependencyStatement.execute([entity._value, factor._value]);
     _updateEntities([position]);
     _updateDependencies();
   }
 
-  late final _removeDependencyStatement = Statement(_db, '''
+  late final _removeDependencyStatement = Statement(_database, '''
     delete from dependencies
     where entity = ? and factor = ?
   ''');
   void removeDependency(
     Position position,
-    Id<Factor> factorId,
-    Id<Entity> entityId,
+    Identity<Factor> factor,
+    Identity<Entity> entity,
   ) {
-    assert(_getPositionOfFactor(factorId) == position);
-    _removeDependencyStatement.execute([entityId._value, factorId._value]);
+    assert(_getPositionOfFactor(factor) == position);
+    _removeDependencyStatement.execute([entity._value, factor._value]);
     _updateEntities([position]);
     _updateDependencies();
   }
 
-  late final _addFactorStatement = Statement(_db, '''
+  late final _addFactorStatement = Statement(_database, '''
     insert into factors(entity) values(?)
   ''');
-  void addFactor(Position position, Id<Entity> entityId) {
-    assert(_getEntity(position)?.id == entityId);
-    _addFactorStatement.execute([entityId._value]);
+  void addFactor(Position position, Identity<Entity> entity) {
+    assert(_getEntity(position)?.identity == entity);
+    _addFactorStatement.execute([entity._value]);
     _updateEntities([position]);
   }
 
-  late final _removeFactorStatement = Statement(_db, '''
-    delete from factors where id = ?
+  late final _removeFactorStatement = Statement(_database, '''
+    delete from factors where identity = ?
   ''');
-  void removeFactor(Position position, Id<Factor> factorId) {
-    assert(_getPositionOfFactor(factorId) == position);
-    _removeFactorStatement.execute([factorId._value]);
+  void removeFactor(Position position, Identity<Factor> factor) {
+    assert(_getPositionOfFactor(factor) == position);
+    _removeFactorStatement.execute([factor._value]);
     _updateEntities([position]);
     _updateDependencies();
   }
 
-  late final _positionOfFactorQuery = Query(_db, '''
+  late final _positionOfFactorQuery = Query(_database, '''
     select x, y
     from entities
     join factors
-    on entities.id = entity
-    where factors.id = ?
+    on entities.identity = entity
+    where factors.identity = ?
   ''');
-  Position? _getPositionOfFactor(Id<Factor> id) {
-    final row = _positionOfFactorQuery.select([id._value]).firstOrNull;
+  Position? _getPositionOfFactor(Identity<Factor> identity) {
+    final row = _positionOfFactorQuery.select([identity._value]).firstOrNull;
 
     return switch (row) {
       null => null,
@@ -292,7 +292,7 @@ class Db {
     };
   }
 
-  late final _boundariesQuery = Query(_db, '''
+  late final _boundariesQuery = Query(_database, '''
     select min(x) - 1, min(y) - 1, max(x) + 1, max(y) + 1
     from entities
   ''');
@@ -304,15 +304,15 @@ class Db {
     );
   }
 
-  late final _dependantPositionsQuery = Query(_db, '''
+  late final _dependantPositionsQuery = Query(_database, '''
     select distinct sources.x, sources.y
     from entities as sources
     join factors
-    on sources.id = factors.entity
+    on sources.identity = factors.entity
     join dependencies
-    on factor = factors.id
+    on factor = factors.identity
     join entities as targets
-    on targets.id = dependencies.entity
+    on targets.identity = dependencies.entity
     where targets.x = ? and targets.y = ?
   ''');
   Iterable<Position> _getDependantPositions(Position position) =>
@@ -333,16 +333,16 @@ class Db {
     }
   }
 
-  Db(
+  Storage(
     String path, {
     required this.entityDuplicatePrefix,
     required this.entityDuplicateSuffix,
-  }) : _db = sqlite3.open(path) {
-    _db.execute('''
+  }) : _database = sqlite3.open(path) {
+    _database.execute('''
       pragma foreign_keys = on;
 
       create table if not exists entities(
-        id integer primary key,
+        identity integer primary key,
         name text not null,
         type integer not null,
         x integer not null,
@@ -351,11 +351,11 @@ class Db {
         compromised integer not null
       ) strict;
       create table if not exists factors(
-        id integer primary key,
+        identity integer primary key,
         entity integer not null references entities
       ) strict;
       create table if not exists dependencies(
-        id integer primary key,
+        identity integer primary key,
         factor integer not null references factors,
         entity integer not null references entities
       ) strict;
@@ -367,12 +367,12 @@ class Db {
 
       create trigger if not exists after_delete_entity
       after delete on entities begin
-        delete from factors where entity = old.id;
-        delete from dependencies where entity = old.id;
+        delete from factors where entity = old.identity;
+        delete from dependencies where entity = old.identity;
       end;
       create trigger if not exists after_delete_factor
       after delete on factors begin
-        delete from dependencies where factor = old.id;
+        delete from dependencies where factor = old.identity;
       end;
       create trigger if not exists before_insert_entity
       before insert on entities begin
@@ -391,15 +391,16 @@ class Db {
     ''');
   }
 
-  void dispose() => _db.dispose();
+  void dispose() => _database.dispose();
 }
 
-class Id<T> {
+class Identity<T> {
   final int _value;
-  const Id._(this._value);
+  const Identity._(this._value);
 
   @override
-  bool operator ==(Object other) => other is Id<T> && _value == other._value;
+  bool operator ==(Object other) =>
+      other is Identity<T> && _value == other._value;
 
   @override
   int get hashCode => _value.hashCode;
