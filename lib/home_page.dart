@@ -94,14 +94,11 @@ class _State extends State<HomePage> {
             ),
             Material(
               color: colors.secondaryContainer,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 4, 4, 4),
-                child: ValueListenableBuilder(
-                  valueListenable: sideBar,
-                  builder: (context, sideBar, child) {
-                    return sideBar ?? defaultSideBar;
-                  },
-                ),
+              child: ValueListenableBuilder(
+                valueListenable: sideBar,
+                builder: (context, sideBar, child) {
+                  return sideBar ?? defaultSideBar;
+                },
               ),
             ),
           ],
