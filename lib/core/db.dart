@@ -43,12 +43,12 @@ class Db {
   }
 
   late final _entityQuery = Query(_db, '''
-    select id, name, type, soft_lost, compromised
+    select id, name, type, lost, compromised
     from entities
     where x = ? and y = ?
   ''');
   late final _dependenciesQuery = Query(_db, '''
-    select entities.id, name, type, soft_lost, compromised
+    select entities.id, name, type, lost, compromised
     from entities
     join dependencies
     on entities.id = entity
@@ -67,16 +67,16 @@ class Db {
     order by min(entities.x), min(entities.y)
   ''');
   TraversableEntity? _getEntity(Position position) {
-    final entityRow = _entityQuery.select([position.x, position.y]).firstOrNull;
-    return switch (entityRow) {
+    final row = _entityQuery.select([position.x, position.y]).firstOrNull;
+    return switch (row) {
       null => null,
-      Row entityRow => TraversableEntity(
-          Id<Entity>._(entityRow['id'] as int),
-          entityRow['name'] as String,
-          EntityType.values[entityRow['type'] as int],
-          compromised: entityRow['compromised'] as int != 0,
-          lost: entityRow['soft_lost'] as int != 0,
-          factors: _factorsQuery.select([entityRow['id']]).map((row) {
+      Row row => TraversableEntity(
+          Id<Entity>._(row['id'] as int),
+          row['name'] as String,
+          EntityType.values[row['type'] as int],
+          compromised: row['compromised'] as int != 0,
+          lost: row['lost'] as int != 0,
+          factors: _factorsQuery.select([row['id']]).map((row) {
             return Factor(
               Id._(row['id'] as int),
               _dependenciesQuery.select([row['id']]).map((row) {
@@ -84,8 +84,8 @@ class Db {
                   Id._(row['id'] as int),
                   row['name'] as String,
                   EntityType.values[row['type'] as int],
-                  lost: row['soft_lost'] as int != 0,
                   compromised: row['compromised'] as int != 0,
+                  lost: row['lost'] as int != 0,
                 );
               }),
             );
@@ -118,8 +118,8 @@ class Db {
   }
 
   late final _createEntityStatement = Statement(_db, '''
-    insert into entities(name, type, x, y, soft_lost, hard_lost, compromised)
-    values(?, 0, ?, ?, false, false, false)
+    insert into entities(name, type, x, y, lost, compromised)
+    values(?, 0, ?, ?, false, false)
   ''');
   void createEntity(Position position, String name) {
     _createEntityStatement.execute([
@@ -163,7 +163,7 @@ class Db {
   late final _toggleCompromisedStatement = Statement(_db, '''
     update entities
     set compromised = ?
-    where x = ? and y =?
+    where x = ? and y = ?
   ''');
   void toggleCompromised(Position position, bool value) {
     _toggleCompromisedStatement.execute([
@@ -176,7 +176,7 @@ class Db {
 
   late final _toggleLostStatement = Statement(_db, '''
     update entities
-    set hard_lost = ?
+    set lost = ?
     where x = ? and y = ?
   ''');
   void toggleLost(Position position, bool value) {
@@ -185,7 +185,7 @@ class Db {
       position.x,
       position.y,
     ]);
-    _updateEntityLoss(position);
+    _updateEntities([position]);
   }
 
   String _getValidName(Position position, String name) {
@@ -258,7 +258,7 @@ class Db {
   }
 
   late final _addFactorStatement = Statement(_db, '''
-    insert into factors(entity, lost, compromised) values(?, false, false)
+    insert into factors(entity) values(?)
   ''');
   void addFactor(Position position, Id<Entity> entityId) {
     assert(_getEntity(position)?.id == entityId);
@@ -319,105 +319,6 @@ class Db {
       _dependantPositionsQuery.select([position.x, position.y]).map(
           (row) => Position(row['x'] as int, row['y'] as int));
 
-  late final _updateEntityLossStatement = Statement(_db, '''
-    insert into avalanche_entities(id, value)
-    select id, hard_lost or exists (
-      select factors.id
-      from factors
-      where entity = entities.id
-      and factors.lost = true
-    )
-    from entities
-    where x = ? and y = ?
-  ''');
-  void _updateEntityLoss(Position position) {
-    _updateEntityLossStatement.execute([position.x, position.y]);
-    _propagateLoss();
-  }
-
-  late final _propagateLossStatement = Statement(_db, '''
-    insert into avalanche_factors(id, value)
-    select factors.id, exists (
-      select factor
-      from dependencies
-      join entities
-      on dependencies.entity = entities.id
-      left join avalanche_entities
-      on entities.id = avalanche_entities.id
-      where factor = factors.id
-      group by factor
-      having min(coalesce(avalanche_entities.value, entities.soft_lost)) = true
-    )
-    from factors
-    join dependencies
-    on dependencies.factor = factors.id
-    join avalanche_entities
-    on dependencies.entity = avalanche_entities.id
-    join entities
-    on dependencies.entity = entities.id
-    where entities.soft_lost <> avalanche_entities.value;
-
-    update entities
-    set soft_lost = avalanche_entities.value
-    from avalanche_entities
-    where entities.id = avalanche_entities.id;
-
-    insert into avalanche_entities
-    select entities.id, exists (
-      select factors.id
-      from factors
-      left join avalanche_factors
-      on factors.id = avalanche_factors.id
-      where entity = entities.id
-      and coalesce(avalanche_factors.value, factors.lost) = true
-    )
-    from entities
-    join factors
-    on entities.id = factors.entity
-    join avalanche_factors
-    on factors.id = avalanche_factors.id
-    where factors.lost <> avalanche_factors.value;
-
-    update factors
-    set lost = avalanche_factors.value
-    from avalanche_factors
-    where factors.id = avalanche_factors.id;
-  ''');
-  void _propagateLoss() {
-    for (;;) {
-      final positions = _getLossPropagatedPositions();
-
-      if (positions.isEmpty) {
-        _deleteAvalanchesStatement.execute();
-        return;
-      }
-
-      _propagateLossStatement.execute();
-      _updateEntities(positions);
-    }
-  }
-
-  late final _lossPropagatedPositionsQuery = Query(_db, '''
-    select x, y
-    from entities
-    join avalanche_entities
-    on entities.id = avalanche_entities.id
-    where entities.soft_lost <> avalanche_entities.value
-  ''');
-  Iterable<Position> _getLossPropagatedPositions() {
-    return _lossPropagatedPositionsQuery.select().map((row) {
-      return Position(
-        row['x'] as int,
-        row['y'] as int,
-      );
-    });
-  }
-
-  late final _deleteAvalanchesStatement = Statement(_db, '''
-    delete from avalanche_factors;
-    delete from avalanche_entities;
-  ''');
-
   void _updateDependencies() {
     dependencyChangeNotifier._update();
   }
@@ -446,29 +347,18 @@ class Db {
         type integer not null,
         x integer not null,
         y integer not null,
-        soft_lost integer not null,
-        hard_lost integer not null,
+        lost integer not null,
         compromised integer not null
       ) strict;
       create table if not exists factors(
         id integer primary key,
-        entity integer not null references entities,
-        lost integer not null,
-        compromised integer not null
+        entity integer not null references entities
       ) strict;
       create table if not exists dependencies(
         id integer primary key,
         factor integer not null references factors,
         entity integer not null references entities
       ) strict;
-      create table if not exists avalanche_entities(
-        id integer primary key references entities,
-        value integer not null
-      ) strict, without rowid;
-      create table if not exists avalanche_factors(
-        id integer primary key references entities,
-        value integer not null
-      ) strict, without rowid;
 
       create unique index if not exists entity_names on entities(name);
       create unique index if not exists entity_xs_ys on entities(x, y);
