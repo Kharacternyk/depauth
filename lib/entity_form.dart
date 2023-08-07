@@ -16,6 +16,7 @@ import 'scaled_draggable.dart';
 class EntityForm extends StatefulWidget {
   final TraversableEntity entity;
   final Position position;
+  final bool hasLostFactor;
   final void Function(String) changeName;
   final void Function(EntityType) changeType;
   final void Function(bool) toggleLost;
@@ -26,6 +27,7 @@ class EntityForm extends StatefulWidget {
 
   const EntityForm(
     this.entity, {
+    required this.hasLostFactor,
     required this.position,
     required this.changeName,
     required this.changeType,
@@ -126,7 +128,7 @@ class _State extends State<EntityForm> {
           ),
           activeColor: colors.error,
           value: widget.entity.lost,
-          selected: widget.entity.lost,
+          selected: widget.hasLostFactor,
           secondary: const Icon(Icons.not_listed_location),
           onChanged: (value) {
             widget.toggleLost(value ?? false);

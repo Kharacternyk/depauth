@@ -21,7 +21,11 @@ class Storage {
   late final ValueNotifier<Boundaries> boundaries = ValueNotifier(
     _getBoundaries(),
   );
-  final dependencyChangeNotifier = _DependencyChangeNotifier();
+  final dependencyChangeNotifier = _ChangeNotifier();
+  final lossChangeNotifier = _ChangeNotifier();
+
+  final Map<Identity<Entity>, bool> _entityLoss = {};
+  final Map<Identity<Factor>, bool> _factorLoss = {};
 
   ValueNotifier<TraversableEntity?> getEntity(Position position) {
     return switch (_entities[position]) {
@@ -68,10 +72,14 @@ class Storage {
   ''');
   TraversableEntity? _getEntity(Position position) {
     final row = _entityQuery.select([position.x, position.y]).firstOrNull;
-    return switch (row) {
-      null => null,
-      Row row => TraversableEntity(
-          Identity<Entity>._(row['identity'] as int),
+
+    switch (row) {
+      case null:
+        return null;
+
+      case Row row:
+        return TraversableEntity(
+          Identity._(row['identity'] as int),
           row['name'] as String,
           EntityType.values[row['type'] as int],
           compromised: row['compromised'] as int != 0,
@@ -90,8 +98,8 @@ class Storage {
               }),
             );
           }),
-        ),
-    };
+        );
+    }
   }
 
   late final _moveEntityStatement = Statement(_database, '''
@@ -115,6 +123,7 @@ class Storage {
     _deleteEntityStatement.execute([position.x, position.y]);
     _updateEntities([position, ...dependants]);
     _updateBoundaries();
+    _updateLoss();
   }
 
   late final _createEntityStatement = Statement(_database, '''
@@ -186,6 +195,7 @@ class Storage {
       position.y,
     ]);
     _updateEntities([position]);
+    _updateLoss();
   }
 
   String _getValidName(Position position, String name) {
@@ -240,6 +250,7 @@ class Storage {
     _addDependencyStatement.execute([entity._value, factor._value]);
     _updateEntities([position]);
     _updateDependencies();
+    _updateLoss();
   }
 
   late final _removeDependencyStatement = Statement(_database, '''
@@ -255,6 +266,7 @@ class Storage {
     _removeDependencyStatement.execute([entity._value, factor._value]);
     _updateEntities([position]);
     _updateDependencies();
+    _updateLoss();
   }
 
   late final _addFactorStatement = Statement(_database, '''
@@ -264,6 +276,7 @@ class Storage {
     assert(_getEntity(position)?.identity == entity);
     _addFactorStatement.execute([entity._value]);
     _updateEntities([position]);
+    _updateLoss();
   }
 
   late final _removeFactorStatement = Statement(_database, '''
@@ -274,6 +287,50 @@ class Storage {
     _removeFactorStatement.execute([factor._value]);
     _updateEntities([position]);
     _updateDependencies();
+    _updateLoss();
+  }
+
+  late final _factorIdentitiesQuery = Query(_database, '''
+    select identity
+    from factors
+    where entity = ?
+  ''');
+  bool hasLostFactor(Identity<Entity> entity) {
+    switch (_entityLoss[entity]) {
+      case bool result:
+        return result;
+      case null:
+        _entityLoss[entity] = false;
+        final result = _factorIdentitiesQuery
+            .select([entity._value])
+            .map((row) => Identity<Factor>._(row['identity'] as int))
+            .any(_isFactorLost);
+        _entityLoss[entity] = result;
+        return result;
+    }
+  }
+
+  late final _dependencyEntitiesQuery = Query(_database, '''
+    select entity, lost
+    from dependencies
+    join entities
+    on entity = entities.identity
+    where factor = ?
+  ''');
+  bool _isFactorLost(Identity<Factor> factor) {
+    switch (_factorLoss[factor]) {
+      case bool result:
+        return result;
+      case null:
+        final dependencies = _dependencyEntitiesQuery.select([factor._value]);
+        final result = dependencies.isNotEmpty &&
+            dependencies.every((row) {
+              return row['lost'] as int != 0 ||
+                  hasLostFactor(Identity._(row['entity'] as int));
+            });
+        _factorLoss[factor] = result;
+        return result;
+    }
   }
 
   late final _positionOfFactorQuery = Query(_database, '''
@@ -325,6 +382,12 @@ class Storage {
 
   void _updateBoundaries() {
     boundaries.value = _getBoundaries();
+  }
+
+  void _updateLoss() {
+    _entityLoss.clear();
+    _factorLoss.clear();
+    lossChangeNotifier._update();
   }
 
   void _updateEntities(Iterable<Position> positions) {
@@ -409,7 +472,7 @@ class Identity<T> {
   String toString() => _value.toString();
 }
 
-class _DependencyChangeNotifier extends ChangeNotifier {
+class _ChangeNotifier extends ChangeNotifier {
   void _update() {
     notifyListeners();
   }

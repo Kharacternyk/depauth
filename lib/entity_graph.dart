@@ -47,44 +47,49 @@ class EntityGraph extends StatelessWidget {
                     valueListenable: listenableEntity,
                     builder: (context, entity, child) {
                       return switch (entity) {
-                        TraversableEntity entity => EntityForm(
-                            entity,
-                            position: position,
-                            changeName: (name) {
-                              storage.changeName(position, name);
-                            },
-                            changeType: (type) {
-                              storage.changeType(position, type);
-                            },
-                            toggleLost: (value) {
-                              storage.toggleLost(position, value);
-                            },
-                            toggleCompromised: (value) {
-                              storage.toggleCompromised(position, value);
-                            },
-                            addDependency: (
-                              Identity<Factor> factor,
-                              Identity<Entity> entity,
-                            ) {
-                              storage.addDependency(
-                                position,
-                                factor,
-                                entity,
-                              );
-                            },
-                            removeDependency: (
-                              Identity<Factor> factor,
-                              Identity<Entity> entity,
-                            ) {
-                              storage.removeDependency(
-                                position,
-                                factor,
-                                entity,
-                              );
-                            },
-                            addFactor: () {
-                              storage.addFactor(position, entity.identity);
-                            },
+                        TraversableEntity entity => ListenableBuilder(
+                            listenable: storage.lossChangeNotifier,
+                            builder: (child, context) => EntityForm(
+                              entity,
+                              position: position,
+                              hasLostFactor:
+                                  storage.hasLostFactor(entity.identity),
+                              changeName: (name) {
+                                storage.changeName(position, name);
+                              },
+                              changeType: (type) {
+                                storage.changeType(position, type);
+                              },
+                              toggleLost: (value) {
+                                storage.toggleLost(position, value);
+                              },
+                              toggleCompromised: (value) {
+                                storage.toggleCompromised(position, value);
+                              },
+                              addDependency: (
+                                Identity<Factor> factor,
+                                Identity<Entity> entity,
+                              ) {
+                                storage.addDependency(
+                                  position,
+                                  factor,
+                                  entity,
+                                );
+                              },
+                              removeDependency: (
+                                Identity<Factor> factor,
+                                Identity<Entity> entity,
+                              ) {
+                                storage.removeDependency(
+                                  position,
+                                  factor,
+                                  entity,
+                                );
+                              },
+                              addFactor: () {
+                                storage.addFactor(position, entity.identity);
+                              },
+                            ),
                           ),
                         null => defaultSideBar,
                       };
