@@ -128,7 +128,7 @@ class _State extends State<EntityForm> {
           ),
           activeColor: colors.error,
           value: widget.entity.lost,
-          selected: widget.hasLostFactor,
+          selected: widget.hasLostFactor || widget.entity.lost,
           secondary: const Icon(Icons.not_listed_location),
           onChanged: (value) {
             widget.toggleLost(value ?? false);

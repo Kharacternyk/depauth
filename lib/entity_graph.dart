@@ -98,14 +98,24 @@ class EntityGraph extends StatelessWidget {
 
                   return switch (entity) {
                     TraversableEntity entity => Expanded(
-                        child: ScaledDraggable(
-                          keepsSpace: false,
-                          dragData: EntityTraveler(position, entity.identity),
-                          child: EntityCard(
-                            entity,
-                            onTap: () {
-                              setSideBar(entityForm);
-                            },
+                        child: ListenableBuilder(
+                          listenable: storage.lossChangeNotifier,
+                          builder: (context, child) => Ink(
+                            color: entity.lost ||
+                                    storage.hasLostFactor(entity.identity)
+                                ? Theme.of(context).colorScheme.errorContainer
+                                : null,
+                            child: ScaledDraggable(
+                              keepsSpace: false,
+                              dragData:
+                                  EntityTraveler(position, entity.identity),
+                              child: EntityCard(
+                                entity,
+                                onTap: () {
+                                  setSideBar(entityForm);
+                                },
+                              ),
+                            ),
                           ),
                         ),
                       ),
