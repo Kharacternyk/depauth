@@ -1,16 +1,14 @@
 import 'package:sqlite3/sqlite3.dart';
 
 class Statement {
-  final Iterable<PreparedStatement> _statements;
+  final PreparedStatement _statement;
 
-  Statement(Database database, String sql)
-      : _statements = database.prepareMultiple(sql, persistent: true);
+  Statement(Database database, String sql, {bool cold = false})
+      : _statement = database.prepare(sql, persistent: !cold);
 
   void execute([List<Object?> parameters = const []]) {
-    for (final statement in _statements) {
-      statement
-        ..execute(parameters)
-        ..reset();
-    }
+    _statement
+      ..execute(parameters)
+      ..reset();
   }
 }
