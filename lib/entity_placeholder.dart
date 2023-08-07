@@ -12,9 +12,8 @@ class EntityPlaceholder<DragDataType extends Object> extends StatelessWidget {
       child: DragTarget(
         builder: (context, candidate, rejected) => SizedBox.expand(
           child: candidate.isNotEmpty
-              ? Material(
+              ? Ink(
                   color: Theme.of(context).colorScheme.primaryContainer,
-                  type: MaterialType.canvas,
                   child: icon != null
                       ? FittedBox(
                           child: Icon(
