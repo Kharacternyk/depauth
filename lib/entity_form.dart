@@ -126,7 +126,22 @@ class _State extends State<EntityForm> {
             overflow: TextOverflow.fade,
             softWrap: false,
           ),
-          activeColor: colors.error,
+          subtitle: widget.hasLostFactor
+              ? const Tooltip(
+                  message: 'This entity is lost because all entities' +
+                      ' in at least one factor are lost.',
+                  child: Row(
+                    children: [
+                      Text('Automatically '),
+                      Icon(
+                        Icons.info_outlined,
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                )
+              : null,
+          activeColor: colors.primary,
           value: widget.entity.lost,
           selected: widget.hasLostFactor || widget.entity.lost,
           secondary: const Icon(Icons.not_listed_location),

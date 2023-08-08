@@ -100,21 +100,16 @@ class EntityGraph extends StatelessWidget {
                     TraversableEntity entity => Expanded(
                         child: ListenableBuilder(
                           listenable: storage.lossChangeNotifier,
-                          builder: (context, child) => Ink(
-                            color: entity.lost ||
-                                    storage.hasLostFactor(entity.identity)
-                                ? Theme.of(context).colorScheme.errorContainer
-                                : null,
-                            child: ScaledDraggable(
-                              keepsSpace: false,
-                              dragData:
-                                  EntityTraveler(position, entity.identity),
-                              child: EntityCard(
-                                entity,
-                                onTap: () {
-                                  setSideBar(entityForm);
-                                },
-                              ),
+                          builder: (context, child) => ScaledDraggable(
+                            keepsSpace: false,
+                            dragData: EntityTraveler(position, entity.identity),
+                            child: EntityCard(
+                              entity,
+                              hasLostFactor:
+                                  storage.hasLostFactor(entity.identity),
+                              onTap: () {
+                                setSideBar(entityForm);
+                              },
                             ),
                           ),
                         ),

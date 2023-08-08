@@ -67,8 +67,8 @@ class _State extends State<HomePage> {
       body: MultiSplitViewTheme(
         data: MultiSplitViewThemeData(
           dividerPainter: DividerPainters.grooved1(
-            backgroundColor: colors.secondaryContainer,
-            color: colors.onSecondaryContainer,
+            backgroundColor: colors.surfaceVariant,
+            color: colors.onSurfaceVariant,
             highlightedColor: colors.primary,
           ),
         ),
@@ -93,7 +93,7 @@ class _State extends State<HomePage> {
               ),
             ),
             Material(
-              color: colors.secondaryContainer,
+              color: colors.surfaceVariant,
               child: ValueListenableBuilder(
                 valueListenable: sideBar,
                 builder: (context, sideBar, child) {
