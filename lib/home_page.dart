@@ -9,6 +9,7 @@ import 'core/traveler.dart';
 import 'entity_graph.dart';
 import 'scaled_draggable.dart';
 import 'viewer.dart';
+import 'widget_extension.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -48,20 +49,16 @@ class _State extends State<HomePage> {
         "Drag this button onto an empty space to create a new entity.";
     const deleteButtonTooltip = "Drag onto this button to delete.";
     final colors = Theme.of(context).colorScheme;
-    final defaultSideBar = FittedBox(
-      child: Column(
-        children: [
-          ScalableImageWidget.fromSISource(
-            si: ScalableImageSource.fromSI(
-              DefaultAssetBundle.of(context),
-              'assets/logo.si',
-            ),
-            scale: 0.2,
-          ),
-          const Text('Press on a card to edit it.'),
-        ],
+    final defaultSideBar = [
+      ScalableImageWidget.fromSISource(
+        si: ScalableImageSource.fromSI(
+          DefaultAssetBundle.of(context),
+          'assets/logo.si',
+        ),
+        scale: 0.2,
       ),
-    );
+      const Text('Press on a card to edit it.'),
+    ].toColumn().fit();
 
     return Scaffold(
       body: MultiSplitViewTheme(

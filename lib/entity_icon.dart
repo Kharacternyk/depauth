@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'core/entity_type.dart';
 import 'entity_theme.dart';
+import 'widget_extension.dart';
 
 class EntityIcon extends StatelessWidget {
   final EntityType type;
@@ -15,27 +16,10 @@ class EntityIcon extends StatelessWidget {
 
     return Ink(
       color: theme.background,
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              children: [
-                Expanded(
-                  child: FittedBox(
-                    child: Padding(
-                      padding: padding,
-                      child: Icon(
-                        theme.icon,
-                        color: theme.foreground,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      child: Icon(
+        theme.icon,
+        color: theme.foreground,
+      ).pad(padding).fit().grow(),
     );
   }
 }
