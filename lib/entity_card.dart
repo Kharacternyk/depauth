@@ -112,40 +112,45 @@ class EntityCard extends StatelessWidget {
               Expanded(
                 child: Column(
                   children: [
-                    const Spacer(),
-                    Expanded(
-                      child: Material(
-                        color: hasLostFactor || entity.lost
-                            ? colors.primary
-                            : null,
-                        child: SizedBox.expand(
-                          child: hasLostFactor || entity.lost
-                              ? FittedBox(
-                                  child: Icon(
-                                    Icons.not_listed_location,
-                                    color: colors.onPrimary,
-                                  ),
-                                )
-                              : null,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Material(
-                        color: entity.compromised ? colors.error : null,
-                        child: SizedBox.expand(
-                          child: entity.compromised
-                              ? FittedBox(
-                                  child: Icon(
-                                    Icons.report,
-                                    color: colors.onError,
-                                  ),
-                                )
-                              : null,
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
+                    Spacer(flex: entity.lost || hasLostFactor ? 1 : 2),
+                    entity.lost || hasLostFactor || entity.compromised
+                        ? Expanded(
+                            flex: (entity.lost || hasLostFactor) &&
+                                    entity.compromised
+                                ? 2
+                                : 1,
+                            child: Material(
+                              color: colors.error,
+                              child: Column(
+                                children: [
+                                  if (entity.lost || hasLostFactor)
+                                    Expanded(
+                                      child: SizedBox.expand(
+                                        child: FittedBox(
+                                          child: Icon(
+                                            Icons.not_listed_location,
+                                            color: colors.onError,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  if (entity.compromised)
+                                    Expanded(
+                                      child: SizedBox.expand(
+                                        child: FittedBox(
+                                          child: Icon(
+                                            Icons.report,
+                                            color: colors.onError,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                    Spacer(flex: entity.compromised ? 1 : 2),
                   ],
                 ),
               ),

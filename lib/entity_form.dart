@@ -141,7 +141,7 @@ class _State extends State<EntityForm> {
                   ),
                 )
               : null,
-          activeColor: colors.primary,
+          activeColor: colors.error,
           value: widget.entity.lost,
           selected: widget.hasLostFactor || widget.entity.lost,
           secondary: const Icon(Icons.not_listed_location),
