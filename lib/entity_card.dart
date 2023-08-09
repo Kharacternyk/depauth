@@ -5,6 +5,7 @@ import 'core/traversable_entity.dart';
 import 'entity_icon.dart';
 import 'entity_theme.dart';
 import 'scaled_line.dart';
+import 'widget_extension.dart';
 
 class EntityCard extends StatelessWidget {
   final TraversableEntity entity;
@@ -27,35 +28,19 @@ class EntityCard extends StatelessWidget {
     for (final factor in entity.factors) {
       for (final dependency in factor.dependencies) {
         dependencyIcons.add(
-          Expanded(
-            key: ValueKey((factor.identity, dependency.identity)),
-            child: ScaledLine(
-              name: '${factor.identity}:${dependency.identity}',
-              color: EntityTheme(dependency.type).arrow.withOpacity(0.5),
-              targetName: dependency.identity.toString(),
-              child: EntityIcon(
-                dependency.type,
-                padding: padding,
-              ),
+          ScaledLine(
+            name: '${factor.identity}:${dependency.identity}',
+            color: EntityTheme(dependency.type).arrow.withOpacity(0.5),
+            targetName: dependency.identity.toString(),
+            child: EntityIcon(
+              dependency.type,
+              padding: padding,
             ),
-          ),
+          ).expand(key: ValueKey((factor.identity, dependency.identity))),
         );
       }
       dependencyIcons.add(
-        const Expanded(
-          child: Column(
-            children: [
-              Expanded(
-                child: FittedBox(
-                  child: Padding(
-                    padding: padding,
-                    child: Icon(Icons.add),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        const Icon(Icons.add).pad(padding).fit().grow().expand(),
       );
     }
 
@@ -63,102 +48,56 @@ class EntityCard extends StatelessWidget {
       dependencyIcons.removeLast();
     }
 
-    return Column(
-      children: [
+    return [
+      const Spacer(),
+      [
         const Spacer(),
-        Expanded(
-          flex: 6,
-          child: Row(
-            children: [
-              const Spacer(),
-              Expanded(
-                flex: 6,
-                child: ArrowElement(
-                  id: entity.identity.toString(),
-                  child: Card(
-                    elevation: 10,
-                    margin: EdgeInsets.zero,
-                    shape: const Border(),
-                    child: InkWell(
-                      onTap: onTap,
-                      child: Column(
-                        children: [
-                          if (entity.factors.isNotEmpty)
-                            Expanded(
-                              child: Row(
-                                children: dependencyIcons,
-                              ),
-                            ),
-                          Expanded(
-                            child: FittedBox(
-                              child: Padding(
-                                padding: padding,
-                                child: Text(entity.name),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: EntityIcon(
-                              entity.type,
-                              padding: padding,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Column(
-                  children: [
-                    Spacer(flex: entity.lost || hasLostFactor ? 1 : 2),
-                    entity.lost || hasLostFactor || entity.compromised
-                        ? Expanded(
-                            flex: (entity.lost || hasLostFactor) &&
-                                    entity.compromised
-                                ? 2
-                                : 1,
-                            child: Material(
-                              color: colors.error,
-                              child: Column(
-                                children: [
-                                  if (entity.lost || hasLostFactor)
-                                    Expanded(
-                                      child: SizedBox.expand(
-                                        child: FittedBox(
-                                          child: Icon(
-                                            Icons.not_listed_location,
-                                            color: colors.onError,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  if (entity.compromised)
-                                    Expanded(
-                                      child: SizedBox.expand(
-                                        child: FittedBox(
-                                          child: Icon(
-                                            Icons.report,
-                                            color: colors.onError,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          )
-                        : const SizedBox.shrink(),
-                    Spacer(flex: entity.compromised ? 1 : 2),
-                  ],
-                ),
-              ),
-            ],
+        ArrowElement(
+          id: entity.identity.toString(),
+          child: Card(
+            elevation: 10,
+            margin: EdgeInsets.zero,
+            shape: const Border(),
+            child: InkWell(
+              onTap: onTap,
+              child: [
+                if (entity.factors.isNotEmpty) dependencyIcons.toRow().expand(),
+                Text(entity.name).pad(padding).fit().expand(),
+                EntityIcon(
+                  entity.type,
+                  padding: padding,
+                ).expand(),
+              ].toColumn(),
+            ),
           ),
-        ),
-        const Spacer(),
-      ],
-    );
+        ).expand(flex: 6),
+        [
+          Spacer(flex: entity.lost || hasLostFactor ? 1 : 2),
+          entity.lost || hasLostFactor || entity.compromised
+              ? Material(
+                  color: colors.error,
+                  child: [
+                    if (entity.lost || hasLostFactor)
+                      Icon(
+                        Icons.not_listed_location,
+                        color: colors.onError,
+                      ).fit().grow().expand(),
+                    if (entity.compromised)
+                      Icon(
+                        Icons.report,
+                        color: colors.onError,
+                      ).fit().grow().expand(),
+                  ].toColumn(),
+                ).expand(
+                  flex: (entity.lost || hasLostFactor) && entity.compromised
+                      ? 2
+                      : 1,
+                )
+              : const SizedBox.shrink(),
+          Spacer(flex: entity.compromised ? 1 : 2),
+        ].toColumn().expand(),
+      ].toRow().expand(flex: 6),
+      const Spacer(),
+    ].toColumn();
   }
 }
