@@ -7,8 +7,7 @@ class Statement {
       : _statement = database.prepare(sql, persistent: !cold);
 
   void execute([List<Object?> parameters = const []]) {
-    _statement
-      ..execute(parameters)
-      ..reset();
+    _statement.execute(parameters);
+    _statement.reset();
   }
 }
