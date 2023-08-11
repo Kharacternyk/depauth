@@ -7,10 +7,12 @@ import 'position.dart';
 import 'storage.dart';
 
 class InsightfulStorage extends ListenableStorage {
-  final lossChangeNotifier = _ChangeNotifier();
+  final traitInsightNotifier = _ChangeNotifier();
 
   final Map<Identity<Entity>, bool> _entityLoss = {};
   final Map<Identity<Factor>, bool> _factorLoss = {};
+  final Map<Identity<Entity>, bool> _entityCompromise = {};
+  final Map<Identity<Factor>, bool> _factorCompromise = {};
 
   InsightfulStorage(
     super.path, {
@@ -30,6 +32,20 @@ class InsightfulStorage extends ListenableStorage {
     }
   }
 
+  bool areAllFactorsCompromised(Identity<Entity> entity) {
+    switch (_entityCompromise[entity]) {
+      case bool result:
+        return result;
+      case null:
+        _entityCompromise[entity] = false;
+        final factors = getFactors(entity);
+        final result =
+            factors.isNotEmpty && factors.every(_isFactorCompromised);
+        _entityCompromise[entity] = result;
+        return result;
+    }
+  }
+
   bool _isFactorLost(Identity<Factor> factor) {
     switch (_factorLoss[factor]) {
       case bool result:
@@ -37,9 +53,22 @@ class InsightfulStorage extends ListenableStorage {
       case null:
         final dependencies = getDependencies(factor);
         final result = dependencies.isNotEmpty &&
-            dependencies.every(
-                (entity) => entity.lost || hasLostFactor(entity.identity));
+            dependencies.every((entity) {
+              return entity.lost || hasLostFactor(entity.identity);
+            });
         _factorLoss[factor] = result;
+        return result;
+    }
+  }
+
+  bool _isFactorCompromised(Identity<Factor> factor) {
+    switch (_factorCompromise[factor]) {
+      case bool result:
+        return result;
+      case null:
+        final result =
+            getDependencies(factor).any((dependency) => dependency.compromised);
+        _factorCompromise[factor] = result;
         return result;
     }
   }
@@ -47,7 +76,13 @@ class InsightfulStorage extends ListenableStorage {
   @override
   void deleteEntity(Position position) {
     super.deleteEntity(position);
-    _updateLoss();
+    _updateAll();
+  }
+
+  @override
+  void toggleCompromised(Position position, bool value) {
+    super.toggleCompromised(position, value);
+    _updateCompromise();
   }
 
   @override
@@ -63,7 +98,7 @@ class InsightfulStorage extends ListenableStorage {
     Identity<Entity> entity,
   ) {
     super.addDependency(position, factor, entity);
-    _updateLoss();
+    _updateAll();
   }
 
   @override
@@ -73,25 +108,39 @@ class InsightfulStorage extends ListenableStorage {
     Identity<Entity> entity,
   ) {
     super.removeDependency(position, factor, entity);
-    _updateLoss();
+    _updateAll();
   }
 
   @override
   void addFactor(Position position, Identity<Entity> entity) {
     super.addFactor(position, entity);
-    _updateLoss();
+    _updateAll();
   }
 
   @override
   void removeFactor(Position position, Identity<Factor> factor) {
     super.removeFactor(position, factor);
-    _updateLoss();
+    _updateAll();
   }
 
   void _updateLoss() {
     _entityLoss.clear();
     _factorLoss.clear();
-    lossChangeNotifier._update();
+    traitInsightNotifier._update();
+  }
+
+  void _updateCompromise() {
+    _entityCompromise.clear();
+    _factorCompromise.clear();
+    traitInsightNotifier._update();
+  }
+
+  void _updateAll() {
+    _entityLoss.clear();
+    _factorLoss.clear();
+    _entityCompromise.clear();
+    _factorCompromise.clear();
+    traitInsightNotifier._update();
   }
 }
 

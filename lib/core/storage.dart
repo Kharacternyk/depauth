@@ -243,19 +243,25 @@ class Storage {
   }
 
   late final _dependencyEntitiesQuery = Query(_database, '''
-    select entity, lost
+    select entity, lost, compromised
     from dependencies
     join entities
     on entity = entities.identity
     where factor = ?
   ''');
-  Iterable<({Identity<Entity> identity, bool lost})> getDependencies(
+  Iterable<
+      ({
+        Identity<Entity> identity,
+        bool lost,
+        bool compromised,
+      })> getDependencies(
     Identity<Factor> factor,
   ) {
     return _dependencyEntitiesQuery.select([factor._value]).map((row) {
       return (
         identity: Identity._(row['entity'] as int),
         lost: row['lost'] as int != 0,
+        compromised: row['compromised'] as int != 0,
       );
     });
   }

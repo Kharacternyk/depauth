@@ -11,11 +11,13 @@ class EntityCard extends StatelessWidget {
   final TraversableEntity entity;
   final VoidCallback onTap;
   final bool hasLostFactor;
+  final bool areAllFactorsCompromised;
 
   const EntityCard(
     this.entity, {
     required this.onTap,
     required this.hasLostFactor,
+    required this.areAllFactorsCompromised,
     super.key,
   });
 
@@ -48,6 +50,9 @@ class EntityCard extends StatelessWidget {
       dependencyIcons.removeLast();
     }
 
+    final lost = hasLostFactor || entity.lost;
+    final compromised = areAllFactorsCompromised || entity.compromised;
+
     return [
       const Spacer(),
       [
@@ -72,29 +77,27 @@ class EntityCard extends StatelessWidget {
           ),
         ).expand(flex: 6),
         [
-          Spacer(flex: entity.lost || hasLostFactor ? 1 : 2),
-          entity.lost || hasLostFactor || entity.compromised
+          Spacer(flex: lost ? 1 : 2),
+          lost || compromised
               ? Material(
                   color: colors.error,
                   child: [
-                    if (entity.lost || hasLostFactor)
+                    if (lost)
                       Icon(
                         Icons.not_listed_location,
                         color: colors.onError,
                       ).fit().grow().expand(),
-                    if (entity.compromised)
+                    if (compromised)
                       Icon(
                         Icons.report,
                         color: colors.onError,
                       ).fit().grow().expand(),
                   ].toColumn(),
                 ).expand(
-                  flex: (entity.lost || hasLostFactor) && entity.compromised
-                      ? 2
-                      : 1,
+                  flex: lost && compromised ? 2 : 1,
                 )
               : const SizedBox.shrink(),
-          Spacer(flex: entity.compromised ? 1 : 2),
+          Spacer(flex: compromised ? 1 : 2),
         ].toColumn().expand(),
       ].toRow().expand(flex: 6),
       const Spacer(),

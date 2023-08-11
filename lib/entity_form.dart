@@ -17,6 +17,7 @@ class EntityForm extends StatefulWidget {
   final TraversableEntity entity;
   final Position position;
   final bool hasLostFactor;
+  final bool areAllFactorsCompromised;
   final void Function(String) changeName;
   final void Function(EntityType) changeType;
   final void Function(bool) toggleLost;
@@ -28,6 +29,7 @@ class EntityForm extends StatefulWidget {
   const EntityForm(
     this.entity, {
     required this.hasLostFactor,
+    required this.areAllFactorsCompromised,
     required this.position,
     required this.changeName,
     required this.changeType,
@@ -128,7 +130,7 @@ class _State extends State<EntityForm> {
           ),
           subtitle: widget.hasLostFactor
               ? const Tooltip(
-                  message: 'This entity is lost because all entities' +
+                  message: 'This entity is lost because all entities'
                       ' in at least one factor are lost.',
                   child: Row(
                     children: [
@@ -158,9 +160,25 @@ class _State extends State<EntityForm> {
             overflow: TextOverflow.fade,
             softWrap: false,
           ),
+          subtitle: widget.areAllFactorsCompromised
+              ? const Tooltip(
+                  message: 'This entity is compromised because all factors'
+                      ' have at least one compromised entity.',
+                  child: Row(
+                    children: [
+                      Text('Automatically '),
+                      Icon(
+                        Icons.info_outlined,
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                )
+              : null,
           activeColor: colors.error,
           value: widget.entity.compromised,
-          selected: widget.entity.compromised,
+          selected:
+              widget.entity.compromised || widget.areAllFactorsCompromised,
           secondary: const Icon(Icons.report),
           onChanged: (value) {
             widget.toggleCompromised(value ?? false);

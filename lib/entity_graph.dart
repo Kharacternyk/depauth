@@ -49,12 +49,14 @@ class EntityGraph extends StatelessWidget {
                     builder: (context, entity, child) {
                       return switch (entity) {
                         TraversableEntity entity => ListenableBuilder(
-                            listenable: storage.lossChangeNotifier,
+                            listenable: storage.traitInsightNotifier,
                             builder: (child, context) => EntityForm(
                               entity,
                               position: position,
                               hasLostFactor:
                                   storage.hasLostFactor(entity.identity),
+                              areAllFactorsCompromised: storage
+                                  .areAllFactorsCompromised(entity.identity),
                               changeName: (name) {
                                 storage.changeName(position, name);
                               },
@@ -100,7 +102,7 @@ class EntityGraph extends StatelessWidget {
                   return switch (entity) {
                     TraversableEntity entity => Expanded(
                         child: ListenableBuilder(
-                          listenable: storage.lossChangeNotifier,
+                          listenable: storage.traitInsightNotifier,
                           builder: (context, child) => ScaledDraggable(
                             keepsSpace: false,
                             dragData: EntityTraveler(position, entity.identity),
@@ -108,6 +110,8 @@ class EntityGraph extends StatelessWidget {
                               entity,
                               hasLostFactor:
                                   storage.hasLostFactor(entity.identity),
+                              areAllFactorsCompromised: storage
+                                  .areAllFactorsCompromised(entity.identity),
                               onTap: () {
                                 setSideBar(entityForm);
                               },
