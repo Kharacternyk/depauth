@@ -3,6 +3,7 @@ import 'package:widget_arrows/widget_arrows.dart';
 
 import 'core/entity.dart';
 import 'core/factor.dart';
+import 'core/insightful_storage.dart';
 import 'core/position.dart';
 import 'core/storage.dart';
 import 'core/traveler.dart';
@@ -13,7 +14,7 @@ import 'entity_placeholder.dart';
 import 'scaled_draggable.dart';
 
 class EntityGraph extends StatelessWidget {
-  final Storage storage;
+  final InsightfulStorage storage;
   final void Function(Widget) setSideBar;
   final Widget defaultSideBar;
 
@@ -36,7 +37,7 @@ class EntityGraph extends StatelessWidget {
 
           for (var x = boundaries.start.x; x <= boundaries.end.x; ++x) {
             final position = Position(x, y);
-            final listenableEntity = storage.getEntity(position);
+            final listenableEntity = storage.getListenableEntity(position);
 
             row.add(
               ValueListenableBuilder(

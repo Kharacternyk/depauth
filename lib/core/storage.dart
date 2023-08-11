@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 import 'boundaries.dart';
@@ -11,40 +10,9 @@ import 'statement.dart';
 import 'traversable_entity.dart';
 
 class Storage {
+  final Database _database;
   final String entityDuplicatePrefix;
   final String entityDuplicateSuffix;
-
-  final Database _database;
-  final Map<Position, WeakReference<ValueNotifier<TraversableEntity?>>>
-      _entities = {};
-
-  late final ValueNotifier<Boundaries> boundaries = ValueNotifier(
-    _getBoundaries(),
-  );
-  final dependencyChangeNotifier = _ChangeNotifier();
-  final lossChangeNotifier = _ChangeNotifier();
-
-  final Map<Identity<Entity>, bool> _entityLoss = {};
-  final Map<Identity<Factor>, bool> _factorLoss = {};
-
-  ValueNotifier<TraversableEntity?> getEntity(Position position) {
-    return switch (_entities[position]) {
-      null => _cacheEntity(position),
-      WeakReference<ValueNotifier<TraversableEntity?>> reference => switch (
-            reference.target) {
-          null => _cacheEntity(position),
-          ValueNotifier<TraversableEntity?> entity => entity,
-        },
-    };
-  }
-
-  ValueNotifier<TraversableEntity?> _cacheEntity(Position position) {
-    final entity = ValueNotifier(_getEntity(position));
-
-    _entities[position] = WeakReference(entity);
-
-    return entity;
-  }
 
   late final _entityQuery = Query(_database, '''
     select identity, name, type, lost, compromised
@@ -70,7 +38,7 @@ class Storage {
     group by factors.identity
     order by min(entities.x), min(entities.y)
   ''');
-  TraversableEntity? _getEntity(Position position) {
+  TraversableEntity? getEntity(Position position) {
     final row = _entityQuery.select([position.x, position.y]).firstOrNull;
 
     switch (row) {
@@ -109,8 +77,6 @@ class Storage {
   ''');
   void moveEntity({required Position from, required Position to}) {
     _moveEntityStatement.execute([to.x, to.y, from.x, from.y]);
-    _updateEntities([from, to, ..._getDependantPositions(to)]);
-    _updateBoundaries();
   }
 
   late final _deleteEntityStatement = Statement(_database, '''
@@ -118,12 +84,7 @@ class Storage {
     where x = ? and y = ?
   ''');
   void deleteEntity(Position position) {
-    final dependants = _getDependantPositions(position);
-
     _deleteEntityStatement.execute([position.x, position.y]);
-    _updateEntities([position, ...dependants]);
-    _updateBoundaries();
-    _updateLoss();
   }
 
   late final _createEntityStatement = Statement(_database, '''
@@ -136,8 +97,6 @@ class Storage {
       position.x,
       position.y,
     ]);
-    _updateEntities([position]);
-    _updateBoundaries();
   }
 
   late final _changeNameStatement = Statement(_database, '''
@@ -151,7 +110,6 @@ class Storage {
       position.x,
       position.y,
     ]);
-    _updateEntities([position, ..._getDependantPositions(position)]);
   }
 
   late final _changeTypeStatement = Statement(_database, '''
@@ -165,8 +123,6 @@ class Storage {
       position.x,
       position.y,
     ]);
-    _updateEntities([position, ..._getDependantPositions(position)]);
-    _updateDependencies();
   }
 
   late final _toggleCompromisedStatement = Statement(_database, '''
@@ -180,7 +136,6 @@ class Storage {
       position.x,
       position.y,
     ]);
-    _updateEntities([position]);
   }
 
   late final _toggleLostStatement = Statement(_database, '''
@@ -194,8 +149,6 @@ class Storage {
       position.x,
       position.y,
     ]);
-    _updateEntities([position]);
-    _updateLoss();
   }
 
   String _getValidName(Position position, String name) {
@@ -248,9 +201,6 @@ class Storage {
   ) {
     assert(_getPositionOfFactor(factor) == position);
     _addDependencyStatement.execute([entity._value, factor._value]);
-    _updateEntities([position]);
-    _updateDependencies();
-    _updateLoss();
   }
 
   late final _removeDependencyStatement = Statement(_database, '''
@@ -264,19 +214,14 @@ class Storage {
   ) {
     assert(_getPositionOfFactor(factor) == position);
     _removeDependencyStatement.execute([entity._value, factor._value]);
-    _updateEntities([position]);
-    _updateDependencies();
-    _updateLoss();
   }
 
   late final _addFactorStatement = Statement(_database, '''
     insert into factors(entity) values(?)
   ''');
   void addFactor(Position position, Identity<Entity> entity) {
-    assert(_getEntity(position)?.identity == entity);
+    assert(getEntity(position)?.identity == entity);
     _addFactorStatement.execute([entity._value]);
-    _updateEntities([position]);
-    _updateLoss();
   }
 
   late final _removeFactorStatement = Statement(_database, '''
@@ -285,9 +230,6 @@ class Storage {
   void removeFactor(Position position, Identity<Factor> factor) {
     assert(_getPositionOfFactor(factor) == position);
     _removeFactorStatement.execute([factor._value]);
-    _updateEntities([position]);
-    _updateDependencies();
-    _updateLoss();
   }
 
   late final _factorIdentitiesQuery = Query(_database, '''
@@ -295,19 +237,9 @@ class Storage {
     from factors
     where entity = ?
   ''');
-  bool hasLostFactor(Identity<Entity> entity) {
-    switch (_entityLoss[entity]) {
-      case bool result:
-        return result;
-      case null:
-        _entityLoss[entity] = false;
-        final result = _factorIdentitiesQuery
-            .select([entity._value])
-            .map((row) => Identity<Factor>._(row['identity'] as int))
-            .any(_isFactorLost);
-        _entityLoss[entity] = result;
-        return result;
-    }
+  Iterable<Identity<Factor>> getFactors(Identity<Entity> entity) {
+    return _factorIdentitiesQuery.select([entity._value]).map(
+        (row) => Identity<Factor>._(row['identity'] as int));
   }
 
   late final _dependencyEntitiesQuery = Query(_database, '''
@@ -317,20 +249,15 @@ class Storage {
     on entity = entities.identity
     where factor = ?
   ''');
-  bool _isFactorLost(Identity<Factor> factor) {
-    switch (_factorLoss[factor]) {
-      case bool result:
-        return result;
-      case null:
-        final dependencies = _dependencyEntitiesQuery.select([factor._value]);
-        final result = dependencies.isNotEmpty &&
-            dependencies.every((row) {
-              return row['lost'] as int != 0 ||
-                  hasLostFactor(Identity._(row['entity'] as int));
-            });
-        _factorLoss[factor] = result;
-        return result;
-    }
+  Iterable<({Identity<Entity> identity, bool lost})> getDependencies(
+    Identity<Factor> factor,
+  ) {
+    return _dependencyEntitiesQuery.select([factor._value]).map((row) {
+      return (
+        identity: Identity._(row['entity'] as int),
+        lost: row['lost'] as int != 0,
+      );
+    });
   }
 
   late final _positionOfFactorQuery = Query(_database, '''
@@ -353,7 +280,7 @@ class Storage {
     select min(x) - 1, min(y) - 1, max(x) + 1, max(y) + 1
     from entities
   ''');
-  Boundaries _getBoundaries() {
+  Boundaries getBoundaries() {
     final values = _boundariesQuery.select().first.values;
     return Boundaries(
       Position(values[0] as int? ?? 0, values[1] as int? ?? 0),
@@ -372,29 +299,9 @@ class Storage {
     on targets.identity = dependencies.entity
     where targets.x = ? and targets.y = ?
   ''');
-  Iterable<Position> _getDependantPositions(Position position) =>
+  Iterable<Position> getDependantPositions(Position position) =>
       _dependantPositionsQuery.select([position.x, position.y]).map(
           (row) => Position(row['x'] as int, row['y'] as int));
-
-  void _updateDependencies() {
-    dependencyChangeNotifier._update();
-  }
-
-  void _updateBoundaries() {
-    boundaries.value = _getBoundaries();
-  }
-
-  void _updateLoss() {
-    _entityLoss.clear();
-    _factorLoss.clear();
-    lossChangeNotifier._update();
-  }
-
-  void _updateEntities(Iterable<Position> positions) {
-    for (final position in positions) {
-      _entities[position]?.target?.value = _getEntity(position);
-    }
-  }
 
   Storage(
     String path, {
@@ -470,10 +377,4 @@ class Identity<T> {
 
   @override
   String toString() => _value.toString();
-}
-
-class _ChangeNotifier extends ChangeNotifier {
-  void _update() {
-    notifyListeners();
-  }
 }

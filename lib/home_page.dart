@@ -4,7 +4,7 @@ import 'package:multi_split_view/multi_split_view.dart';
 import 'package:path/path.dart';
 
 import 'async_resources.dart';
-import 'core/storage.dart';
+import 'core/insightful_storage.dart';
 import 'core/traveler.dart';
 import 'entity_graph.dart';
 import 'scaled_draggable.dart';
@@ -20,7 +20,7 @@ class HomePage extends StatefulWidget {
 
 class _State extends State<HomePage> {
   final sideBar = ValueNotifier<Widget?>(null);
-  Storage? storage;
+  InsightfulStorage? storage;
 
   @override
   dispose() {
@@ -30,10 +30,10 @@ class _State extends State<HomePage> {
 
   @override
   build(BuildContext context) {
-    final Storage storage;
+    final InsightfulStorage storage;
     switch (this.storage) {
       case null:
-        storage = Storage(
+        storage = InsightfulStorage(
           join(
             AsyncResources.of(context).documentsDirectory,
             'personal.depauth',
@@ -41,8 +41,8 @@ class _State extends State<HomePage> {
           entityDuplicatePrefix: ' (',
           entityDuplicateSuffix: ')',
         );
-      case Storage storage_:
-        storage = storage_;
+      case InsightfulStorage reusableStorage:
+        storage = reusableStorage;
     }
 
     const addButtonTooltip =
