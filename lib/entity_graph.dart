@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:widget_arrows/widget_arrows.dart';
 
+import 'boundary_icon.dart';
 import 'core/entity.dart';
 import 'core/factor.dart';
 import 'core/insightful_storage.dart';
@@ -12,6 +13,7 @@ import 'entity_card.dart';
 import 'entity_form.dart';
 import 'entity_placeholder.dart';
 import 'scaled_draggable.dart';
+import 'widget_extension.dart';
 
 class EntityGraph extends StatelessWidget {
   final InsightfulStorage storage;
@@ -131,21 +133,7 @@ class EntityGraph extends StatelessWidget {
                               setSideBar(entityForm);
                           }
                         },
-                        icon: switch ((
-                          (x - boundaries.end.x, y - boundaries.end.y),
-                          (boundaries.start.x - x, boundaries.start.y - y)
-                        )) {
-                          ((0, 0), (0, 0)) => null,
-                          ((0, 0), _) => Icons.south_east,
-                          (_, (0, 0)) => Icons.north_west,
-                          ((_, 0), (0, _)) => Icons.south_west,
-                          ((0, _), (_, 0)) => Icons.north_east,
-                          ((_, 0), _) => Icons.south,
-                          ((0, _), _) => Icons.east,
-                          (_, (_, 0)) => Icons.north,
-                          (_, (0, _)) => Icons.west,
-                          _ => null,
-                        },
+                        icon: BoundaryIcon(boundaries, position),
                       ),
                   };
                 },
@@ -156,13 +144,18 @@ class EntityGraph extends StatelessWidget {
           rows.add(Expanded(key: ValueKey(y), child: Row(children: row)));
         }
 
-        final column = Column(children: rows);
+        final graph = IconTheme(
+          data: IconThemeData(
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          ),
+          child: rows.toColumn(),
+        );
 
         return ListenableBuilder(
           listenable: storage.dependencyChangeNotifier,
           builder: (context, child) => ArrowContainer(
             key: UniqueKey(),
-            child: column,
+            child: graph,
           ),
         );
       },

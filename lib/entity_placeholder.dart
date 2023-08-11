@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 
+import 'widget_extension.dart';
+
 class EntityPlaceholder<DragDataType extends Object> extends StatelessWidget {
   final void Function(DragDataType) onDragAccepted;
-  final IconData? icon;
+  final Widget icon;
 
-  const EntityPlaceholder({required this.onDragAccepted, this.icon, super.key});
+  const EntityPlaceholder({
+    required this.onDragAccepted,
+    required this.icon,
+    super.key,
+  });
 
   @override
   build(context) {
@@ -14,16 +20,7 @@ class EntityPlaceholder<DragDataType extends Object> extends StatelessWidget {
           child: candidate.isNotEmpty
               ? Ink(
                   color: Theme.of(context).colorScheme.primaryContainer,
-                  child: icon != null
-                      ? FittedBox(
-                          child: Icon(
-                            icon,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onPrimaryContainer,
-                          ),
-                        )
-                      : null,
+                  child: icon.fit(),
                 )
               : null,
         ),
