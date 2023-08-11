@@ -46,61 +46,6 @@ class EntityGraph extends StatelessWidget {
                 key: ValueKey(x),
                 valueListenable: listenableEntity,
                 builder: (context, entity, child) {
-                  late final entityForm = ValueListenableBuilder(
-                    valueListenable: listenableEntity,
-                    builder: (context, entity, child) {
-                      return switch (entity) {
-                        TraversableEntity entity => ListenableBuilder(
-                            listenable: storage.traitInsightNotifier,
-                            builder: (child, context) => EntityForm(
-                              entity,
-                              position: position,
-                              hasLostFactor:
-                                  storage.hasLostFactor(entity.identity),
-                              areAllFactorsCompromised: storage
-                                  .areAllFactorsCompromised(entity.identity),
-                              changeName: (name) {
-                                storage.changeName(position, name);
-                              },
-                              changeType: (type) {
-                                storage.changeType(position, type);
-                              },
-                              toggleLost: (value) {
-                                storage.toggleLost(position, value);
-                              },
-                              toggleCompromised: (value) {
-                                storage.toggleCompromised(position, value);
-                              },
-                              addDependency: (
-                                Identity<Factor> factor,
-                                Identity<Entity> entity,
-                              ) {
-                                storage.addDependency(
-                                  position,
-                                  factor,
-                                  entity,
-                                );
-                              },
-                              removeDependency: (
-                                Identity<Factor> factor,
-                                Identity<Entity> entity,
-                              ) {
-                                storage.removeDependency(
-                                  position,
-                                  factor,
-                                  entity,
-                                );
-                              },
-                              addFactor: () {
-                                storage.addFactor(position, entity.identity);
-                              },
-                            ),
-                          ),
-                        null => defaultSideBar,
-                      };
-                    },
-                  );
-
                   return switch (entity) {
                     TraversableEntity entity => Expanded(
                         child: ListenableBuilder(
@@ -115,7 +60,7 @@ class EntityGraph extends StatelessWidget {
                               areAllFactorsCompromised: storage
                                   .areAllFactorsCompromised(entity.identity),
                               onTap: () {
-                                setSideBar(entityForm);
+                                setSideBar(_getEntityForm(position));
                               },
                             ),
                           ),
@@ -127,10 +72,10 @@ class EntityGraph extends StatelessWidget {
                             case EntityTraveler source:
                               storage.moveEntity(
                                   from: source.position, to: position);
-                              setSideBar(defaultSideBar);
+                              setSideBar(_getEntityForm(position));
                             case CreationTraveler _:
                               storage.createEntity(position, 'New Entity');
-                              setSideBar(entityForm);
+                              setSideBar(_getEntityForm(position));
                           }
                         },
                         icon: BoundaryIcon(boundaries, position),
@@ -158,6 +103,64 @@ class EntityGraph extends StatelessWidget {
             child: graph,
           ),
         );
+      },
+    );
+  }
+
+  Widget _getEntityForm(Position position) {
+    final listenableEntity = storage.getListenableEntity(position);
+
+    return ValueListenableBuilder(
+      valueListenable: listenableEntity,
+      builder: (context, entity, child) {
+        return switch (entity) {
+          TraversableEntity entity => ListenableBuilder(
+              listenable: storage.traitInsightNotifier,
+              builder: (child, context) => EntityForm(
+                entity,
+                position: position,
+                hasLostFactor: storage.hasLostFactor(entity.identity),
+                areAllFactorsCompromised:
+                    storage.areAllFactorsCompromised(entity.identity),
+                changeName: (name) {
+                  storage.changeName(position, name);
+                },
+                changeType: (type) {
+                  storage.changeType(position, type);
+                },
+                toggleLost: (value) {
+                  storage.toggleLost(position, value);
+                },
+                toggleCompromised: (value) {
+                  storage.toggleCompromised(position, value);
+                },
+                addDependency: (
+                  Identity<Factor> factor,
+                  Identity<Entity> entity,
+                ) {
+                  storage.addDependency(
+                    position,
+                    factor,
+                    entity,
+                  );
+                },
+                removeDependency: (
+                  Identity<Factor> factor,
+                  Identity<Entity> entity,
+                ) {
+                  storage.removeDependency(
+                    position,
+                    factor,
+                    entity,
+                  );
+                },
+                addFactor: () {
+                  storage.addFactor(position, entity.identity);
+                },
+              ),
+            ),
+          null => defaultSideBar,
+        };
       },
     );
   }
