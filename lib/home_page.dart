@@ -4,8 +4,14 @@ import 'package:multi_split_view/multi_split_view.dart';
 import 'package:path/path.dart';
 
 import 'async_resources.dart';
+import 'core/entity.dart';
+import 'core/factor.dart';
 import 'core/insightful_storage.dart';
+import 'core/position.dart';
+import 'core/storage.dart';
 import 'core/traveler.dart';
+import 'core/traversable_entity.dart';
+import 'entity_form.dart';
 import 'entity_graph.dart';
 import 'scaled_draggable.dart';
 import 'viewer.dart';
@@ -19,7 +25,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _State extends State<HomePage> {
-  final sideBar = ValueNotifier<Widget?>(null);
+  final editablePosition = ValueNotifier<Position?>(null);
   InsightfulStorage? storage;
 
   @override
@@ -83,18 +89,80 @@ class _State extends State<HomePage> {
               maxScale: 20,
               child: EntityGraph(
                 storage,
-                defaultSideBar: defaultSideBar,
-                setSideBar: (widget) {
-                  sideBar.value = widget;
+                setEditablePosition: (position) {
+                  editablePosition.value = position;
                 },
               ),
             ),
             Material(
               color: colors.surfaceVariant,
               child: ValueListenableBuilder(
-                valueListenable: sideBar,
+                valueListenable: editablePosition,
                 builder: (context, sideBar, child) {
-                  return sideBar ?? defaultSideBar;
+                  switch (editablePosition.value) {
+                    case null:
+                      return defaultSideBar;
+                    case Position position:
+                      final listenableEntity =
+                          storage.getListenableEntity(position);
+
+                      return ValueListenableBuilder(
+                        valueListenable: listenableEntity,
+                        builder: (context, entity, child) {
+                          return switch (entity) {
+                            TraversableEntity entity => ListenableBuilder(
+                                listenable: storage.traitInsightNotifier,
+                                builder: (child, context) => EntityForm(
+                                  entity,
+                                  position: position,
+                                  hasLostFactor:
+                                      storage.hasLostFactor(entity.identity),
+                                  areAllFactorsCompromised:
+                                      storage.areAllFactorsCompromised(
+                                          entity.identity),
+                                  changeName: (name) {
+                                    storage.changeName(position, name);
+                                  },
+                                  changeType: (type) {
+                                    storage.changeType(position, type);
+                                  },
+                                  toggleLost: (value) {
+                                    storage.toggleLost(position, value);
+                                  },
+                                  toggleCompromised: (value) {
+                                    storage.toggleCompromised(position, value);
+                                  },
+                                  addDependency: (
+                                    Identity<Factor> factor,
+                                    Identity<Entity> entity,
+                                  ) {
+                                    storage.addDependency(
+                                      position,
+                                      factor,
+                                      entity,
+                                    );
+                                  },
+                                  removeDependency: (
+                                    Identity<Factor> factor,
+                                    Identity<Entity> entity,
+                                  ) {
+                                    storage.removeDependency(
+                                      position,
+                                      factor,
+                                      entity,
+                                    );
+                                  },
+                                  addFactor: () {
+                                    storage.addFactor(
+                                        position, entity.identity);
+                                  },
+                                ),
+                              ),
+                            null => defaultSideBar,
+                          };
+                        },
+                      );
+                  }
                 },
               ),
             ),

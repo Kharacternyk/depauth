@@ -2,28 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:widget_arrows/widget_arrows.dart';
 
 import 'boundary_icon.dart';
-import 'core/entity.dart';
-import 'core/factor.dart';
 import 'core/insightful_storage.dart';
 import 'core/position.dart';
-import 'core/storage.dart';
 import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
 import 'entity_card.dart';
-import 'entity_form.dart';
 import 'entity_placeholder.dart';
 import 'scaled_draggable.dart';
 import 'widget_extension.dart';
 
 class EntityGraph extends StatelessWidget {
   final InsightfulStorage storage;
-  final void Function(Widget) setSideBar;
-  final Widget defaultSideBar;
+  final void Function(Position) setEditablePosition;
 
   const EntityGraph(
     this.storage, {
-    required this.setSideBar,
-    required this.defaultSideBar,
+    required this.setEditablePosition,
     super.key,
   });
 
@@ -60,7 +54,7 @@ class EntityGraph extends StatelessWidget {
                               areAllFactorsCompromised: storage
                                   .areAllFactorsCompromised(entity.identity),
                               onTap: () {
-                                setSideBar(_getEntityForm(position));
+                                setEditablePosition(position);
                               },
                             ),
                           ),
@@ -72,10 +66,10 @@ class EntityGraph extends StatelessWidget {
                             case EntityTraveler source:
                               storage.moveEntity(
                                   from: source.position, to: position);
-                              setSideBar(_getEntityForm(position));
+                              setEditablePosition(position);
                             case CreationTraveler _:
                               storage.createEntity(position, 'New Entity');
-                              setSideBar(_getEntityForm(position));
+                              setEditablePosition(position);
                           }
                         },
                         icon: BoundaryIcon(boundaries, position),
@@ -103,64 +97,6 @@ class EntityGraph extends StatelessWidget {
             child: graph,
           ),
         );
-      },
-    );
-  }
-
-  Widget _getEntityForm(Position position) {
-    final listenableEntity = storage.getListenableEntity(position);
-
-    return ValueListenableBuilder(
-      valueListenable: listenableEntity,
-      builder: (context, entity, child) {
-        return switch (entity) {
-          TraversableEntity entity => ListenableBuilder(
-              listenable: storage.traitInsightNotifier,
-              builder: (child, context) => EntityForm(
-                entity,
-                position: position,
-                hasLostFactor: storage.hasLostFactor(entity.identity),
-                areAllFactorsCompromised:
-                    storage.areAllFactorsCompromised(entity.identity),
-                changeName: (name) {
-                  storage.changeName(position, name);
-                },
-                changeType: (type) {
-                  storage.changeType(position, type);
-                },
-                toggleLost: (value) {
-                  storage.toggleLost(position, value);
-                },
-                toggleCompromised: (value) {
-                  storage.toggleCompromised(position, value);
-                },
-                addDependency: (
-                  Identity<Factor> factor,
-                  Identity<Entity> entity,
-                ) {
-                  storage.addDependency(
-                    position,
-                    factor,
-                    entity,
-                  );
-                },
-                removeDependency: (
-                  Identity<Factor> factor,
-                  Identity<Entity> entity,
-                ) {
-                  storage.removeDependency(
-                    position,
-                    factor,
-                    entity,
-                  );
-                },
-                addFactor: () {
-                  storage.addFactor(position, entity.identity);
-                },
-              ),
-            ),
-          null => defaultSideBar,
-        };
       },
     );
   }
