@@ -115,6 +115,9 @@ class _State extends State<HomePage> {
                                 builder: (child, context) => EntityForm(
                                   entity,
                                   position: position,
+                                  goBack: () {
+                                    editablePosition.value = null;
+                                  },
                                   hasLostFactor:
                                       storage.hasLostFactor(entity.identity),
                                   areAllFactorsCompromised:

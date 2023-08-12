@@ -18,6 +18,7 @@ class EntityForm extends StatefulWidget {
   final Position position;
   final bool hasLostFactor;
   final bool areAllFactorsCompromised;
+  final void Function() goBack;
   final void Function(String) changeName;
   final void Function(EntityType) changeType;
   final void Function(bool) toggleLost;
@@ -28,6 +29,7 @@ class EntityForm extends StatefulWidget {
 
   const EntityForm(
     this.entity, {
+    required this.goBack,
     required this.hasLostFactor,
     required this.areAllFactorsCompromised,
     required this.position,
@@ -73,6 +75,14 @@ class _State extends State<EntityForm> {
     );
 
     final children = [
+      Card(
+        child: ListTile(
+          leading: const BackButtonIcon(),
+          title: const Text('Back'),
+          shape: tileShape,
+          onTap: widget.goBack,
+        ),
+      ),
       Card(
         child: ListTile(
           leading: const Icon(Icons.edit),
