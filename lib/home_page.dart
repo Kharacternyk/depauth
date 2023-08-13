@@ -229,6 +229,7 @@ class _State extends State<HomePage> {
                     );
                 },
                 tooltip: addButtonTooltip,
+                mouseCursor: SystemMouseCursors.grab,
                 child: const Icon(Icons.add),
               ),
             ),

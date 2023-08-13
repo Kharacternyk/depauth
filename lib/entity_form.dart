@@ -110,14 +110,16 @@ class _State extends State<EntityForm> {
                   .map(
                     (value) => DropdownMenuItem(
                       value: value,
-                      child: Chip(
-                        avatar: Ink(
-                          child: Icon(
-                            EntityTheme(value).icon,
-                            color: EntityTheme(value).foreground,
+                      child: AbsorbPointer(
+                        child: Chip(
+                          avatar: Ink(
+                            child: Icon(
+                              EntityTheme(value).icon,
+                              color: EntityTheme(value).foreground,
+                            ),
                           ),
+                          label: Text(EntityTheme(value).typeName),
                         ),
-                        label: Text(EntityTheme(value).typeName),
                       ),
                     ),
                   )
@@ -212,6 +214,9 @@ class _State extends State<EntityForm> {
               child: Card(
                 color: candidate.isNotEmpty ? colors.primaryContainer : null,
                 child: ListTile(
+                  mouseCursor: candidate.isNotEmpty
+                      ? SystemMouseCursors.copy
+                      : SystemMouseCursors.grab,
                   leading: Badge(
                     isLabelVisible: widget.entity.factors.length > 1,
                     backgroundColor: colors.primaryContainer,
@@ -233,12 +238,14 @@ class _State extends State<EntityForm> {
                             factor.identity,
                             entity.identity,
                           ),
-                          child: Chip(
-                            key: ValueKey(entity.identity),
-                            label: Text(entity.name),
-                            avatar: Icon(
-                              EntityTheme(entity.type).icon,
-                              color: EntityTheme(entity.type).foreground,
+                          child: AbsorbPointer(
+                            child: Chip(
+                              key: ValueKey(entity.identity),
+                              label: Text(entity.name),
+                              avatar: Icon(
+                                EntityTheme(entity.type).icon,
+                                color: EntityTheme(entity.type).foreground,
+                              ),
                             ),
                           ),
                         ),
