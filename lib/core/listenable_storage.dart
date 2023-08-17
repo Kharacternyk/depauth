@@ -18,7 +18,7 @@ class ListenableStorage extends Storage {
   final Map<Position, WeakReference<ValueNotifier<TraversableEntity?>>>
       _entities = {};
   late final ValueNotifier<Boundaries> boundaries = ValueNotifier(
-    getBoundaries(),
+    super.getBoundaries(),
   );
   final dependencyChangeNotifier = _ChangeNotifier();
 
@@ -34,11 +34,19 @@ class ListenableStorage extends Storage {
   }
 
   ValueNotifier<TraversableEntity?> _cacheEntity(Position position) {
-    final entity = ValueNotifier(getEntity(position));
+    final entity = ValueNotifier(super.getEntity(position));
 
     _entities[position] = WeakReference(entity);
 
     return entity;
+  }
+
+  @override
+  TraversableEntity? getEntity(Position position) {
+    return switch (_entities[position]?.target?.value) {
+      null => super.getEntity(position),
+      TraversableEntity entity => entity,
+    };
   }
 
   @override
@@ -50,9 +58,14 @@ class ListenableStorage extends Storage {
   }
 
   @override
+  Boundaries getBoundaries() {
+    return boundaries.value;
+  }
+
+  @override
   void moveEntity({required Position from, required Position to}) {
     super.moveEntity(from: from, to: to);
-    _updateEntities([from, to, ...getDependantPositions(to)]);
+    _updateEntities([from, to].followedBy(getDependantPositions(to)));
     _updateBoundaries();
   }
 
@@ -60,7 +73,7 @@ class ListenableStorage extends Storage {
   void deleteEntity(Position position) {
     final dependants = getDependantPositions(position);
     super.deleteEntity(position);
-    _updateEntities([position, ...dependants]);
+    _updateEntities([position].followedBy(dependants));
     _updateBoundaries();
   }
 
@@ -74,13 +87,13 @@ class ListenableStorage extends Storage {
   @override
   void changeName(Position position, String name) {
     super.changeName(position, name);
-    _updateEntities([position, ...getDependantPositions(position)]);
+    _updateEntities([position].followedBy(getDependantPositions(position)));
   }
 
   @override
   void changeType(Position position, EntityType type) {
     super.changeType(position, type);
-    _updateEntities([position, ...getDependantPositions(position)]);
+    _updateEntities([position].followedBy(getDependantPositions(position)));
     _updateDependencies();
   }
 
@@ -136,12 +149,12 @@ class ListenableStorage extends Storage {
   }
 
   void _updateBoundaries() {
-    boundaries.value = getBoundaries();
+    boundaries.value = super.getBoundaries();
   }
 
   void _updateEntities(Iterable<Position> positions) {
     for (final position in positions) {
-      _entities[position]?.target?.value = getEntity(position);
+      _entities[position]?.target?.value = super.getEntity(position);
     }
   }
 }
