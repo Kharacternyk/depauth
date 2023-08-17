@@ -43,7 +43,7 @@ class EntityGraph extends StatelessWidget {
                   return switch (entity) {
                     TraversableEntity entity => Expanded(
                         child: ListenableBuilder(
-                          listenable: storage.traitInsightNotifier,
+                          listenable: storage.insightNotifier,
                           builder: (context, child) => ScaledDraggable(
                             keepsSpace: false,
                             dragData: EntityTraveler(position, entity.identity),

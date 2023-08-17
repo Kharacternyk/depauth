@@ -111,7 +111,7 @@ class _State extends State<HomePage> {
                         builder: (context, entity, child) {
                           return switch (entity) {
                             TraversableEntity entity => ListenableBuilder(
-                                listenable: storage.traitInsightNotifier,
+                                listenable: storage.insightNotifier,
                                 builder: (child, context) => EntityForm(
                                   entity,
                                   position: position,

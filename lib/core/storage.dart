@@ -70,6 +70,21 @@ class Storage {
     }
   }
 
+  late final _entityIdentityQuery = Query(_database, '''
+    select identity
+    from entities
+    where x = ? and y = ?
+  ''');
+  Identity<Entity>? getEntityIdentity(Position position) {
+    final row =
+        _entityIdentityQuery.select([position.x, position.y]).firstOrNull;
+
+    return switch (row) {
+      null => null,
+      Row row => Identity._(row[0] as int),
+    };
+  }
+
   late final _moveEntityStatement = Statement(_database, '''
     update entities
     set x = ?, y = ?
@@ -263,6 +278,19 @@ class Storage {
         lost: row['lost'] as int != 0,
         compromised: row['compromised'] as int != 0,
       );
+    });
+  }
+
+  late final _dependantsQuery = Query(_database, '''
+    select distinct factors.entity
+    from factors
+    join dependencies
+    on factors.identity = factor
+    where dependencies.entity = ?
+  ''');
+  Iterable<Identity<Entity>> getDependants(Identity<Entity> entity) {
+    return _dependantsQuery.select([entity._value]).map((row) {
+      return Identity._(row[0] as int);
     });
   }
 

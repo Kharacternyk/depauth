@@ -42,6 +42,14 @@ class ListenableStorage extends Storage {
   }
 
   @override
+  Identity<Entity>? getEntityIdentity(Position position) {
+    return switch (_entities[position]?.target?.value) {
+      null => super.getEntityIdentity(position),
+      TraversableEntity entity => entity.identity,
+    };
+  }
+
+  @override
   void moveEntity({required Position from, required Position to}) {
     super.moveEntity(from: from, to: to);
     _updateEntities([from, to, ...getDependantPositions(to)]);
