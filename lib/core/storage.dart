@@ -46,22 +46,28 @@ class Storage {
         return null;
 
       case Row row:
+        final [identity, name, type, lost, compromised] = row.values;
+
         return TraversableEntity(
-          Identity._(row['identity'] as int),
-          row['name'] as String,
-          EntityType.values[row['type'] as int],
-          compromised: row['compromised'] as int != 0,
-          lost: row['lost'] as int != 0,
-          factors: _factorsQuery.select([row['identity']]).map((row) {
+          Identity._(identity as int),
+          name as String,
+          EntityType.values[type as int],
+          lost: lost as int != 0,
+          compromised: compromised as int != 0,
+          factors: _factorsQuery.select([identity]).map((row) {
+            final [identity] = row.values;
+
             return Factor(
-              Identity._(row['identity'] as int),
-              _dependenciesQuery.select([row['identity']]).map((row) {
+              Identity._(identity as int),
+              _dependenciesQuery.select([identity]).map((row) {
+                final [identity, name, type, lost, compromised] = row.values;
+
                 return Entity(
-                  Identity._(row['identity'] as int),
-                  row['name'] as String,
-                  EntityType.values[row['type'] as int],
-                  compromised: row['compromised'] as int != 0,
-                  lost: row['lost'] as int != 0,
+                  Identity._(identity as int),
+                  name as String,
+                  EntityType.values[type as int],
+                  lost: lost as int != 0,
+                  compromised: compromised as int != 0,
                 );
               }),
             );
@@ -81,7 +87,7 @@ class Storage {
 
     return switch (row) {
       null => null,
-      Row row => Identity._(row[0] as int),
+      Row row => Identity._(row.values.first as int),
     };
   }
 
@@ -254,7 +260,7 @@ class Storage {
   ''');
   Iterable<Identity<Factor>> getFactors(Identity<Entity> entity) {
     return _factorIdentitiesQuery.select([entity._value]).map(
-        (row) => Identity<Factor>._(row['identity'] as int));
+        (row) => Identity<Factor>._(row.values.first as int));
   }
 
   late final _dependencyEntitiesQuery = Query(_database, '''
@@ -273,10 +279,12 @@ class Storage {
     Identity<Factor> factor,
   ) {
     return _dependencyEntitiesQuery.select([factor._value]).map((row) {
+      final [identity, lost, compromised] = row.values;
+
       return (
-        identity: Identity._(row['entity'] as int),
-        lost: row['lost'] as int != 0,
-        compromised: row['compromised'] as int != 0,
+        identity: Identity._(identity as int),
+        lost: lost as int != 0,
+        compromised: compromised as int != 0,
       );
     });
   }
@@ -290,7 +298,7 @@ class Storage {
   ''');
   Iterable<Identity<Entity>> getDependants(Identity<Entity> entity) {
     return _dependantsQuery.select([entity._value]).map((row) {
-      return Identity._(row[0] as int);
+      return Identity._(row.values.first as int);
     });
   }
 
@@ -304,10 +312,14 @@ class Storage {
   Position? _getPositionOfFactor(Identity<Factor> identity) {
     final row = _positionOfFactorQuery.select([identity._value]).firstOrNull;
 
-    return switch (row) {
-      null => null,
-      Row row => Position(row['x'] as int, row['y'] as int),
-    };
+    switch (row) {
+      case null:
+        return null;
+      case Row row:
+        final [x, y] = row.values;
+
+        return Position(x as int, y as int);
+    }
   }
 
   late final _boundariesQuery = Query(_database, '''
@@ -315,10 +327,11 @@ class Storage {
     from entities
   ''');
   Boundaries getBoundaries() {
-    final values = _boundariesQuery.select().first.values;
+    final [minX, minY, maxX, maxY] = _boundariesQuery.select().first.values;
+
     return Boundaries(
-      Position(values[0] as int? ?? 0, values[1] as int? ?? 0),
-      Position(values[2] as int? ?? 0, values[3] as int? ?? 0),
+      Position(minX as int? ?? 0, minY as int? ?? 0),
+      Position(maxX as int? ?? 0, maxY as int? ?? 0),
     );
   }
 
@@ -333,9 +346,13 @@ class Storage {
     on targets.identity = dependencies.entity
     where targets.x = ? and targets.y = ?
   ''');
-  Iterable<Position> getDependantPositions(Position position) =>
-      _dependantPositionsQuery.select([position.x, position.y]).map(
-          (row) => Position(row['x'] as int, row['y'] as int));
+  Iterable<Position> getDependantPositions(Position position) {
+    return _dependantPositionsQuery.select([position.x, position.y]).map((row) {
+      final [x, y] = row.values;
+
+      return Position(x as int, y as int);
+    });
+  }
 
   Storage(
     String path, {
