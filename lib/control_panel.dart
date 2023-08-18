@@ -55,16 +55,7 @@ class _State extends State<ControlPanel> {
         "Drag this button onto an empty space to create a new entity.";
     const deleteButtonTooltip = "Drag onto this button to delete.";
     final colors = Theme.of(context).colorScheme;
-    final defaultSideBar = [
-      ScalableImageWidget.fromSISource(
-        si: ScalableImageSource.fromSI(
-          DefaultAssetBundle.of(context),
-          'assets/logo.si',
-        ),
-        scale: 0.2,
-      ),
-      const Text('Press on a card to edit it.'),
-    ].toColumn().fit();
+    final defaultSideBar = const Text('Press on a card to edit it.').fit();
 
     return Scaffold(
       body: MultiSplitViewTheme(
@@ -170,8 +161,21 @@ class _State extends State<ControlPanel> {
       ),
       bottomNavigationBar: BottomAppBar(
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
           children: [
+            IconButton.filledTonal(
+              onPressed: () {},
+              icon: [
+                const Icon(Icons.more_vert),
+                ScalableImageWidget.fromSISource(
+                  si: ScalableImageSource.fromSI(
+                    DefaultAssetBundle.of(context),
+                    'assets/logo.si',
+                  ),
+                ).fit(),
+                const SizedBox(width: 4),
+              ].toRow(),
+            ),
+            const Spacer(),
             DragTarget<DeletableTraveler>(
               builder: (context, candidate, rejected) {
                 return FloatingActionButton(
