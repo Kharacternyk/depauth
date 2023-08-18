@@ -77,9 +77,25 @@ class _State extends State<EntityForm> {
       Card(
         child: ListTile(
           leading: const BackButtonIcon(),
-          title: Text(
-            '${widget.insight.ancestorCount} ancestors, '
-            '${widget.insight.descendantCount} descendants',
+          title: Wrap(
+            spacing: 4,
+            runSpacing: 4,
+            children: [
+              Tooltip(
+                message: 'Number of entities that this one depends on.',
+                child: Chip(
+                  avatar: const Icon(Icons.arrow_upward),
+                  label: Text('${widget.insight.ancestorCount}'),
+                ),
+              ),
+              Tooltip(
+                message: 'Number of entities that depend on this one.',
+                child: Chip(
+                  avatar: const Icon(Icons.arrow_downward),
+                  label: Text('${widget.insight.descendantCount}'),
+                ),
+              ),
+            ],
           ),
           shape: tileShape,
           onTap: widget.goBack,
@@ -227,7 +243,6 @@ class _State extends State<EntityForm> {
                     child: const Icon(Icons.link),
                   ),
                   title: Wrap(
-                    key: ValueKey(factor.identity),
                     spacing: 4,
                     runSpacing: 4,
                     crossAxisAlignment: WrapCrossAlignment.center,
