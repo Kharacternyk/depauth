@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'core/entity.dart';
+import 'core/entity_insight.dart';
 import 'core/entity_type.dart';
 import 'core/enumerate.dart';
 import 'core/factor.dart';
@@ -16,8 +17,7 @@ import 'scaled_draggable.dart';
 class EntityForm extends StatefulWidget {
   final TraversableEntity entity;
   final Position position;
-  final bool hasLostFactor;
-  final bool areAllFactorsCompromised;
+  final EntityInsight insight;
   final void Function() goBack;
   final void Function(String) changeName;
   final void Function(EntityType) changeType;
@@ -30,8 +30,7 @@ class EntityForm extends StatefulWidget {
   const EntityForm(
     this.entity, {
     required this.goBack,
-    required this.hasLostFactor,
-    required this.areAllFactorsCompromised,
+    required this.insight,
     required this.position,
     required this.changeName,
     required this.changeType,
@@ -78,7 +77,10 @@ class _State extends State<EntityForm> {
       Card(
         child: ListTile(
           leading: const BackButtonIcon(),
-          title: const Text('Back'),
+          title: Text(
+            '${widget.insight.ancestorCount} ancestors, '
+            '${widget.insight.descendantCount} descendants',
+          ),
           shape: tileShape,
           onTap: widget.goBack,
         ),
@@ -140,7 +142,7 @@ class _State extends State<EntityForm> {
             overflow: TextOverflow.fade,
             softWrap: false,
           ),
-          subtitle: widget.hasLostFactor
+          subtitle: widget.insight.hasLostFactor
               ? const Tooltip(
                   message: 'This entity is lost because all entities'
                       ' in at least one factor are lost.',
@@ -157,7 +159,7 @@ class _State extends State<EntityForm> {
               : null,
           activeColor: colors.error,
           value: widget.entity.lost,
-          selected: widget.hasLostFactor || widget.entity.lost,
+          selected: widget.insight.hasLostFactor || widget.entity.lost,
           secondary: const Icon(Icons.not_listed_location),
           onChanged: (value) {
             widget.toggleLost(value ?? false);
@@ -172,7 +174,7 @@ class _State extends State<EntityForm> {
             overflow: TextOverflow.fade,
             softWrap: false,
           ),
-          subtitle: widget.areAllFactorsCompromised
+          subtitle: widget.insight.areAllFactorsCompromised
               ? const Tooltip(
                   message: 'This entity is compromised because all factors'
                       ' have at least one compromised entity.',
@@ -189,8 +191,8 @@ class _State extends State<EntityForm> {
               : null,
           activeColor: colors.error,
           value: widget.entity.compromised,
-          selected:
-              widget.entity.compromised || widget.areAllFactorsCompromised,
+          selected: widget.entity.compromised ||
+              widget.insight.areAllFactorsCompromised,
           secondary: const Icon(Icons.report),
           onChanged: (value) {
             widget.toggleCompromised(value ?? false);

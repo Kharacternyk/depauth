@@ -49,10 +49,7 @@ class EntityGraph extends StatelessWidget {
                             dragData: EntityTraveler(position, entity.identity),
                             child: EntityCard(
                               entity,
-                              hasLostFactor:
-                                  storage.hasLostFactor(entity.identity),
-                              areAllFactorsCompromised: storage
-                                  .areAllFactorsCompromised(entity.identity),
+                              insight: storage.getInsight(entity.identity),
                               onTap: () {
                                 setEditablePosition(position);
                               },

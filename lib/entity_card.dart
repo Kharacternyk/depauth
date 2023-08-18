@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:widget_arrows/widget_arrows.dart';
 
+import 'core/entity_insight.dart';
 import 'core/traversable_entity.dart';
 import 'entity_icon.dart';
 import 'entity_theme.dart';
@@ -10,14 +11,12 @@ import 'widget_extension.dart';
 class EntityCard extends StatelessWidget {
   final TraversableEntity entity;
   final VoidCallback onTap;
-  final bool hasLostFactor;
-  final bool areAllFactorsCompromised;
+  final EntityInsight insight;
 
   const EntityCard(
     this.entity, {
     required this.onTap,
-    required this.hasLostFactor,
-    required this.areAllFactorsCompromised,
+    required this.insight,
     super.key,
   });
 
@@ -50,8 +49,8 @@ class EntityCard extends StatelessWidget {
       dependencyIcons.removeLast();
     }
 
-    final lost = hasLostFactor || entity.lost;
-    final compromised = areAllFactorsCompromised || entity.compromised;
+    final lost = insight.hasLostFactor || entity.lost;
+    final compromised = insight.areAllFactorsCompromised || entity.compromised;
 
     return [
       const Spacer(),

@@ -118,11 +118,7 @@ class _State extends State<HomePage> {
                                   goBack: () {
                                     editablePosition.value = null;
                                   },
-                                  hasLostFactor:
-                                      storage.hasLostFactor(entity.identity),
-                                  areAllFactorsCompromised:
-                                      storage.areAllFactorsCompromised(
-                                          entity.identity),
+                                  insight: storage.getInsight(entity.identity),
                                   changeName: (name) {
                                     storage.changeName(position, name);
                                   },
