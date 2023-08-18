@@ -39,14 +39,7 @@ class _State extends State<ControlPanel> {
     final InsightfulStorage storage;
     switch (this.storage) {
       case null:
-        storage = InsightfulStorage(
-          join(
-            AsyncResources.of(context).documentsDirectory,
-            'personal.depauth',
-          ),
-          entityDuplicatePrefix: ' (',
-          entityDuplicateSuffix: ')',
-        );
+        storage = _getStorage(context);
       case InsightfulStorage reusableStorage:
         storage = reusableStorage;
     }
@@ -162,8 +155,17 @@ class _State extends State<ControlPanel> {
       bottomNavigationBar: BottomAppBar(
         child: Row(
           children: [
-            IconButton.filledTonal(
-              onPressed: () {},
+            PopupMenuButton(
+              itemBuilder: (_) {
+                return AsyncResources.of(context).documentNames.map((name) {
+                  return PopupMenuItem(value: name, child: Text(name));
+                }).toList();
+              },
+              onSelected: (name) {
+                setState(() {
+                  this.storage = _getStorage(context, name);
+                });
+              },
               icon: [
                 const Icon(Icons.more_vert),
                 ScalableImageWidget.fromSISource(
@@ -236,6 +238,20 @@ class _State extends State<ControlPanel> {
           ],
         ),
       ),
+    );
+  }
+
+  InsightfulStorage _getStorage(
+    BuildContext context, [
+    String name = 'personal',
+  ]) {
+    return InsightfulStorage(
+      join(
+        AsyncResources.of(context).documentsDirectory,
+        '$name.depauth',
+      ),
+      entityDuplicatePrefix: ' (',
+      entityDuplicateSuffix: ')',
     );
   }
 }

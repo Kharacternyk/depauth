@@ -6,9 +6,11 @@ import 'package:path_provider/path_provider.dart';
 
 class AsyncResources extends InheritedWidget {
   final String documentsDirectory;
+  final Iterable<String> documentNames;
 
   const AsyncResources._(
-    this.documentsDirectory, {
+    this.documentsDirectory,
+    this.documentNames, {
     required super.child,
   });
 
@@ -18,14 +20,16 @@ class AsyncResources extends InheritedWidget {
   static Future<AsyncResources> get(Widget child) async {
     final values = await Future.wait(
       [
-        _getDocumentsDirectory(),
+        _getDocuments(),
       ],
       eagerError: true,
     );
-    return AsyncResources._(values[0], child: child);
+
+    return AsyncResources._(values[0].directory, values[0].names, child: child);
   }
 
-  static Future<String> _getDocumentsDirectory() async {
+  static Future<({String directory, Iterable<String> names})>
+      _getDocuments() async {
     String globalDirectory;
 
     try {
@@ -37,7 +41,12 @@ class AsyncResources extends InheritedWidget {
     final localDirectory = join(globalDirectory, 'DepAuth');
     await Directory(localDirectory).create();
 
-    return localDirectory;
+    final documentNames = await Directory(localDirectory).list().toList();
+
+    return (
+      directory: localDirectory,
+      names: documentNames.map((file) => basenameWithoutExtension(file.path))
+    );
   }
 
   @override
