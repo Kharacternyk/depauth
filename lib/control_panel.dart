@@ -157,13 +157,37 @@ class _State extends State<ControlPanel> {
           children: [
             PopupMenuButton(
               itemBuilder: (_) {
-                return AsyncResources.of(context).documentNames.map((name) {
-                  return PopupMenuItem(value: name, child: Text(name));
-                }).toList();
+                return [
+                  ...AsyncResources.of(context).documentNames.map((name) {
+                    return PopupMenuItem(
+                      value: name,
+                      child: AbsorbPointer(
+                        child: ListTile(
+                          leading: const Icon(Icons.file_open),
+                          title: Text(name),
+                          subtitle: const Text('Open file'),
+                        ),
+                      ),
+                    );
+                  }),
+                  const PopupMenuItem(
+                    value: null,
+                    child: AbsorbPointer(
+                      child: ListTile(
+                        leading: Icon(Icons.add),
+                        title: Text('Create new file'),
+                      ),
+                    ),
+                  ),
+                ];
               },
               onSelected: (name) {
                 setState(() {
-                  this.storage = _getStorage(context, name);
+                  switch (name) {
+                    case String name:
+                      this.storage = _getStorage(context, name);
+                    case null:
+                  }
                 });
               },
               icon: [
@@ -243,7 +267,7 @@ class _State extends State<ControlPanel> {
 
   InsightfulStorage _getStorage(
     BuildContext context, [
-    String name = 'personal',
+    String name = 'Personal',
   ]) {
     return InsightfulStorage(
       join(
