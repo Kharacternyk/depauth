@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'async_resources.dart';
-import 'home_page.dart';
+import 'control_panel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const HomePage(),
+      home: const ControlPanel(),
     );
   }
 }

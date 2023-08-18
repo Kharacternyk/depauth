@@ -17,14 +17,14 @@ import 'scaled_draggable.dart';
 import 'viewer.dart';
 import 'widget_extension.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class ControlPanel extends StatefulWidget {
+  const ControlPanel({super.key});
 
   @override
   createState() => _State();
 }
 
-class _State extends State<HomePage> {
+class _State extends State<ControlPanel> {
   final editablePosition = ValueNotifier<Position?>(null);
   InsightfulStorage? storage;
 
