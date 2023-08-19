@@ -1,4 +1,5 @@
 *.depauth
+*.depauth-journal
 
 # Miscellaneous
 *.class
