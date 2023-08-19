@@ -17,7 +17,7 @@ dependencies:
   path_provider: ^2.0.15
   sqlite3: ^2.0.0
   sqlite3_flutter_libs: ^0.5.15
-  widget_arrows: ^0.5.2
+  widget_arrows: ^0.6.0
 
 dev_dependencies:
   flutter_test:
