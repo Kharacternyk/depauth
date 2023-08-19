@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:jovial_svg/jovial_svg.dart';
-import 'package:multi_split_view/multi_split_view.dart';
 import 'package:path/path.dart';
 
 import 'core/entity.dart';
@@ -13,6 +12,7 @@ import 'core/traversable_entity.dart';
 import 'entity_form.dart';
 import 'entity_graph.dart';
 import 'scaled_draggable.dart';
+import 'split_view.dart';
 import 'viewer.dart';
 import 'widget_extension.dart';
 
@@ -84,105 +84,86 @@ class _State extends State<ControlPanel> {
     final defaultSideBar = const Text('Press on a card to edit it.').fit();
 
     return Scaffold(
-      body: MultiSplitViewTheme(
-        data: MultiSplitViewThemeData(
-          dividerPainter: DividerPainters.grooved1(
-            backgroundColor: colors.surfaceVariant,
-            color: colors.onSurfaceVariant,
-            highlightedColor: colors.primary,
+      body: SplitView(
+        mainChild: Viewer(
+          minScale: 1,
+          maxScale: 20,
+          child: EntityGraph(
+            storage,
+            setEditablePosition: (position) {
+              editablePosition.value = position;
+            },
           ),
         ),
-        child: MultiSplitView(
-          axis: switch (MediaQuery.of(context).orientation) {
-            Orientation.portrait => Axis.vertical,
-            Orientation.landscape => Axis.horizontal,
-          },
-          initialAreas: [
-            Area(weight: 0.7),
-          ],
-          children: [
-            Viewer(
-              minScale: 1,
-              maxScale: 20,
-              child: EntityGraph(
-                storage,
-                setEditablePosition: (position) {
-                  editablePosition.value = position;
-                },
-              ),
-            ),
-            Material(
-              color: colors.surfaceVariant,
-              child: ValueListenableBuilder(
-                valueListenable: editablePosition,
-                builder: (context, sideBar, child) {
-                  switch (editablePosition.value) {
-                    case null:
-                      return defaultSideBar;
-                    case Position position:
-                      final listenableEntity =
-                          storage.getListenableEntity(position);
+        sideChild: Material(
+          color: colors.surfaceVariant,
+          child: ValueListenableBuilder(
+            valueListenable: editablePosition,
+            builder: (context, sideBar, child) {
+              switch (editablePosition.value) {
+                case null:
+                  return defaultSideBar;
+                case Position position:
+                  final listenableEntity =
+                      storage.getListenableEntity(position);
 
-                      return ValueListenableBuilder(
-                        valueListenable: listenableEntity,
-                        builder: (context, entity, child) {
-                          return switch (entity) {
-                            TraversableEntity entity => ListenableBuilder(
-                                listenable: storage.insightNotifier,
-                                builder: (child, context) => EntityForm(
+                  return ValueListenableBuilder(
+                    valueListenable: listenableEntity,
+                    builder: (context, entity, child) {
+                      return switch (entity) {
+                        TraversableEntity entity => ListenableBuilder(
+                            listenable: storage.insightNotifier,
+                            builder: (child, context) => EntityForm(
+                              entity,
+                              position: position,
+                              goBack: () {
+                                editablePosition.value = null;
+                              },
+                              insight: storage.getInsight(entity.identity),
+                              changeName: (name) {
+                                storage.changeName(position, name);
+                              },
+                              changeType: (type) {
+                                storage.changeType(position, type);
+                              },
+                              toggleLost: (value) {
+                                storage.toggleLost(position, value);
+                              },
+                              toggleCompromised: (value) {
+                                storage.toggleCompromised(position, value);
+                              },
+                              addDependency: (
+                                Identity<Factor> factor,
+                                Identity<Entity> entity,
+                              ) {
+                                storage.addDependency(
+                                  position,
+                                  factor,
                                   entity,
-                                  position: position,
-                                  goBack: () {
-                                    editablePosition.value = null;
-                                  },
-                                  insight: storage.getInsight(entity.identity),
-                                  changeName: (name) {
-                                    storage.changeName(position, name);
-                                  },
-                                  changeType: (type) {
-                                    storage.changeType(position, type);
-                                  },
-                                  toggleLost: (value) {
-                                    storage.toggleLost(position, value);
-                                  },
-                                  toggleCompromised: (value) {
-                                    storage.toggleCompromised(position, value);
-                                  },
-                                  addDependency: (
-                                    Identity<Factor> factor,
-                                    Identity<Entity> entity,
-                                  ) {
-                                    storage.addDependency(
-                                      position,
-                                      factor,
-                                      entity,
-                                    );
-                                  },
-                                  removeDependency: (
-                                    Identity<Factor> factor,
-                                    Identity<Entity> entity,
-                                  ) {
-                                    storage.removeDependency(
-                                      position,
-                                      factor,
-                                      entity,
-                                    );
-                                  },
-                                  addFactor: () {
-                                    storage.addFactor(
-                                        position, entity.identity);
-                                  },
-                                ),
-                              ),
-                            null => defaultSideBar,
-                          };
-                        },
-                      );
-                  }
-                },
-              ),
-            ),
-          ],
+                                );
+                              },
+                              removeDependency: (
+                                Identity<Factor> factor,
+                                Identity<Entity> entity,
+                              ) {
+                                storage.removeDependency(
+                                  position,
+                                  factor,
+                                  entity,
+                                );
+                              },
+                              addFactor: () {
+                                storage.addFactor(position, entity.identity);
+                              },
+                            ),
+                          ),
+                        null => defaultSideBar,
+                      };
+                    },
+                  );
+              }
+            },
+          ),
         ),
       ),
       bottomNavigationBar: BottomAppBar(
