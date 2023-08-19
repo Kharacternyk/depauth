@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 import 'package:path/path.dart';
 
-import 'core/entity.dart';
-import 'core/factor.dart';
 import 'core/insightful_storage.dart';
 import 'core/position.dart';
-import 'core/storage.dart';
 import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
 import 'entity_form.dart';
@@ -132,20 +129,14 @@ class _State extends State<ControlPanel> {
                               toggleCompromised: (value) {
                                 storage.toggleCompromised(position, value);
                               },
-                              addDependency: (
-                                Identity<Factor> factor,
-                                Identity<Entity> entity,
-                              ) {
+                              addDependency: (factor, entity) {
                                 storage.addDependency(
                                   position,
                                   factor,
                                   entity,
                                 );
                               },
-                              removeDependency: (
-                                Identity<Factor> factor,
-                                Identity<Entity> entity,
-                              ) {
+                              removeDependency: (factor, entity) {
                                 storage.removeDependency(
                                   position,
                                   factor,
