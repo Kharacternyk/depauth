@@ -3,7 +3,6 @@ import 'package:jovial_svg/jovial_svg.dart';
 import 'package:multi_split_view/multi_split_view.dart';
 import 'package:path/path.dart';
 
-import 'async_resources.dart';
 import 'core/entity.dart';
 import 'core/factor.dart';
 import 'core/insightful_storage.dart';
@@ -18,20 +17,54 @@ import 'viewer.dart';
 import 'widget_extension.dart';
 
 class ControlPanel extends StatefulWidget {
-  const ControlPanel({super.key});
+  final String storageName;
+  final Iterable<String> storageNames;
+  final String workingDirectory;
+
+  const ControlPanel({
+    required this.storageName,
+    required this.storageNames,
+    required this.workingDirectory,
+    super.key,
+  });
 
   @override
-  createState() => _State();
+  createState() => _State(storageName, storageNames.toSet());
 }
 
 class _State extends State<ControlPanel> {
   final editablePosition = ValueNotifier<Position?>(null);
+  final Set<String> storageNames;
+  String storageName;
   InsightfulStorage? storage;
 
+  _State(this.storageName, this.storageNames);
+
   @override
-  dispose() {
+  deactivate() {
     storage?.dispose();
-    super.dispose();
+    super.deactivate();
+  }
+
+  @override
+  activate() {
+    super.activate();
+    _initStorage();
+  }
+
+  @override
+  initState() {
+    super.initState();
+    _initStorage();
+    storageNames.add(storageName);
+  }
+
+  void _initStorage() {
+    storage = InsightfulStorage(
+      join(widget.workingDirectory, '$storageName.depauth'),
+      entityDuplicatePrefix: ' (',
+      entityDuplicateSuffix: ')',
+    );
   }
 
   @override
@@ -39,7 +72,7 @@ class _State extends State<ControlPanel> {
     final InsightfulStorage storage;
     switch (this.storage) {
       case null:
-        storage = _getStorage(context);
+        return const Center(child: CircularProgressIndicator());
       case InsightfulStorage reusableStorage:
         storage = reusableStorage;
     }
@@ -158,7 +191,7 @@ class _State extends State<ControlPanel> {
             PopupMenuButton(
               itemBuilder: (_) {
                 return [
-                  ...AsyncResources.of(context).documentNames.map((name) {
+                  ...storageNames.map((name) {
                     return PopupMenuItem(
                       value: name,
                       child: AbsorbPointer(
@@ -185,7 +218,9 @@ class _State extends State<ControlPanel> {
                 setState(() {
                   switch (name) {
                     case String name:
-                      this.storage = _getStorage(context, name);
+                      storageName = name;
+                      storage.dispose();
+                      _initStorage();
                     case null:
                   }
                 });
@@ -262,20 +297,6 @@ class _State extends State<ControlPanel> {
           ],
         ),
       ),
-    );
-  }
-
-  InsightfulStorage _getStorage(
-    BuildContext context, [
-    String name = 'Personal',
-  ]) {
-    return InsightfulStorage(
-      join(
-        AsyncResources.of(context).documentsDirectory,
-        '$name.depauth',
-      ),
-      entityDuplicatePrefix: ' (',
-      entityDuplicateSuffix: ')',
     );
   }
 }
