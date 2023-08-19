@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/messages.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -27,31 +28,12 @@ class _State extends State<App> {
     _initState();
   }
 
-  void _initState() async {
-    String globalDirectory;
-
-    try {
-      globalDirectory = (await getApplicationDocumentsDirectory()).path;
-    } on MissingPlatformDirectoryException {
-      globalDirectory = '.';
-    }
-
-    final localDirectory = join(globalDirectory, 'DepAuth');
-    await Directory(localDirectory).create();
-
-    storageNames = await Directory(localDirectory)
-        .list()
-        .where((file) => extension(file.path) == '.depauth')
-        .map((file) => basenameWithoutExtension(file.path))
-        .toList();
-
-    workingDirectory.value = localDirectory;
-  }
-
   @override
   build(BuildContext context) {
     return MaterialApp(
       title: 'DepAuth',
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData.from(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.blueGrey,
@@ -73,5 +55,26 @@ class _State extends State<App> {
         },
       ),
     );
+  }
+
+  void _initState() async {
+    String globalDirectory;
+
+    try {
+      globalDirectory = (await getApplicationDocumentsDirectory()).path;
+    } on MissingPlatformDirectoryException {
+      globalDirectory = '.';
+    }
+
+    final localDirectory = join(globalDirectory, 'DepAuth');
+    await Directory(localDirectory).create();
+
+    storageNames = await Directory(localDirectory)
+        .list()
+        .where((file) => extension(file.path) == '.depauth')
+        .map((file) => basenameWithoutExtension(file.path))
+        .toList();
+
+    workingDirectory.value = localDirectory;
   }
 }

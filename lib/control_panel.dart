@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/messages.dart';
 import 'package:path/path.dart';
 
 import 'core/insightful_storage.dart';
@@ -74,8 +75,7 @@ class _State extends State<ControlPanel> {
         storage = reusableStorage;
     }
 
-    const addButtonTooltip =
-        "Drag this button onto an empty space to create a new entity.";
+    final addButtonTooltip = AppLocalizations.of(context)!.addButtonTooltip;
     const deleteButtonTooltip = "Drag onto this button to delete.";
     final colors = Theme.of(context).colorScheme;
     final defaultSideBar = const Text('Press on a card to edit it.').fit();
@@ -250,7 +250,7 @@ class _State extends State<ControlPanel> {
                   ScaffoldMessenger.of(context)
                     ..hideCurrentSnackBar()
                     ..showSnackBar(
-                      const SnackBar(
+                      SnackBar(
                         content: Text(addButtonTooltip),
                         showCloseIcon: true,
                       ),
