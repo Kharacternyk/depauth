@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:jovial_svg/jovial_svg.dart';
 import 'package:path/path.dart';
 
 import 'core/insightful_storage.dart';
@@ -8,6 +7,7 @@ import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
 import 'entity_form.dart';
 import 'entity_graph.dart';
+import 'logotype.dart';
 import 'scaled_draggable.dart';
 import 'split_view.dart';
 import 'viewer.dart';
@@ -197,15 +197,10 @@ class _State extends State<ControlPanel> {
                   }
                 });
               },
-              icon: [
-                const Icon(Icons.more_vert),
-                ScalableImageWidget.fromSISource(
-                  si: ScalableImageSource.fromSI(
-                    DefaultAssetBundle.of(context),
-                    'assets/logo.si',
-                  ),
-                ).fit(),
-                const SizedBox(width: 4),
+              icon: const [
+                Icon(Icons.more_vert),
+                Logotype(),
+                SizedBox(width: 4),
               ].toRow(),
             ),
             const Spacer(),
