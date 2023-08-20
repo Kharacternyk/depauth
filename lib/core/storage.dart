@@ -177,7 +177,12 @@ class Storage {
     final i = _getEntityDuplicateIndex(position, name);
 
     if (i > 0) {
-      return '$name$entityDuplicatePrefix$i$entityDuplicateSuffix'.trim();
+      return [
+        name,
+        entityDuplicatePrefix,
+        i,
+        entityDuplicateSuffix,
+      ].join().trim();
     }
 
     return name;
