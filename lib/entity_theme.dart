@@ -7,14 +7,12 @@ class EntityTheme {
   final Color foreground;
   final Color arrow;
   final IconData icon;
-  final String typeName;
 
   EntityTheme._(
     this.background,
     this.foreground,
     this.arrow,
     this.icon,
-    this.typeName,
   );
 
   static ColorScheme _seedScheme(Color seed) {
@@ -35,32 +33,26 @@ class EntityTheme {
   static EntityTheme _fromScheme(
     ColorScheme scheme,
     IconData icon,
-    String typeName,
   ) {
     return EntityTheme._(
       scheme.primaryContainer,
       scheme.onPrimaryContainer,
       scheme.primary,
       icon,
-      typeName,
     );
   }
 
-  static final _generic =
-      _fromScheme(_yellow, Icons.category, 'Generic Entity');
-  static final _webService = _fromScheme(_blue, Icons.cloud, 'Web Service');
-  static final _knowledge =
-      _fromScheme(_red, Icons.password, 'Secret Knowledge');
-  static final _biometrics =
-      _fromScheme(_pink, Icons.fingerprint, 'Biometrics');
-  static final _hardwareKey = _fromScheme(_green, Icons.key, 'Hardware Key');
-  static final _phoneNumber = _fromScheme(_purple, Icons.phone, 'Phone Number');
-  static final _device = _fromScheme(_teal, Icons.devices, 'Device');
-  static final _application = _fromScheme(_grey, Icons.widgets, 'Application');
-  static final _paymentInformation =
-      _fromScheme(_orange, Icons.credit_card, 'Payment Information');
+  static final _generic = _fromScheme(_yellow, Icons.category);
+  static final _webService = _fromScheme(_blue, Icons.cloud);
+  static final _knowledge = _fromScheme(_red, Icons.password);
+  static final _biometrics = _fromScheme(_pink, Icons.fingerprint);
+  static final _hardwareKey = _fromScheme(_green, Icons.key);
+  static final _phoneNumber = _fromScheme(_purple, Icons.phone);
+  static final _device = _fromScheme(_teal, Icons.devices);
+  static final _application = _fromScheme(_grey, Icons.widgets);
+  static final _paymentInformation = _fromScheme(_orange, Icons.credit_card);
   static final _operatingSystem =
-      _fromScheme(_lime, Icons.settings_applications, 'Operating System');
+      _fromScheme(_lime, Icons.settings_applications);
 
   factory EntityTheme(EntityType type) {
     return switch (type) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/messages.dart';
 import 'package:widget_arrows/widget_arrows.dart';
 
 import 'boundary_icon.dart';
@@ -65,7 +66,10 @@ class EntityGraph extends StatelessWidget {
                                   from: source.position, to: position);
                               setEditablePosition(position);
                             case CreationTraveler _:
-                              storage.createEntity(position, 'New Entity');
+                              storage.createEntity(
+                                position,
+                                AppLocalizations.of(context)!.newEntity,
+                              );
                               setEditablePosition(position);
                           }
                         },

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/messages.dart';
 
 import 'core/entity.dart';
 import 'core/entity_insight.dart';
@@ -12,6 +13,7 @@ import 'core/storage.dart';
 import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
 import 'entity_theme.dart';
+import 'entity_type_name.dart';
 import 'scaled_draggable.dart';
 
 class EntityForm extends StatefulWidget {
@@ -67,6 +69,7 @@ class _State extends State<EntityForm> {
   @override
   build(context) {
     final colors = Theme.of(context).colorScheme;
+    final messages = AppLocalizations.of(context)!;
     const tileShape = RoundedRectangleBorder(
       borderRadius: BorderRadius.all(
         Radius.circular(12),
@@ -82,17 +85,17 @@ class _State extends State<EntityForm> {
             runSpacing: 4,
             children: [
               Tooltip(
-                message: 'Number of entities that this one depends on.',
+                message: messages.ancestorCount,
                 child: Chip(
                   avatar: const Icon(Icons.arrow_upward),
-                  label: Text('${widget.insight.ancestorCount}'),
+                  label: Text(widget.insight.ancestorCount.toString()),
                 ),
               ),
               Tooltip(
-                message: 'Number of entities that depend on this one.',
+                message: messages.descendantCount,
                 child: Chip(
                   avatar: const Icon(Icons.arrow_downward),
-                  label: Text('${widget.insight.descendantCount}'),
+                  label: Text(widget.insight.descendantCount.toString()),
                 ),
               ),
             ],
@@ -112,8 +115,8 @@ class _State extends State<EntityForm> {
                 widget.changeName(name);
               });
             },
-            decoration: const InputDecoration(
-              hintText: 'Name',
+            decoration: InputDecoration(
+              hintText: messages.name,
             ),
           ),
         ),
@@ -136,7 +139,7 @@ class _State extends State<EntityForm> {
                               color: EntityTheme(value).foreground,
                             ),
                           ),
-                          label: Text(EntityTheme(value).typeName),
+                          label: Text(getEntityTypeName(value, context)),
                         ),
                       ),
                     ),
@@ -153,19 +156,18 @@ class _State extends State<EntityForm> {
       Card(
         child: CheckboxListTile(
           shape: tileShape,
-          title: const Text(
-            'Lost',
+          title: Text(
+            messages.lost,
             overflow: TextOverflow.fade,
             softWrap: false,
           ),
           subtitle: widget.insight.hasLostFactor
-              ? const Tooltip(
-                  message: 'This entity is lost because all entities'
-                      ' in at least one factor are lost.',
+              ? Tooltip(
+                  message: messages.automaticallyLost,
                   child: Row(
                     children: [
-                      Text('Automatically '),
-                      Icon(
+                      Text(messages.automatically),
+                      const Icon(
                         Icons.info_outlined,
                         size: 16,
                       ),
@@ -185,19 +187,18 @@ class _State extends State<EntityForm> {
       Card(
         child: CheckboxListTile(
           shape: tileShape,
-          title: const Text(
-            'Compromised',
+          title: Text(
+            messages.compromised,
             overflow: TextOverflow.fade,
             softWrap: false,
           ),
           subtitle: widget.insight.areAllFactorsCompromised
-              ? const Tooltip(
-                  message: 'This entity is compromised because all factors'
-                      ' have at least one compromised entity.',
+              ? Tooltip(
+                  message: messages.automaticallyCompromised,
                   child: Row(
                     children: [
-                      Text('Automatically '),
-                      Icon(
+                      Text(messages.automatically),
+                      const Icon(
                         Icons.info_outlined,
                         size: 16,
                       ),

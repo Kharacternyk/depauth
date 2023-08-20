@@ -1,3 +1,25 @@
 {
-    "addButtonTooltip": "Drag this button onto an empty space to create a new entity."
+  "addButtonTooltip": "Drag this button onto an empty space to create a new entity.",
+  "deleteButtonTooltip": "Drag onto this button to delete.",
+  "ancestorCount": "Number of entities that this one depends on.",
+  "descendantCount": "Number of entities that depend on this one.",
+  "openFile": "Open file",
+  "createNewFile": "Create new file",
+  "name": "Name",
+  "automatically": "Automatically",
+  "lost": "Lost",
+  "compromised": "Compromised",
+  "automaticallyLost": "This entity is lost because all entities  in at least one factor are lost.",
+  "automaticallyCompromised": "This entity is compromised because all factors have at least one compromised entity.",
+  "newEntity": "New Entity",
+  "genericEntity": "Generic Entity",
+  "webService": "Web Service",
+  "secretKnowledge": "Secret Knowledge",
+  "biometrics": "Biometrics",
+  "hardwareKey": "Hardware Key",
+  "phoneNumber": "Phone Number",
+  "device": "Device",
+  "application": "Application",
+  "paymentInformation": "Payment Information",
+  "operatingSystem": "Operating System"
 }

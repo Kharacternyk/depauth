@@ -75,10 +75,9 @@ class _State extends State<ControlPanel> {
         storage = reusableStorage;
     }
 
-    final addButtonTooltip = AppLocalizations.of(context)!.addButtonTooltip;
-    const deleteButtonTooltip = "Drag onto this button to delete.";
+    final messages = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
-    final defaultSideBar = const Text('Press on a card to edit it.').fit();
+    const defaultSideBar = SizedBox.shrink();
 
     return Scaffold(
       body: SplitView(
@@ -170,17 +169,17 @@ class _State extends State<ControlPanel> {
                         child: ListTile(
                           leading: const Icon(Icons.file_open),
                           title: Text(name),
-                          subtitle: const Text('Open file'),
+                          subtitle: Text(messages.openFile),
                         ),
                       ),
                     );
                   }),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: null,
                     child: AbsorbPointer(
                       child: ListTile(
-                        leading: Icon(Icons.add),
-                        title: Text('Create new file'),
+                        leading: const Icon(Icons.add),
+                        title: Text(messages.createNewFile),
                       ),
                     ),
                   ),
@@ -217,13 +216,13 @@ class _State extends State<ControlPanel> {
                     ScaffoldMessenger.of(context)
                       ..hideCurrentSnackBar()
                       ..showSnackBar(
-                        const SnackBar(
-                          content: Text(deleteButtonTooltip),
+                        SnackBar(
+                          content: Text(messages.deleteButtonTooltip),
                           showCloseIcon: true,
                         ),
                       );
                   },
-                  tooltip: deleteButtonTooltip,
+                  tooltip: messages.deleteButtonTooltip,
                   child: const Icon(Icons.delete),
                 );
               },
@@ -251,12 +250,12 @@ class _State extends State<ControlPanel> {
                     ..hideCurrentSnackBar()
                     ..showSnackBar(
                       SnackBar(
-                        content: Text(addButtonTooltip),
+                        content: Text(messages.addButtonTooltip),
                         showCloseIcon: true,
                       ),
                     );
                 },
-                tooltip: addButtonTooltip,
+                tooltip: messages.addButtonTooltip,
                 mouseCursor: SystemMouseCursors.grab,
                 child: const Icon(Icons.add),
               ),
