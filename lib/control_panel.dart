@@ -8,11 +8,10 @@ import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
 import 'entity_form.dart';
 import 'entity_graph.dart';
-import 'logotype.dart';
+import 'menu_drawer.dart';
 import 'scaled_draggable.dart';
 import 'split_view.dart';
 import 'viewer.dart';
-import 'widget_extension.dart';
 
 class ControlPanel extends StatefulWidget {
   final String storageName;
@@ -80,6 +79,7 @@ class _State extends State<ControlPanel> {
     const defaultSideBar = SizedBox.shrink();
 
     return Scaffold(
+      drawer: const MenuDrawer(),
       body: SplitView(
         mainChild: Viewer(
           minScale: 1,
@@ -159,49 +159,7 @@ class _State extends State<ControlPanel> {
       bottomNavigationBar: BottomAppBar(
         child: Row(
           children: [
-            PopupMenuButton(
-              itemBuilder: (_) {
-                return [
-                  ...storageNames.map((name) {
-                    return PopupMenuItem(
-                      value: name,
-                      child: AbsorbPointer(
-                        child: ListTile(
-                          leading: const Icon(Icons.file_open),
-                          title: Text(name),
-                          subtitle: Text(messages.openFile),
-                        ),
-                      ),
-                    );
-                  }),
-                  PopupMenuItem(
-                    value: null,
-                    child: AbsorbPointer(
-                      child: ListTile(
-                        leading: const Icon(Icons.add),
-                        title: Text(messages.createNewFile),
-                      ),
-                    ),
-                  ),
-                ];
-              },
-              onSelected: (name) {
-                setState(() {
-                  switch (name) {
-                    case String name:
-                      storageName = name;
-                      storage.dispose();
-                      _initStorage();
-                    case null:
-                  }
-                });
-              },
-              icon: const [
-                Icon(Icons.more_vert),
-                Logotype(),
-                SizedBox(width: 4),
-              ].toRow(),
-            ),
+            const DrawerButton(),
             const Spacer(),
             DragTarget<DeletableTraveler>(
               builder: (context, candidate, rejected) {
