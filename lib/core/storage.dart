@@ -398,6 +398,8 @@ class Storage {
       create unique index if not exists dependency_factors_entities
         on dependencies(factor, entity);
 
+      create index if not exists entity_ys on entities(y);
+
       create trigger if not exists after_delete_entity
       after delete on entities begin
         delete from factors where entity = old.identity;
