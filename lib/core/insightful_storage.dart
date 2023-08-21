@@ -38,13 +38,25 @@ class InsightfulStorage extends ListenableStorage {
         return ancestors;
       case null:
         _ancestors[entity] = const {};
+
         final ancestors = getFactors(entity)
             .expand(getDependencies)
             .map((dependency) => dependency.identity)
             .expand((entity) => _getAncestors(entity).followedBy([entity]))
             .toSet();
+
         ancestors.remove(entity);
+
+        for (final ancestor in ancestors) {
+          if (_ancestors[ancestor]?.contains(entity) == true) {
+            _ancestors[ancestor]
+              ?..addAll(ancestors)
+              ..remove(ancestor);
+          }
+        }
+
         _ancestors[entity] = ancestors;
+
         return ancestors;
     }
   }
@@ -55,11 +67,22 @@ class InsightfulStorage extends ListenableStorage {
         return descendants;
       case null:
         _descendants[entity] = const {};
+
         final descendants = getDependants(entity)
             .expand((dependant) =>
                 _getDescendants(dependant).followedBy([dependant]))
             .toSet();
+
         descendants.remove(entity);
+
+        for (final descendant in descendants) {
+          if (_descendants[descendant]?.contains(entity) == true) {
+            _descendants[descendant]
+              ?..addAll(descendants)
+              ..remove(descendant);
+          }
+        }
+
         _descendants[entity] = descendants;
         return descendants;
     }
