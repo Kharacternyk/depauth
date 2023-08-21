@@ -369,7 +369,7 @@ class Storage {
       pragma foreign_keys = true;
       pragma auto_vacuum = full;
       pragma cache_size = -100000;
-      pragma encoding = 'utf-8';
+      pragma encoding = 'UTF-8';
       pragma locking_mode = exclusive;
       pragma synchronous = full;
       pragma user_version = 1;
