@@ -25,8 +25,8 @@ class InsightfulStorage extends ListenableStorage {
 
   EntityInsight getInsight(Identity<Entity> entity) {
     return EntityInsight(
-      hasLostFactor: _hasLostFactor(entity),
-      areAllFactorsCompromised: _areAllFactorsCompromised(entity),
+      hasLostFactor: _hasLostFactor(entity, const {}),
+      areAllFactorsCompromised: _areAllFactorsCompromised(entity, const {}),
       ancestorCount: _getAncestors(entity).length,
       descendantCount: _getDescendants(entity).length,
     );
@@ -88,10 +88,7 @@ class InsightfulStorage extends ListenableStorage {
     }
   }
 
-  bool _hasLostFactor(
-    Identity<Entity> entity, [
-    Set<Identity<Entity>> seen = const {},
-  ]) {
+  bool _hasLostFactor(Identity<Entity> entity, Set<Identity<Entity>> seen) {
     switch (_entityLoss[entity]) {
       case bool result:
         return result;
@@ -120,17 +117,44 @@ class InsightfulStorage extends ListenableStorage {
     }
   }
 
-  bool _areAllFactorsCompromised(Identity<Entity> entity) {
+  bool _areAllFactorsCompromised(
+    Identity<Entity> entity,
+    Set<Identity<Entity>> seen,
+  ) {
     switch (_entityCompromise[entity]) {
       case bool result:
         return result;
       case null:
-        _entityCompromise[entity] = false;
+        final seenWithThis = seen.union({entity});
         final factors = getFactors(entity);
-        final result =
-            factors.isNotEmpty && factors.every(_isFactorCompromised);
-        _entityCompromise[entity] = result;
-        return result;
+
+        if (factors.isEmpty) {
+          _entityCompromise[entity] = false;
+
+          return false;
+        }
+
+        var areAllFactorsCompromised = true;
+        var isCacheable = true;
+
+        for (final factor in factors) {
+          final compromised = _isFactorCompromised(factor, seenWithThis);
+
+          if (compromised == false) {
+            areAllFactorsCompromised = false;
+            isCacheable = true;
+            break;
+          } else if (compromised == null) {
+            areAllFactorsCompromised = false;
+            isCacheable = false;
+          }
+        }
+
+        if (seen.isEmpty || isCacheable) {
+          _entityCompromise[entity] = areAllFactorsCompromised;
+        }
+
+        return areAllFactorsCompromised;
     }
   }
 
@@ -167,16 +191,31 @@ class InsightfulStorage extends ListenableStorage {
     }
   }
 
-  bool _isFactorCompromised(Identity<Factor> factor) {
+  bool? _isFactorCompromised(
+    Identity<Factor> factor,
+    Set<Identity<Entity>> seen,
+  ) {
     switch (_factorCompromise[factor]) {
       case bool result:
         return result;
       case null:
-        final result = getDependencies(factor).any((dependency) {
-          return dependency.compromised ||
-              _areAllFactorsCompromised(dependency.identity);
-        });
-        _factorCompromise[factor] = result;
+        final dependencies = getDependencies(factor);
+
+        bool? result = false;
+
+        for (final dependency in dependencies) {
+          if (seen.contains(dependency.identity)) {
+            result = null;
+          } else if (dependency.compromised ||
+              _areAllFactorsCompromised(dependency.identity, seen)) {
+            result = true;
+          }
+        }
+
+        if (result case bool result) {
+          _factorCompromise[factor] = result;
+        }
+
         return result;
     }
   }
