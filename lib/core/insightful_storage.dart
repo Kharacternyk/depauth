@@ -88,15 +88,35 @@ class InsightfulStorage extends ListenableStorage {
     }
   }
 
-  bool _hasLostFactor(Identity<Entity> entity) {
+  bool _hasLostFactor(
+    Identity<Entity> entity, [
+    Set<Identity<Entity>> seen = const {},
+  ]) {
     switch (_entityLoss[entity]) {
       case bool result:
         return result;
       case null:
-        _entityLoss[entity] = false;
-        final result = getFactors(entity).any(_isFactorLost);
-        _entityLoss[entity] = result;
-        return result;
+        final seenWithThis = seen.union({entity});
+        var hasLostFactor = false;
+        var isCacheable = true;
+
+        for (final factor in getFactors(entity)) {
+          final lost = _isFactorLost(factor, seenWithThis);
+
+          if (lost == true) {
+            hasLostFactor = true;
+            isCacheable = true;
+            break;
+          } else if (lost == null) {
+            isCacheable = false;
+          }
+        }
+
+        if (seen.isEmpty || isCacheable) {
+          _entityLoss[entity] = hasLostFactor;
+        }
+
+        return hasLostFactor;
     }
   }
 
@@ -114,17 +134,35 @@ class InsightfulStorage extends ListenableStorage {
     }
   }
 
-  bool _isFactorLost(Identity<Factor> factor) {
+  bool? _isFactorLost(Identity<Factor> factor, Set<Identity<Entity>> seen) {
     switch (_factorLoss[factor]) {
       case bool result:
         return result;
       case null:
         final dependencies = getDependencies(factor);
-        final result = dependencies.isNotEmpty &&
-            dependencies.every((entity) {
-              return entity.lost || _hasLostFactor(entity.identity);
-            });
-        _factorLoss[factor] = result;
+
+        if (dependencies.isEmpty) {
+          _factorLoss[factor] = false;
+
+          return false;
+        }
+
+        bool? result = true;
+
+        for (final dependency in dependencies) {
+          if (seen.contains(dependency.identity)) {
+            result = null;
+          } else if (!dependency.lost &&
+              !_hasLostFactor(dependency.identity, seen)) {
+            result = false;
+            break;
+          }
+        }
+
+        if (result case bool result) {
+          _factorLoss[factor] = result;
+        }
+
         return result;
     }
   }
