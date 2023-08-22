@@ -33,191 +33,184 @@ class InsightfulStorage extends ListenableStorage {
   }
 
   Set<Identity<Entity>> _getAncestors(Identity<Entity> entity) {
-    switch (_ancestors[entity]) {
-      case Set<Identity<Entity>> ancestors:
-        return ancestors;
-      case null:
-        _ancestors[entity] = const {};
-
-        final ancestors = getFactors(entity)
-            .expand(getDependencies)
-            .map((dependency) => dependency.identity)
-            .expand((entity) => _getAncestors(entity).followedBy([entity]))
-            .toSet();
-
-        ancestors.remove(entity);
-
-        for (final ancestor in ancestors) {
-          if (_ancestors[ancestor]?.contains(entity) == true) {
-            _ancestors[ancestor]
-              ?..addAll(ancestors)
-              ..remove(ancestor);
-          }
-        }
-
-        _ancestors[entity] = ancestors;
-
-        return ancestors;
+    if (_ancestors[entity] case Set<Identity<Entity>> ancestors) {
+      return ancestors;
     }
+
+    _ancestors[entity] = const {};
+
+    final ancestors = getFactors(entity)
+        .expand(getDependencies)
+        .map((dependency) => dependency.identity)
+        .expand((entity) => _getAncestors(entity).followedBy([entity]))
+        .toSet();
+
+    ancestors.remove(entity);
+
+    for (final ancestor in ancestors) {
+      if (_ancestors[ancestor]?.contains(entity) == true) {
+        _ancestors[ancestor]
+          ?..addAll(ancestors)
+          ..remove(ancestor);
+      }
+    }
+
+    _ancestors[entity] = ancestors;
+
+    return ancestors;
   }
 
   Set<Identity<Entity>> _getDescendants(Identity<Entity> entity) {
-    switch (_descendants[entity]) {
-      case Set<Identity<Entity>> descendants:
-        return descendants;
-      case null:
-        _descendants[entity] = const {};
-
-        final descendants = getDependants(entity)
-            .expand((dependant) =>
-                _getDescendants(dependant).followedBy([dependant]))
-            .toSet();
-
-        descendants.remove(entity);
-
-        for (final descendant in descendants) {
-          if (_descendants[descendant]?.contains(entity) == true) {
-            _descendants[descendant]
-              ?..addAll(descendants)
-              ..remove(descendant);
-          }
-        }
-
-        _descendants[entity] = descendants;
-        return descendants;
+    if (_descendants[entity] case Set<Identity<Entity>> descendants) {
+      return descendants;
     }
+
+    _descendants[entity] = const {};
+
+    final descendants = getDependants(entity)
+        .expand(
+            (dependant) => _getDescendants(dependant).followedBy([dependant]))
+        .toSet();
+
+    descendants.remove(entity);
+
+    for (final descendant in descendants) {
+      if (_descendants[descendant]?.contains(entity) == true) {
+        _descendants[descendant]
+          ?..addAll(descendants)
+          ..remove(descendant);
+      }
+    }
+
+    _descendants[entity] = descendants;
+    return descendants;
   }
 
   bool _hasLostFactor(Identity<Entity> entity, Set<Identity<Entity>> seen) {
-    switch (_entityLoss[entity]) {
-      case bool result:
-        return result;
-      case null:
-        final seenWithThis = seen.union({entity});
-        var hasLostFactor = false;
-        var isCacheable = true;
-
-        for (final factor in getFactors(entity)) {
-          final lost = _isFactorLost(factor, seenWithThis);
-
-          if (lost == true) {
-            hasLostFactor = true;
-            isCacheable = true;
-            break;
-          } else if (lost == null) {
-            isCacheable = false;
-          }
-        }
-
-        if (seen.isEmpty || isCacheable) {
-          _entityLoss[entity] = hasLostFactor;
-        }
-
-        return hasLostFactor;
+    if (_entityLoss[entity] case bool result) {
+      return result;
     }
+
+    final seenWithThis = seen.union({entity});
+    var hasLostFactor = false;
+    var isCacheable = true;
+
+    for (final factor in getFactors(entity)) {
+      final lost = _isFactorLost(factor, seenWithThis);
+
+      if (lost == true) {
+        hasLostFactor = true;
+        isCacheable = true;
+        break;
+      } else if (lost == null) {
+        isCacheable = false;
+      }
+    }
+
+    if (seen.isEmpty || isCacheable) {
+      _entityLoss[entity] = hasLostFactor;
+    }
+
+    return hasLostFactor;
   }
 
   bool _areAllFactorsCompromised(
     Identity<Entity> entity,
     Set<Identity<Entity>> seen,
   ) {
-    switch (_entityCompromise[entity]) {
-      case bool result:
-        return result;
-      case null:
-        final seenWithThis = seen.union({entity});
-        final factors = getFactors(entity);
-
-        if (factors.isEmpty) {
-          _entityCompromise[entity] = false;
-
-          return false;
-        }
-
-        var areAllFactorsCompromised = true;
-        var isCacheable = true;
-
-        for (final factor in factors) {
-          final compromised = _isFactorCompromised(factor, seenWithThis);
-
-          if (compromised == false) {
-            areAllFactorsCompromised = false;
-            isCacheable = true;
-            break;
-          } else if (compromised == null) {
-            areAllFactorsCompromised = false;
-            isCacheable = false;
-          }
-        }
-
-        if (seen.isEmpty || isCacheable) {
-          _entityCompromise[entity] = areAllFactorsCompromised;
-        }
-
-        return areAllFactorsCompromised;
+    if (_entityCompromise[entity] case bool result) {
+      return result;
     }
+
+    final seenWithThis = seen.union({entity});
+    final factors = getFactors(entity);
+
+    if (factors.isEmpty) {
+      _entityCompromise[entity] = false;
+
+      return false;
+    }
+
+    var areAllFactorsCompromised = true;
+    var isCacheable = true;
+
+    for (final factor in factors) {
+      final compromised = _isFactorCompromised(factor, seenWithThis);
+
+      if (compromised == false) {
+        areAllFactorsCompromised = false;
+        isCacheable = true;
+        break;
+      } else if (compromised == null) {
+        areAllFactorsCompromised = false;
+        isCacheable = false;
+      }
+    }
+
+    if (seen.isEmpty || isCacheable) {
+      _entityCompromise[entity] = areAllFactorsCompromised;
+    }
+
+    return areAllFactorsCompromised;
   }
 
   bool? _isFactorLost(Identity<Factor> factor, Set<Identity<Entity>> seen) {
-    switch (_factorLoss[factor]) {
-      case bool result:
-        return result;
-      case null:
-        final dependencies = getDependencies(factor);
-
-        if (dependencies.isEmpty) {
-          _factorLoss[factor] = false;
-
-          return false;
-        }
-
-        bool? result = true;
-
-        for (final dependency in dependencies) {
-          if (seen.contains(dependency.identity)) {
-            result = null;
-          } else if (!dependency.lost &&
-              !_hasLostFactor(dependency.identity, seen)) {
-            result = false;
-            break;
-          }
-        }
-
-        if (result case bool result) {
-          _factorLoss[factor] = result;
-        }
-
-        return result;
+    if (_factorLoss[factor] case bool result) {
+      return result;
     }
+
+    final dependencies = getDependencies(factor);
+
+    if (dependencies.isEmpty) {
+      _factorLoss[factor] = false;
+
+      return false;
+    }
+
+    bool? result = true;
+
+    for (final dependency in dependencies) {
+      if (seen.contains(dependency.identity)) {
+        result = null;
+      } else if (!dependency.lost &&
+          !_hasLostFactor(dependency.identity, seen)) {
+        result = false;
+        break;
+      }
+    }
+
+    if (result case bool result) {
+      _factorLoss[factor] = result;
+    }
+
+    return result;
   }
 
   bool? _isFactorCompromised(
     Identity<Factor> factor,
     Set<Identity<Entity>> seen,
   ) {
-    switch (_factorCompromise[factor]) {
-      case bool result:
-        return result;
-      case null:
-        final dependencies = getDependencies(factor);
-
-        bool? result = false;
-
-        for (final dependency in dependencies) {
-          if (seen.contains(dependency.identity)) {
-            result = null;
-          } else if (dependency.compromised ||
-              _areAllFactorsCompromised(dependency.identity, seen)) {
-            result = true;
-          }
-        }
-
-        if (result case bool result) {
-          _factorCompromise[factor] = result;
-        }
-
-        return result;
+    if (_factorCompromise[factor] case bool result) {
+      return result;
     }
+    final dependencies = getDependencies(factor);
+
+    bool? result = false;
+
+    for (final dependency in dependencies) {
+      if (seen.contains(dependency.identity)) {
+        result = null;
+      } else if (dependency.compromised ||
+          _areAllFactorsCompromised(dependency.identity, seen)) {
+        result = true;
+      }
+    }
+
+    if (result case bool result) {
+      _factorCompromise[factor] = result;
+    }
+
+    return result;
   }
 
   @override
