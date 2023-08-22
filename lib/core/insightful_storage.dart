@@ -296,6 +296,30 @@ class InsightfulStorage extends ListenableStorage {
     super.removeFactor(position, factor);
   }
 
+  @override
+  void resetLoss() {
+    super.resetLoss();
+    for (final entity in _entityLoss.keys) {
+      _entityLoss[entity] = false;
+    }
+    for (final factor in _factorLoss.keys) {
+      _factorLoss[factor] = false;
+    }
+    _update();
+  }
+
+  @override
+  void resetCompromise() {
+    super.resetCompromise();
+    for (final entity in _entityCompromise.keys) {
+      _entityCompromise[entity] = false;
+    }
+    for (final factor in _factorCompromise.keys) {
+      _factorCompromise[factor] = false;
+    }
+    _update();
+  }
+
   void _getEntity(Position position, void Function(Identity<Entity>) callback) {
     if (getEntityIdentity(position) case Identity<Entity> entity) {
       callback(entity);

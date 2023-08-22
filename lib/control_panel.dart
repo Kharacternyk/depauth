@@ -79,7 +79,10 @@ class _State extends State<ControlPanel> {
     const defaultSideBar = SizedBox.shrink();
 
     return Scaffold(
-      drawer: const MenuDrawer(),
+      drawer: MenuDrawer(
+        resetLoss: storage.resetLoss,
+        resetCompromise: storage.resetCompromise,
+      ),
       body: SplitView(
         mainChild: Viewer(
           minScale: 1,

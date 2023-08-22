@@ -315,16 +315,11 @@ class Storage {
     where factors.identity = ?
   ''');
   Position? _getPositionOfFactor(Identity<Factor> identity) {
-    final row = _positionOfFactorQuery.select([identity._value]).firstOrNull;
-
-    switch (row) {
-      case null:
-        return null;
-      case Row row:
-        final [x, y] = row.values;
-
-        return Position(x as int, y as int);
-    }
+    return switch (
+        _positionOfFactorQuery.select([identity._value]).firstOrNull) {
+      null => null,
+      Row row => _parsePosition(row),
+    };
   }
 
   late final _boundariesQuery = Query(_database, '''
@@ -352,11 +347,44 @@ class Storage {
     where targets.x = ? and targets.y = ?
   ''');
   Iterable<Position> getDependantPositions(Position position) {
-    return _dependantPositionsQuery.select([position.x, position.y]).map((row) {
-      final [x, y] = row.values;
+    return _dependantPositionsQuery
+        .select([position.x, position.y]).map(_parsePosition);
+  }
 
-      return Position(x as int, y as int);
-    });
+  late final _resetLossStatement = Statement(_database, '''
+    update entities
+    set lost = false
+  ''');
+  void resetLoss() => _resetLossStatement.execute();
+
+  late final _resetCompromiseStatement = Statement(_database, '''
+    update entities
+    set compromised = false
+  ''');
+  void resetCompromise() => _resetCompromiseStatement.execute();
+
+  late final _lostPositionsQuery = Query(_database, '''
+    select x, y
+    from entities
+    where lost
+  ''');
+  Iterable<Position> getLostPositions() {
+    return _lostPositionsQuery.select().map(_parsePosition);
+  }
+
+  late final _compromisedPositionsQuery = Query(_database, '''
+    select x, y
+    from entities
+    where compromised
+  ''');
+  Iterable<Position> getCompromisedPositions() {
+    return _compromisedPositionsQuery.select().map(_parsePosition);
+  }
+
+  Position _parsePosition(Row row) {
+    final [x, y] = row.values;
+
+    return Position(x as int, y as int);
   }
 
   Storage(

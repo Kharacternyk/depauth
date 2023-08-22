@@ -144,6 +144,20 @@ class ListenableStorage extends Storage {
     _updateDependencies();
   }
 
+  @override
+  void resetLoss() {
+    final positions = getLostPositions();
+    super.resetLoss();
+    _updateEntities(positions);
+  }
+
+  @override
+  void resetCompromise() {
+    final positions = getCompromisedPositions();
+    super.resetCompromise();
+    _updateEntities(positions);
+  }
+
   void _updateDependencies() {
     dependencyChangeNotifier._update();
   }
