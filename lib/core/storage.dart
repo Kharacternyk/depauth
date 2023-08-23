@@ -381,6 +381,12 @@ class Storage {
     return _compromisedPositionsQuery.select().map(_parsePosition);
   }
 
+  late final _entityCountQuery = Query(_database, '''
+    select count(true)
+    from entities
+  ''');
+  int getEntityCount() => _entityCountQuery.select().first.values.first as int;
+
   Position _parsePosition(Row row) {
     final [x, y] = row.values;
 

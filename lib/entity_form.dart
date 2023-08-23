@@ -98,6 +98,15 @@ class _State extends State<EntityForm> {
                   label: Text(widget.insight.descendantCount.toString()),
                 ),
               ),
+              Tooltip(
+                message: messages.couplingTooltip,
+                child: Chip(
+                  avatar: const Icon(Icons.swap_vert),
+                  label: Text(
+                    '${(widget.insight.coupling * 100).toStringAsFixed(0)}%',
+                  ),
+                ),
+              ),
             ],
           ),
           shape: tileShape,

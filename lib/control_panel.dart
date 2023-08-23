@@ -111,14 +111,15 @@ class _State extends State<ControlPanel> {
                     builder: (context, entity, child) {
                       return switch (entity) {
                         TraversableEntity entity => ListenableBuilder(
-                            listenable: storage.insightNotifier,
+                            listenable: storage.entityInsightNotifier,
                             builder: (child, context) => EntityForm(
                               entity,
                               position: position,
                               goBack: () {
                                 editablePosition.value = null;
                               },
-                              insight: storage.getInsight(entity.identity),
+                              insight:
+                                  storage.getEntityInsight(entity.identity),
                               changeName: (name) {
                                 storage.changeName(position, name);
                               },

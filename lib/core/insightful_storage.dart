@@ -8,7 +8,9 @@ import 'position.dart';
 import 'storage.dart';
 
 class InsightfulStorage extends ListenableStorage {
-  final insightNotifier = _ChangeNotifier();
+  final entityInsightNotifier = _ChangeNotifier();
+
+  late int _entityCount = getEntityCount();
 
   final Map<Identity<Entity>, bool> _entityLoss = {};
   final Map<Identity<Factor>, bool> _factorLoss = {};
@@ -23,12 +25,19 @@ class InsightfulStorage extends ListenableStorage {
     required super.entityDuplicateSuffix,
   });
 
-  EntityInsight getInsight(Identity<Entity> entity) {
+  EntityInsight getEntityInsight(Identity<Entity> entity) {
+    final ancestors = _getAncestors(entity);
+    final descendants = _getDescendants(entity);
+
     return EntityInsight(
       hasLostFactor: _hasLostFactor(entity, const {}),
       areAllFactorsCompromised: _areAllFactorsCompromised(entity, const {}),
-      ancestorCount: _getAncestors(entity).length,
-      descendantCount: _getDescendants(entity).length,
+      ancestorCount: ancestors.length,
+      descendantCount: descendants.length,
+      coupling: (ancestors.length +
+              descendants.length -
+              ancestors.intersection(descendants).length) /
+          (_entityCount > 1 ? _entityCount - 1 : 1),
     );
   }
 
@@ -219,27 +228,28 @@ class InsightfulStorage extends ListenableStorage {
       _clearCompromise(entity);
       _clearLoss(entity);
       _clearCoupling(upward: [entity], downward: [entity]);
-      _update();
     });
     super.deleteEntity(position);
+    --_entityCount;
+    _update();
   }
 
   @override
   void toggleCompromised(Position position, bool value) {
     _getEntity(position, (entity) {
       _clearCompromise(entity, includingSelf: false);
-      _update();
     });
     super.toggleCompromised(position, value);
+    _update();
   }
 
   @override
   void toggleLost(Position position, bool value) {
     _getEntity(position, (entity) {
       _clearLoss(entity, includingSelf: false);
-      _update();
     });
     super.toggleLost(position, value);
+    _update();
   }
 
   @override
@@ -252,9 +262,9 @@ class InsightfulStorage extends ListenableStorage {
       _clearLoss(changedEntity);
       _clearCompromise(changedEntity);
       _clearCoupling(upward: [entity], downward: [changedEntity]);
-      _update();
     });
     super.addDependency(position, factor, entity);
+    _update();
   }
 
   @override
@@ -267,9 +277,9 @@ class InsightfulStorage extends ListenableStorage {
       _clearLoss(changedEntity);
       _clearCompromise(changedEntity);
       _clearCoupling(upward: [entity], downward: [changedEntity]);
-      _update();
     });
     super.removeDependency(position, factor, entity);
+    _update();
   }
 
   @override
@@ -277,9 +287,9 @@ class InsightfulStorage extends ListenableStorage {
     _getEntity(position, (entity) {
       _clearLoss(entity);
       _clearCompromise(entity);
-      _update();
     });
     super.addFactor(position, entity);
+    _update();
   }
 
   @override
@@ -291,9 +301,9 @@ class InsightfulStorage extends ListenableStorage {
         upward: getDependencies(factor).map((entity) => entity.identity),
         downward: [entity],
       );
-      _update();
     });
     super.removeFactor(position, factor);
+    _update();
   }
 
   @override
@@ -317,6 +327,13 @@ class InsightfulStorage extends ListenableStorage {
     for (final factor in _factorCompromise.keys) {
       _factorCompromise[factor] = false;
     }
+    _update();
+  }
+
+  @override
+  void createEntity(Position position, String name) {
+    super.createEntity(position, name);
+    ++_entityCount;
     _update();
   }
 
@@ -356,7 +373,7 @@ class InsightfulStorage extends ListenableStorage {
   }
 
   void _update() {
-    insightNotifier._update();
+    entityInsightNotifier._update();
   }
 }
 

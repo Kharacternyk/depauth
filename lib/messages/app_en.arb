@@ -3,6 +3,7 @@
   "deleteButtonTooltip": "Drag onto this button to delete.",
   "ancestorCount": "Number of entities that this one depends on.",
   "descendantCount": "Number of entities that depend on this one.",
+  "couplingTooltip": "Percentage of entities that are connected to this one.",
   "openFile": "Open file",
   "createNewFile": "Create new file",
   "name": "Name",
