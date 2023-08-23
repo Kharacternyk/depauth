@@ -287,21 +287,26 @@ class _State extends State<EntityForm> {
 
     return DragTarget<CreationTraveler>(
       builder: (context, candidate, rejected) {
-        return ListView(
-          children: [
-            ...children,
-            if (candidate.isNotEmpty)
-              Card(
-                child: ListTile(
-                  leading: Badge(
-                    backgroundColor: colors.primaryContainer,
-                    textColor: colors.onPrimaryContainer,
-                    label: const Text("+"),
-                    child: const Icon(Icons.link),
+        return Material(
+          color: candidate.isNotEmpty
+              ? colors.primaryContainer
+              : colors.surfaceVariant,
+          child: ListView(
+            children: [
+              ...children,
+              if (candidate.isNotEmpty)
+                Card(
+                  child: ListTile(
+                    leading: Badge(
+                      backgroundColor: colors.primaryContainer,
+                      textColor: colors.onPrimaryContainer,
+                      label: const Text("+"),
+                      child: const Icon(Icons.link),
+                    ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         );
       },
       onAccept: (_) {

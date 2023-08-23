@@ -76,7 +76,7 @@ class _State extends State<ControlPanel> {
 
     final messages = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
-    const defaultSideBar = SizedBox.shrink();
+    final defaultSideBar = Material(color: colors.surfaceVariant);
 
     return Scaffold(
       drawer: MenuDrawer(
@@ -94,70 +94,65 @@ class _State extends State<ControlPanel> {
             },
           ),
         ),
-        sideChild: Material(
-          color: colors.surfaceVariant,
-          child: ValueListenableBuilder(
-            valueListenable: editablePosition,
-            builder: (context, sideBar, child) {
-              switch (editablePosition.value) {
-                case null:
-                  return defaultSideBar;
-                case Position position:
-                  final listenableEntity =
-                      storage.getListenableEntity(position);
+        sideChild: ValueListenableBuilder(
+          valueListenable: editablePosition,
+          builder: (context, sideBar, child) {
+            switch (editablePosition.value) {
+              case null:
+                return defaultSideBar;
+              case Position position:
+                final listenableEntity = storage.getListenableEntity(position);
 
-                  return ValueListenableBuilder(
-                    valueListenable: listenableEntity,
-                    builder: (context, entity, child) {
-                      return switch (entity) {
-                        TraversableEntity entity => ListenableBuilder(
-                            listenable: storage.entityInsightNotifier,
-                            builder: (child, context) => EntityForm(
-                              entity,
-                              position: position,
-                              goBack: () {
-                                editablePosition.value = null;
-                              },
-                              insight:
-                                  storage.getEntityInsight(entity.identity),
-                              changeName: (name) {
-                                storage.changeName(position, name);
-                              },
-                              changeType: (type) {
-                                storage.changeType(position, type);
-                              },
-                              toggleLost: (value) {
-                                storage.toggleLost(position, value);
-                              },
-                              toggleCompromised: (value) {
-                                storage.toggleCompromised(position, value);
-                              },
-                              addDependency: (factor, entity) {
-                                storage.addDependency(
-                                  position,
-                                  factor,
-                                  entity,
-                                );
-                              },
-                              removeDependency: (factor, entity) {
-                                storage.removeDependency(
-                                  position,
-                                  factor,
-                                  entity,
-                                );
-                              },
-                              addFactor: () {
-                                storage.addFactor(position, entity.identity);
-                              },
-                            ),
+                return ValueListenableBuilder(
+                  valueListenable: listenableEntity,
+                  builder: (context, entity, child) {
+                    return switch (entity) {
+                      TraversableEntity entity => ListenableBuilder(
+                          listenable: storage.entityInsightNotifier,
+                          builder: (child, context) => EntityForm(
+                            entity,
+                            position: position,
+                            goBack: () {
+                              editablePosition.value = null;
+                            },
+                            insight: storage.getEntityInsight(entity.identity),
+                            changeName: (name) {
+                              storage.changeName(position, name);
+                            },
+                            changeType: (type) {
+                              storage.changeType(position, type);
+                            },
+                            toggleLost: (value) {
+                              storage.toggleLost(position, value);
+                            },
+                            toggleCompromised: (value) {
+                              storage.toggleCompromised(position, value);
+                            },
+                            addDependency: (factor, entity) {
+                              storage.addDependency(
+                                position,
+                                factor,
+                                entity,
+                              );
+                            },
+                            removeDependency: (factor, entity) {
+                              storage.removeDependency(
+                                position,
+                                factor,
+                                entity,
+                              );
+                            },
+                            addFactor: () {
+                              storage.addFactor(position, entity.identity);
+                            },
                           ),
-                        null => defaultSideBar,
-                      };
-                    },
-                  );
-              }
-            },
-          ),
+                        ),
+                      null => defaultSideBar,
+                    };
+                  },
+                );
+            }
+          },
         ),
       ),
       bottomNavigationBar: BottomAppBar(
