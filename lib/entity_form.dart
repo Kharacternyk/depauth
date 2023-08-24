@@ -26,6 +26,7 @@ class EntityForm extends StatefulWidget {
   final void Function(bool) toggleLost;
   final void Function(bool) toggleCompromised;
   final void Function() addFactor;
+  final void Function(Identity<Entity>) addDependencyAsFactor;
   final void Function(Identity<Factor>, Identity<Entity>) addDependency;
   final void Function(Identity<Factor>, Identity<Entity>) removeDependency;
 
@@ -39,6 +40,7 @@ class EntityForm extends StatefulWidget {
     required this.toggleLost,
     required this.toggleCompromised,
     required this.addFactor,
+    required this.addDependencyAsFactor,
     required this.addDependency,
     required this.removeDependency,
     super.key,
@@ -285,7 +287,7 @@ class _State extends State<EntityForm> {
         ),
     ];
 
-    return DragTarget<CreationTraveler>(
+    return DragTarget<GrabbableTraveler>(
       builder: (context, candidate, rejected) {
         return Material(
           color: candidate.isNotEmpty
@@ -309,8 +311,13 @@ class _State extends State<EntityForm> {
           ),
         );
       },
-      onAccept: (_) {
-        widget.addFactor();
+      onAccept: (traveler) {
+        switch (traveler) {
+          case CreationTraveler _:
+            widget.addFactor();
+          case EntityTraveler traveler:
+            widget.addDependencyAsFactor(traveler.entity);
+        }
       },
     );
   }

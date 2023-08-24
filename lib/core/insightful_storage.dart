@@ -253,6 +253,22 @@ class InsightfulStorage extends ListenableStorage {
   }
 
   @override
+  void addDependencyAsFactor(
+    Position position, {
+    required Identity<Entity> entity,
+    required Identity<Entity> dependency,
+  }) {
+    _clearLoss(entity);
+    _clearCompromise(entity);
+    _clearCoupling(upward: [dependency], downward: [entity]);
+    super.addDependencyAsFactor(
+      position,
+      entity: entity,
+      dependency: dependency,
+    );
+  }
+
+  @override
   void addDependency(
     Position position,
     Identity<Factor> factor,

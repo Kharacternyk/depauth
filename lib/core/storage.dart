@@ -258,6 +258,18 @@ class Storage {
     _removeFactorStatement.execute([factor._value]);
   }
 
+  late final _addDependencyAsFactorStatement = Statement(_database, '''
+    insert into dependencies(entity, factor) values(?, last_insert_rowid())
+  ''');
+  void addDependencyAsFactor(
+    Position position, {
+    required Identity<Entity> entity,
+    required Identity<Entity> dependency,
+  }) {
+    addFactor(position, entity);
+    _addDependencyAsFactorStatement.execute([dependency._value]);
+  }
+
   late final _factorIdentitiesQuery = Query(_database, '''
     select identity
     from factors

@@ -110,6 +110,21 @@ class ListenableStorage extends Storage {
   }
 
   @override
+  void addDependencyAsFactor(
+    Position position, {
+    required Identity<Entity> entity,
+    required Identity<Entity> dependency,
+  }) {
+    super.addDependencyAsFactor(
+      position,
+      entity: entity,
+      dependency: dependency,
+    );
+    _updateEntities([position]);
+    _updateDependencies();
+  }
+
+  @override
   void addDependency(
     Position position,
     Identity<Factor> factor,

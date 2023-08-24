@@ -135,6 +135,13 @@ class _State extends State<ControlPanel> {
                                 entity,
                               );
                             },
+                            addDependencyAsFactor: (dependency) {
+                              storage.addDependencyAsFactor(
+                                position,
+                                entity: entity.identity,
+                                dependency: dependency,
+                              );
+                            },
                             removeDependency: (factor, entity) {
                               storage.removeDependency(
                                 position,
