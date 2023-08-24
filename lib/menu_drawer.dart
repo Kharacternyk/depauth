@@ -21,16 +21,18 @@ class MenuDrawer extends StatelessWidget {
       children: [
         const DrawerHeader(child: Logotype()),
         ListTile(
-          trailing: const Icon(Icons.where_to_vote),
+          leading: const Icon(Icons.where_to_vote),
           title: Text(messages.resetLoss),
           onTap: resetLoss,
         ),
         ListTile(
-          trailing: const Icon(Icons.report_off),
+          leading: const Icon(Icons.report_off),
           title: Text(messages.resetCompromise),
           onTap: resetCompromise,
         ),
-        const AboutListTile(),
+        const AboutListTile(
+          icon: Icon(Icons.info),
+        ),
       ],
     );
   }
