@@ -4,6 +4,7 @@
   "ancestorCount": "Number of entities that this one depends on.",
   "descendantCount": "Number of entities that depend on this one.",
   "couplingTooltip": "Percentage of entities that are connected to this one.",
+  "emptyFactorTip": "Drag entities here to add dependencies.",
   "openFile": "Open file",
   "createNewFile": "Create new file",
   "name": "Name",

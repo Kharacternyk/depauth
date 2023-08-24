@@ -254,32 +254,38 @@ class _State extends State<EntityForm> {
                     label: Text((index + 1).toString()),
                     child: const Icon(Icons.link),
                   ),
-                  title: Wrap(
-                    spacing: 4,
-                    runSpacing: 4,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      for (final entity in factor.dependencies)
-                        ScaledDraggable(
-                          needsMaterial: true,
-                          dragData: DependencyTraveler(
-                            widget.position,
-                            factor.identity,
-                            entity.identity,
-                          ),
-                          child: AbsorbPointer(
-                            child: Chip(
-                              key: ValueKey(entity.identity),
-                              label: Text(entity.name),
-                              avatar: Icon(
-                                EntityTheme(entity.type).icon,
-                                color: EntityTheme(entity.type).foreground,
+                  title: factor.dependencies.isNotEmpty
+                      ? Wrap(
+                          spacing: 4,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            for (final entity in factor.dependencies)
+                              ScaledDraggable(
+                                needsMaterial: true,
+                                dragData: DependencyTraveler(
+                                  widget.position,
+                                  factor.identity,
+                                  entity.identity,
+                                ),
+                                child: AbsorbPointer(
+                                  child: Chip(
+                                    key: ValueKey(entity.identity),
+                                    label: Text(entity.name),
+                                    avatar: Icon(
+                                      EntityTheme(entity.type).icon,
+                                      color:
+                                          EntityTheme(entity.type).foreground,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+                          ],
+                        )
+                      : null,
+                  subtitle: factor.dependencies.isEmpty
+                      ? Text(messages.emptyFactorTip)
+                      : null,
                 ),
               ),
             );
