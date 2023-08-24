@@ -31,6 +31,7 @@ class ControlPanel extends StatefulWidget {
 
 class _State extends State<ControlPanel> {
   final editablePosition = ValueNotifier<Position?>(null);
+  final formHasTraveler = ValueNotifier<bool>(false);
   final Set<String> storageNames;
   String storageName;
   InsightfulStorage? storage;
@@ -76,91 +77,108 @@ class _State extends State<ControlPanel> {
 
     final messages = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
-    final defaultSideBar = Material(color: colors.surfaceVariant);
+    const defaultSideBar = SizedBox.shrink();
 
     return Scaffold(
       drawer: MenuDrawer(
         resetLoss: storage.resetLoss,
         resetCompromise: storage.resetCompromise,
       ),
-      body: SplitView(
-        mainChild: Viewer(
-          minScale: 1,
-          maxScale: 20,
-          child: EntityGraph(
-            storage,
-            setEditablePosition: (position) {
-              editablePosition.value = position;
+      body: Stack(
+        children: [
+          ValueListenableBuilder(
+            valueListenable: formHasTraveler,
+            builder: (context, value, child) {
+              return Ink(
+                color: value ? colors.primaryContainer : colors.surfaceVariant,
+              );
             },
           ),
-        ),
-        sideChild: ValueListenableBuilder(
-          valueListenable: editablePosition,
-          builder: (context, sideBar, child) {
-            switch (editablePosition.value) {
-              case null:
-                return defaultSideBar;
-              case Position position:
-                final listenableEntity = storage.getListenableEntity(position);
-
-                return ValueListenableBuilder(
-                  valueListenable: listenableEntity,
-                  builder: (context, entity, child) {
-                    return switch (entity) {
-                      TraversableEntity entity => ListenableBuilder(
-                          listenable: storage.entityInsightNotifier,
-                          builder: (child, context) => EntityForm(
-                            entity,
-                            position: position,
-                            goBack: () {
-                              editablePosition.value = null;
-                            },
-                            insight: storage.getEntityInsight(entity.identity),
-                            changeName: (name) {
-                              storage.changeName(position, name);
-                            },
-                            changeType: (type) {
-                              storage.changeType(position, type);
-                            },
-                            toggleLost: (value) {
-                              storage.toggleLost(position, value);
-                            },
-                            toggleCompromised: (value) {
-                              storage.toggleCompromised(position, value);
-                            },
-                            addDependency: (factor, entity) {
-                              storage.addDependency(
-                                position,
-                                factor,
-                                entity,
-                              );
-                            },
-                            addDependencyAsFactor: (dependency) {
-                              storage.addDependencyAsFactor(
-                                position,
-                                entity: entity.identity,
-                                dependency: dependency,
-                              );
-                            },
-                            removeDependency: (factor, entity) {
-                              storage.removeDependency(
-                                position,
-                                factor,
-                                entity,
-                              );
-                            },
-                            addFactor: () {
-                              storage.addFactor(position, entity.identity);
-                            },
-                          ),
-                        ),
-                      null => defaultSideBar,
-                    };
+          SplitView(
+            mainChild: Material(
+              child: Viewer(
+                minScale: 1,
+                maxScale: 20,
+                child: EntityGraph(
+                  storage,
+                  setEditablePosition: (position) {
+                    editablePosition.value = position;
                   },
-                );
-            }
-          },
-        ),
+                ),
+              ),
+            ),
+            sideChild: ValueListenableBuilder(
+              valueListenable: editablePosition,
+              builder: (context, sideBar, child) {
+                switch (editablePosition.value) {
+                  case null:
+                    return defaultSideBar;
+                  case Position position:
+                    final listenableEntity =
+                        storage.getListenableEntity(position);
+
+                    return ValueListenableBuilder(
+                      valueListenable: listenableEntity,
+                      builder: (context, entity, child) {
+                        return switch (entity) {
+                          TraversableEntity entity => ListenableBuilder(
+                              listenable: storage.entityInsightNotifier,
+                              builder: (child, context) => EntityForm(
+                                entity,
+                                position: position,
+                                hasTraveler: formHasTraveler,
+                                goBack: () {
+                                  editablePosition.value = null;
+                                },
+                                insight:
+                                    storage.getEntityInsight(entity.identity),
+                                changeName: (name) {
+                                  storage.changeName(position, name);
+                                },
+                                changeType: (type) {
+                                  storage.changeType(position, type);
+                                },
+                                toggleLost: (value) {
+                                  storage.toggleLost(position, value);
+                                },
+                                toggleCompromised: (value) {
+                                  storage.toggleCompromised(position, value);
+                                },
+                                addDependency: (factor, entity) {
+                                  storage.addDependency(
+                                    position,
+                                    factor,
+                                    entity,
+                                  );
+                                },
+                                addDependencyAsFactor: (dependency) {
+                                  storage.addDependencyAsFactor(
+                                    position,
+                                    entity: entity.identity,
+                                    dependency: dependency,
+                                  );
+                                },
+                                removeDependency: (factor, entity) {
+                                  storage.removeDependency(
+                                    position,
+                                    factor,
+                                    entity,
+                                  );
+                                },
+                                addFactor: () {
+                                  storage.addFactor(position, entity.identity);
+                                },
+                              ),
+                            ),
+                          null => defaultSideBar,
+                        };
+                      },
+                    );
+                }
+              },
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: BottomAppBar(
         child: Row(

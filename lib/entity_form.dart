@@ -20,6 +20,7 @@ class EntityForm extends StatefulWidget {
   final TraversableEntity entity;
   final Position position;
   final EntityInsight insight;
+  final ValueNotifier<bool> hasTraveler;
   final void Function() goBack;
   final void Function(String) changeName;
   final void Function(EntityType) changeType;
@@ -32,6 +33,7 @@ class EntityForm extends StatefulWidget {
 
   const EntityForm(
     this.entity, {
+    required this.hasTraveler,
     required this.goBack,
     required this.insight,
     required this.position,
@@ -295,29 +297,32 @@ class _State extends State<EntityForm> {
 
     return DragTarget<GrabbableTraveler>(
       builder: (context, candidate, rejected) {
-        return Material(
-          color: candidate.isNotEmpty
-              ? colors.primaryContainer
-              : colors.surfaceVariant,
-          child: ListView(
-            children: [
-              ...children,
-              if (candidate.isNotEmpty)
-                Card(
-                  child: ListTile(
-                    leading: Badge(
-                      backgroundColor: colors.primaryContainer,
-                      textColor: colors.onPrimaryContainer,
-                      label: const Text("+"),
-                      child: const Icon(Icons.link),
-                    ),
+        return ListView(
+          children: [
+            ...children,
+            if (candidate.isNotEmpty)
+              Card(
+                child: ListTile(
+                  leading: Badge(
+                    backgroundColor: colors.primaryContainer,
+                    textColor: colors.onPrimaryContainer,
+                    label: const Text("+"),
+                    child: const Icon(Icons.link),
                   ),
                 ),
-            ],
-          ),
+              ),
+          ],
         );
       },
+      onWillAccept: (_) {
+        widget.hasTraveler.value = true;
+        return true;
+      },
+      onLeave: (_) {
+        widget.hasTraveler.value = false;
+      },
       onAccept: (traveler) {
+        widget.hasTraveler.value = false;
         switch (traveler) {
           case CreationTraveler _:
             widget.addFactor();

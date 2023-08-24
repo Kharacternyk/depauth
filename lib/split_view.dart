@@ -18,7 +18,6 @@ class SplitView extends StatelessWidget {
     return MultiSplitViewTheme(
       data: MultiSplitViewThemeData(
         dividerPainter: DividerPainters.grooved1(
-          backgroundColor: colors.surfaceVariant,
           color: colors.onSurfaceVariant,
           highlightedColor: colors.primary,
         ),
