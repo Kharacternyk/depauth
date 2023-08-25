@@ -6,11 +6,15 @@ import 'factor.dart';
 import 'listenable_storage.dart';
 import 'position.dart';
 import 'storage.dart';
+import 'storage_insight.dart';
 
 class InsightfulStorage extends ListenableStorage {
   final entityInsightNotifier = _ChangeNotifier();
-
-  late int _entityCount = getEntityCount();
+  late final storageInsight = ValueNotifier(
+    StorageInsight(
+      entityCount: getEntityCount(),
+    ),
+  );
 
   final Map<Identity<Entity>, bool> _entityLoss = {};
   final Map<Identity<Factor>, bool> _factorLoss = {};
@@ -37,7 +41,9 @@ class InsightfulStorage extends ListenableStorage {
       coupling: (ancestors.length +
               descendants.length -
               ancestors.intersection(descendants).length) /
-          (_entityCount > 1 ? _entityCount - 1 : 1),
+          (storageInsight.value.entityCount > 1
+              ? storageInsight.value.entityCount - 1
+              : 1),
     );
   }
 
@@ -230,7 +236,7 @@ class InsightfulStorage extends ListenableStorage {
       _clearCoupling(upward: [entity], downward: [entity]);
     });
     super.deleteEntity(position);
-    --_entityCount;
+    storageInsight.value = storageInsight.value.decrement();
     _update();
   }
 
@@ -349,7 +355,7 @@ class InsightfulStorage extends ListenableStorage {
   @override
   void createEntity(Position position, String name) {
     super.createEntity(position, name);
-    ++_entityCount;
+    storageInsight.value = storageInsight.value.increment();
     _update();
   }
 

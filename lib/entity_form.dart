@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 
+import 'card_form.dart';
 import 'core/entity.dart';
 import 'core/entity_insight.dart';
 import 'core/entity_type.dart';
@@ -15,6 +16,7 @@ import 'core/traversable_entity.dart';
 import 'entity_theme.dart';
 import 'entity_type_name.dart';
 import 'scaled_draggable.dart';
+import 'widget_extension.dart';
 
 class EntityForm extends StatefulWidget {
   final TraversableEntity entity;
@@ -74,163 +76,146 @@ class _State extends State<EntityForm> {
   build(context) {
     final colors = Theme.of(context).colorScheme;
     final messages = AppLocalizations.of(context)!;
-    const tileShape = RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(
-        Radius.circular(12),
-      ),
-    );
 
     final children = [
-      Card(
-        child: ListTile(
-          leading: const BackButtonIcon(),
-          title: Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            children: [
-              Tooltip(
-                message: messages.ancestorCount,
-                child: Chip(
-                  avatar: const Icon(Icons.arrow_upward),
-                  label: Text(widget.insight.ancestorCount.toString()),
-                ),
+      ListTile(
+        leading: const BackButtonIcon(),
+        title: Wrap(
+          spacing: 4,
+          runSpacing: 4,
+          children: [
+            Tooltip(
+              message: messages.ancestorCount,
+              child: Chip(
+                avatar: const Icon(Icons.arrow_upward),
+                label: Text(widget.insight.ancestorCount.toString()),
               ),
-              Tooltip(
-                message: messages.descendantCount,
-                child: Chip(
-                  avatar: const Icon(Icons.arrow_downward),
-                  label: Text(widget.insight.descendantCount.toString()),
-                ),
-              ),
-              Tooltip(
-                message: messages.couplingTooltip,
-                child: Chip(
-                  avatar: const Icon(Icons.swap_vert),
-                  label: Text(
-                    '${(widget.insight.coupling * 100).toStringAsFixed(0)}%',
-                  ),
-                ),
-              ),
-            ],
-          ),
-          shape: tileShape,
-          onTap: widget.goBack,
-        ),
-      ),
-      Card(
-        child: ListTile(
-          leading: const Icon(Icons.edit),
-          title: TextField(
-            controller: nameController,
-            onChanged: (String name) {
-              _debouncer?.cancel();
-              _debouncer = Timer(const Duration(milliseconds: 200), () {
-                widget.changeName(name);
-              });
-            },
-            decoration: InputDecoration(
-              hintText: messages.name,
             ),
+            Tooltip(
+              message: messages.descendantCount,
+              child: Chip(
+                avatar: const Icon(Icons.arrow_downward),
+                label: Text(widget.insight.descendantCount.toString()),
+              ),
+            ),
+            Tooltip(
+              message: messages.couplingTooltip,
+              child: Chip(
+                avatar: const Icon(Icons.swap_vert),
+                label: Text(
+                  '${(widget.insight.coupling * 100).toStringAsFixed(0)}%',
+                ),
+              ),
+            ),
+          ],
+        ),
+        onTap: widget.goBack,
+      ).toCard(),
+      ListTile(
+        leading: const Icon(Icons.edit),
+        title: TextField(
+          controller: nameController,
+          onChanged: (String name) {
+            _debouncer?.cancel();
+            _debouncer = Timer(const Duration(milliseconds: 200), () {
+              widget.changeName(name);
+            });
+          },
+          decoration: InputDecoration(
+            hintText: messages.name,
           ),
         ),
-      ),
-      Card(
-        child: ListTile(
-          leading: const Icon(Icons.category),
-          title: DropdownButtonHideUnderline(
-            child: DropdownButton(
-              isExpanded: true,
-              items: EntityType.values
-                  .map(
-                    (value) => DropdownMenuItem(
-                      value: value,
-                      child: AbsorbPointer(
-                        child: Chip(
-                          avatar: Ink(
-                            child: Icon(
-                              EntityTheme(value).icon,
-                              color: EntityTheme(value).foreground,
-                            ),
+      ).toCard(),
+      ListTile(
+        leading: const Icon(Icons.category),
+        title: DropdownButtonHideUnderline(
+          child: DropdownButton(
+            isExpanded: true,
+            items: EntityType.values
+                .map(
+                  (value) => DropdownMenuItem(
+                    value: value,
+                    child: AbsorbPointer(
+                      child: Chip(
+                        avatar: Ink(
+                          child: Icon(
+                            EntityTheme(value).icon,
+                            color: EntityTheme(value).foreground,
                           ),
-                          label: Text(getEntityTypeName(value, context)),
                         ),
+                        label: Text(getEntityTypeName(value, context)),
                       ),
                     ),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                widget.changeType(value ?? widget.entity.type);
-              },
-              value: widget.entity.type,
-            ),
-          ),
-        ),
-      ),
-      Card(
-        child: CheckboxListTile(
-          shape: tileShape,
-          title: Text(
-            messages.lost,
-            overflow: TextOverflow.fade,
-            softWrap: false,
-          ),
-          subtitle: widget.insight.hasLostFactor
-              ? Tooltip(
-                  message: messages.automaticallyLost,
-                  child: Row(
-                    children: [
-                      Text(messages.automatically),
-                      const Icon(
-                        Icons.info_outlined,
-                        size: 16,
-                      ),
-                    ],
                   ),
                 )
-              : null,
-          activeColor: colors.error,
-          value: widget.entity.lost,
-          selected: widget.insight.hasLostFactor || widget.entity.lost,
-          secondary: const Icon(Icons.not_listed_location),
-          onChanged: (value) {
-            widget.toggleLost(value ?? false);
-          },
-        ),
-      ),
-      Card(
-        child: CheckboxListTile(
-          shape: tileShape,
-          title: Text(
-            messages.compromised,
-            overflow: TextOverflow.fade,
-            softWrap: false,
+                .toList(),
+            onChanged: (value) {
+              widget.changeType(value ?? widget.entity.type);
+            },
+            value: widget.entity.type,
           ),
-          subtitle: widget.insight.areAllFactorsCompromised
-              ? Tooltip(
-                  message: messages.automaticallyCompromised,
-                  child: Row(
-                    children: [
-                      Text(messages.automatically),
-                      const Icon(
-                        Icons.info_outlined,
-                        size: 16,
-                      ),
-                    ],
-                  ),
-                )
-              : null,
-          activeColor: colors.error,
-          value: widget.entity.compromised,
-          selected: widget.entity.compromised ||
-              widget.insight.areAllFactorsCompromised,
-          secondary: const Icon(Icons.report),
-          onChanged: (value) {
-            widget.toggleCompromised(value ?? false);
-          },
         ),
-      ),
+      ).toCard(),
+      CheckboxListTile(
+        title: Text(
+          messages.lost,
+          overflow: TextOverflow.fade,
+          softWrap: false,
+        ),
+        subtitle: widget.insight.hasLostFactor
+            ? Tooltip(
+                message: messages.automaticallyLost,
+                child: Row(
+                  children: [
+                    Text(messages.automatically),
+                    const Icon(
+                      Icons.info_outlined,
+                      size: 16,
+                    ),
+                  ],
+                ),
+              )
+            : null,
+        activeColor: colors.error,
+        value: widget.entity.lost,
+        selected: widget.insight.hasLostFactor || widget.entity.lost,
+        secondary: const Icon(Icons.not_listed_location),
+        onChanged: (value) {
+          widget.toggleLost(value ?? false);
+        },
+      ).toCard(),
+      CheckboxListTile(
+        title: Text(
+          messages.compromised,
+          overflow: TextOverflow.fade,
+          softWrap: false,
+        ),
+        subtitle: widget.insight.areAllFactorsCompromised
+            ? Tooltip(
+                message: messages.automaticallyCompromised,
+                child: Row(
+                  children: [
+                    Text(messages.automatically),
+                    const Icon(
+                      Icons.info_outlined,
+                      size: 16,
+                    ),
+                  ],
+                ),
+              )
+            : null,
+        activeColor: colors.error,
+        value: widget.entity.compromised,
+        selected: widget.entity.compromised ||
+            widget.insight.areAllFactorsCompromised,
+        secondary: const Icon(Icons.report),
+        onChanged: (value) {
+          widget.toggleCompromised(value ?? false);
+        },
+      ).toCard(),
       for (final (index, factor) in enumerate(widget.entity.factors))
         DragTarget<DependableTraveler>(
+          key: ValueKey(factor.identity),
           onAccept: (traveler) {
             switch (traveler) {
               case EntityTraveler traveler:
@@ -297,20 +282,18 @@ class _State extends State<EntityForm> {
 
     return DragTarget<GrabbableTraveler>(
       builder: (context, candidate, rejected) {
-        return ListView(
-          children: [
+        return CardForm(
+          [
             ...children,
             if (candidate.isNotEmpty)
-              Card(
-                child: ListTile(
-                  leading: Badge(
-                    backgroundColor: colors.primaryContainer,
-                    textColor: colors.onPrimaryContainer,
-                    label: const Text("+"),
-                    child: const Icon(Icons.link),
-                  ),
+              ListTile(
+                leading: Badge(
+                  backgroundColor: colors.primaryContainer,
+                  textColor: colors.onPrimaryContainer,
+                  label: const Text("+"),
+                  child: const Icon(Icons.link),
                 ),
-              ),
+              ).toCard(),
           ],
         );
       },

@@ -7,6 +7,7 @@ extension WidgetExtension on Widget {
   Widget pad(EdgeInsets padding, {Key? key}) =>
       Padding(key: key, padding: padding, child: this);
   Widget grow({Key? key}) => SizedBox.expand(key: key, child: this);
+  Widget toCard({Key? key}) => Card(key: key, child: this);
 }
 
 extension WidgetListExtension on List<Widget> {

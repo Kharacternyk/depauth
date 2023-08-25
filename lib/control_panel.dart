@@ -11,6 +11,7 @@ import 'entity_graph.dart';
 import 'menu_drawer.dart';
 import 'scaled_draggable.dart';
 import 'split_view.dart';
+import 'storage_form.dart';
 import 'viewer.dart';
 
 class ControlPanel extends StatefulWidget {
@@ -77,13 +78,19 @@ class _State extends State<ControlPanel> {
 
     final messages = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
-    const defaultSideBar = SizedBox.shrink();
+    final storageForm = ValueListenableBuilder(
+      valueListenable: storage.storageInsight,
+      builder: (context, value, child) {
+        return StorageForm(
+          insight: value,
+          resetLoss: storage.resetLoss,
+          resetCompromise: storage.resetCompromise,
+        );
+      },
+    );
 
     return Scaffold(
-      drawer: MenuDrawer(
-        resetLoss: storage.resetLoss,
-        resetCompromise: storage.resetCompromise,
-      ),
+      drawer: const MenuDrawer(),
       body: Stack(
         children: [
           ValueListenableBuilder(
@@ -112,7 +119,7 @@ class _State extends State<ControlPanel> {
               builder: (context, sideBar, child) {
                 switch (editablePosition.value) {
                   case null:
-                    return defaultSideBar;
+                    return storageForm;
                   case Position position:
                     final listenableEntity =
                         storage.getListenableEntity(position);
@@ -170,7 +177,7 @@ class _State extends State<ControlPanel> {
                                 },
                               ),
                             ),
-                          null => defaultSideBar,
+                          null => storageForm,
                         };
                       },
                     );
