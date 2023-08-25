@@ -280,7 +280,7 @@ class _State extends State<EntityForm> {
         ),
     ];
 
-    return DragTarget<GrabbableTraveler>(
+    return DragTarget<FactorableTraveler>(
       builder: (context, candidate, rejected) {
         return CardForm(
           [
@@ -310,6 +310,9 @@ class _State extends State<EntityForm> {
           case CreationTraveler _:
             widget.addFactor();
           case EntityTraveler traveler:
+            widget.addDependencyAsFactor(traveler.entity);
+          case DependencyTraveler traveler:
+            widget.removeDependency(traveler.factor, traveler.entity);
             widget.addDependencyAsFactor(traveler.entity);
         }
       },
