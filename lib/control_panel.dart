@@ -13,6 +13,7 @@ import 'scaled_draggable.dart';
 import 'split_view.dart';
 import 'storage_form.dart';
 import 'viewer.dart';
+import 'widget_extension.dart';
 
 class ControlPanel extends StatefulWidget {
   final String storageName;
@@ -190,70 +191,70 @@ class _State extends State<ControlPanel> {
         ],
       ),
       bottomNavigationBar: BottomAppBar(
-        child: Row(
-          children: [
-            const DrawerButton(),
-            const Spacer(),
-            DragTarget<DeletableTraveler>(
-              builder: (context, candidate, rejected) {
-                return FloatingActionButton(
-                  backgroundColor: candidate.isNotEmpty
-                      ? colors.error
-                      : colors.errorContainer,
-                  foregroundColor: candidate.isNotEmpty
-                      ? colors.onError
-                      : colors.onErrorContainer,
-                  onPressed: () {
-                    ScaffoldMessenger.of(context)
-                      ..hideCurrentSnackBar()
-                      ..showSnackBar(
-                        SnackBar(
-                          content: Text(messages.deleteButtonTooltip),
-                          showCloseIcon: true,
-                        ),
-                      );
-                  },
-                  tooltip: messages.deleteButtonTooltip,
-                  child: const Icon(Icons.delete),
-                );
-              },
-              onAccept: (traveler) {
-                switch (traveler) {
-                  case EntityTraveler traveler:
-                    storage.value.deleteEntity(traveler.position);
-                  case FactorTraveler traveler:
-                    storage.value
-                        .removeFactor(traveler.position, traveler.factor);
-                  case DependencyTraveler traveler:
-                    storage.value.removeDependency(
-                      traveler.position,
-                      traveler.factor,
-                      traveler.entity,
-                    );
-                }
-              },
-            ),
-            const SizedBox(width: 8),
-            ScaledDraggable(
-              dragData: const CreationTraveler(),
-              child: FloatingActionButton(
+        child: [
+          const DrawerButton(),
+          ValueListenableBuilder(
+            valueListenable: storage,
+            builder: (context, storage, child) => Text(storageName).expand(),
+          ),
+          DragTarget<DeletableTraveler>(
+            builder: (context, candidate, rejected) {
+              return FloatingActionButton(
+                backgroundColor:
+                    candidate.isNotEmpty ? colors.error : colors.errorContainer,
+                foregroundColor: candidate.isNotEmpty
+                    ? colors.onError
+                    : colors.onErrorContainer,
                 onPressed: () {
                   ScaffoldMessenger.of(context)
                     ..hideCurrentSnackBar()
                     ..showSnackBar(
                       SnackBar(
-                        content: Text(messages.addButtonTooltip),
+                        content: Text(messages.deleteButtonTooltip),
                         showCloseIcon: true,
                       ),
                     );
                 },
-                tooltip: messages.addButtonTooltip,
-                mouseCursor: SystemMouseCursors.grab,
-                child: const Icon(Icons.add),
-              ),
+                tooltip: messages.deleteButtonTooltip,
+                child: const Icon(Icons.delete),
+              );
+            },
+            onAccept: (traveler) {
+              switch (traveler) {
+                case EntityTraveler traveler:
+                  storage.value.deleteEntity(traveler.position);
+                case FactorTraveler traveler:
+                  storage.value
+                      .removeFactor(traveler.position, traveler.factor);
+                case DependencyTraveler traveler:
+                  storage.value.removeDependency(
+                    traveler.position,
+                    traveler.factor,
+                    traveler.entity,
+                  );
+              }
+            },
+          ),
+          const SizedBox(width: 8),
+          ScaledDraggable(
+            dragData: const CreationTraveler(),
+            child: FloatingActionButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: Text(messages.addButtonTooltip),
+                      showCloseIcon: true,
+                    ),
+                  );
+              },
+              tooltip: messages.addButtonTooltip,
+              mouseCursor: SystemMouseCursors.grab,
+              child: const Icon(Icons.add),
             ),
-          ],
-        ),
+          ),
+        ].toRow(),
       ),
     );
   }
