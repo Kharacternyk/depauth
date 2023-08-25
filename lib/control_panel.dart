@@ -195,7 +195,11 @@ class _State extends State<ControlPanel> {
           const DrawerButton(),
           ValueListenableBuilder(
             valueListenable: storage,
-            builder: (context, storage, child) => Text(storageName).expand(),
+            builder: (context, storage, child) => Text(
+              storageName,
+              overflow: TextOverflow.fade,
+              softWrap: false,
+            ).expand(),
           ),
           DragTarget<DeletableTraveler>(
             builder: (context, candidate, rejected) {
