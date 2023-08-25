@@ -33,33 +33,28 @@ class ControlPanel extends StatefulWidget {
 class _State extends State<ControlPanel> {
   final editablePosition = ValueNotifier<Position?>(null);
   final formHasTraveler = ValueNotifier<bool>(false);
+  late final storage = ValueNotifier<InsightfulStorage>(_getStorage());
+
   final Set<String> storageNames;
   String storageName;
-  InsightfulStorage? storage;
 
   _State(this.storageName, this.storageNames);
 
   @override
   deactivate() {
-    storage?.dispose();
+    storage.value.dispose();
     super.deactivate();
   }
 
   @override
   activate() {
     super.activate();
-    _initStorage();
+    storage.value = _getStorage();
   }
 
-  @override
-  initState() {
-    super.initState();
-    _initStorage();
+  InsightfulStorage _getStorage() {
     storageNames.add(storageName);
-  }
-
-  void _initStorage() {
-    storage = InsightfulStorage(
+    return InsightfulStorage(
       join(widget.workingDirectory, '$storageName.depauth'),
       entityDuplicatePrefix: ' (',
       entityDuplicateSuffix: ')',
@@ -68,29 +63,29 @@ class _State extends State<ControlPanel> {
 
   @override
   build(BuildContext context) {
-    final InsightfulStorage storage;
-    switch (this.storage) {
-      case null:
-        return const Center(child: CircularProgressIndicator());
-      case InsightfulStorage reusableStorage:
-        storage = reusableStorage;
-    }
-
     final messages = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
     final storageForm = ValueListenableBuilder(
-      valueListenable: storage.storageInsight,
-      builder: (context, value, child) {
-        return StorageForm(
+      valueListenable: storage,
+      builder: (context, storage, child) => ValueListenableBuilder(
+        valueListenable: storage.storageInsight,
+        builder: (context, value, child) => StorageForm(
           insight: value,
           resetLoss: storage.resetLoss,
           resetCompromise: storage.resetCompromise,
-        );
-      },
+        ),
+      ),
     );
 
     return Scaffold(
-      drawer: const MenuDrawer(),
+      drawer: MenuDrawer(
+        fileDestinations: storageNames,
+        changeDestination: (storageName) {
+          this.storageName = storageName;
+          storage.value.dispose();
+          storage.value = _getStorage();
+        },
+      ),
       body: Stack(
         children: [
           ValueListenableBuilder(
@@ -106,83 +101,90 @@ class _State extends State<ControlPanel> {
               child: Viewer(
                 minScale: 1,
                 maxScale: 20,
-                child: EntityGraph(
-                  storage,
-                  setEditablePosition: (position) {
-                    editablePosition.value = position;
-                  },
+                child: ValueListenableBuilder(
+                  valueListenable: storage,
+                  builder: (context, storage, child) => EntityGraph(
+                    storage,
+                    setEditablePosition: (position) {
+                      editablePosition.value = position;
+                    },
+                  ),
                 ),
               ),
             ),
             sideChild: ValueListenableBuilder(
-              valueListenable: editablePosition,
-              builder: (context, sideBar, child) {
-                switch (editablePosition.value) {
-                  case null:
-                    return storageForm;
-                  case Position position:
-                    final listenableEntity =
-                        storage.getListenableEntity(position);
+              valueListenable: storage,
+              builder: (context, storage, child) => ValueListenableBuilder(
+                valueListenable: editablePosition,
+                builder: (context, sideBar, child) {
+                  switch (editablePosition.value) {
+                    case null:
+                      return storageForm;
+                    case Position position:
+                      final listenableEntity =
+                          storage.getListenableEntity(position);
 
-                    return ValueListenableBuilder(
-                      valueListenable: listenableEntity,
-                      builder: (context, entity, child) {
-                        return switch (entity) {
-                          TraversableEntity entity => ListenableBuilder(
-                              listenable: storage.entityInsightNotifier,
-                              builder: (child, context) => EntityForm(
-                                entity,
-                                position: position,
-                                hasTraveler: formHasTraveler,
-                                goBack: () {
-                                  editablePosition.value = null;
-                                },
-                                insight:
-                                    storage.getEntityInsight(entity.identity),
-                                changeName: (name) {
-                                  storage.changeName(position, name);
-                                },
-                                changeType: (type) {
-                                  storage.changeType(position, type);
-                                },
-                                toggleLost: (value) {
-                                  storage.toggleLost(position, value);
-                                },
-                                toggleCompromised: (value) {
-                                  storage.toggleCompromised(position, value);
-                                },
-                                addDependency: (factor, entity) {
-                                  storage.addDependency(
-                                    position,
-                                    factor,
-                                    entity,
-                                  );
-                                },
-                                addDependencyAsFactor: (dependency) {
-                                  storage.addDependencyAsFactor(
-                                    position,
-                                    entity: entity.identity,
-                                    dependency: dependency,
-                                  );
-                                },
-                                removeDependency: (factor, entity) {
-                                  storage.removeDependency(
-                                    position,
-                                    factor,
-                                    entity,
-                                  );
-                                },
-                                addFactor: () {
-                                  storage.addFactor(position, entity.identity);
-                                },
+                      return ValueListenableBuilder(
+                        valueListenable: listenableEntity,
+                        builder: (context, entity, child) {
+                          return switch (entity) {
+                            TraversableEntity entity => ListenableBuilder(
+                                listenable: storage.entityInsightNotifier,
+                                builder: (child, context) => EntityForm(
+                                  entity,
+                                  position: position,
+                                  hasTraveler: formHasTraveler,
+                                  goBack: () {
+                                    editablePosition.value = null;
+                                  },
+                                  insight:
+                                      storage.getEntityInsight(entity.identity),
+                                  changeName: (name) {
+                                    storage.changeName(position, name);
+                                  },
+                                  changeType: (type) {
+                                    storage.changeType(position, type);
+                                  },
+                                  toggleLost: (value) {
+                                    storage.toggleLost(position, value);
+                                  },
+                                  toggleCompromised: (value) {
+                                    storage.toggleCompromised(position, value);
+                                  },
+                                  addDependency: (factor, entity) {
+                                    storage.addDependency(
+                                      position,
+                                      factor,
+                                      entity,
+                                    );
+                                  },
+                                  addDependencyAsFactor: (dependency) {
+                                    storage.addDependencyAsFactor(
+                                      position,
+                                      entity: entity.identity,
+                                      dependency: dependency,
+                                    );
+                                  },
+                                  removeDependency: (factor, entity) {
+                                    storage.removeDependency(
+                                      position,
+                                      factor,
+                                      entity,
+                                    );
+                                  },
+                                  addFactor: () {
+                                    storage.addFactor(
+                                        position, entity.identity);
+                                  },
+                                ),
                               ),
-                            ),
-                          null => storageForm,
-                        };
-                      },
-                    );
-                }
-              },
+                            null => storageForm,
+                          };
+                        },
+                      );
+                  }
+                },
+              ),
             ),
           ),
         ],
@@ -218,11 +220,12 @@ class _State extends State<ControlPanel> {
               onAccept: (traveler) {
                 switch (traveler) {
                   case EntityTraveler traveler:
-                    storage.deleteEntity(traveler.position);
+                    storage.value.deleteEntity(traveler.position);
                   case FactorTraveler traveler:
-                    storage.removeFactor(traveler.position, traveler.factor);
+                    storage.value
+                        .removeFactor(traveler.position, traveler.factor);
                   case DependencyTraveler traveler:
-                    storage.removeDependency(
+                    storage.value.removeDependency(
                       traveler.position,
                       traveler.factor,
                       traveler.entity,
