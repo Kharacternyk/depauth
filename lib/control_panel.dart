@@ -4,6 +4,7 @@ import 'package:path/path.dart';
 
 import 'core/insightful_storage.dart';
 import 'core/position.dart';
+import 'core/storage_insight.dart';
 import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
 import 'entity_form.dart';
@@ -66,17 +67,15 @@ class _State extends State<ControlPanel> {
   build(BuildContext context) {
     final messages = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
-    final storageForm = ValueListenableBuilder(
-      valueListenable: storage,
-      builder: (context, storage, child) => ValueListenableBuilder(
-        valueListenable: storage.storageInsight,
-        builder: (context, value, child) => StorageForm(
-          insight: value,
+    final storageForm = (InsightfulStorage storage) {
+      return (StorageInsight insight) {
+        return StorageForm(
+          insight: insight,
           resetLoss: storage.resetLoss,
           resetCompromise: storage.resetCompromise,
-        ),
-      ),
-    );
+        );
+      }.listen(storage.storageInsight);
+    }.listen(storage);
 
     return Scaffold(
       drawer: MenuDrawer(
@@ -89,118 +88,106 @@ class _State extends State<ControlPanel> {
       ),
       body: Stack(
         children: [
-          ValueListenableBuilder(
-            valueListenable: formHasTraveler,
-            builder: (context, value, child) {
-              return Ink(
-                color: value ? colors.primaryContainer : colors.surfaceVariant,
-              );
-            },
-          ),
+          (bool formHasTraveler) {
+            return Ink(
+              color: formHasTraveler
+                  ? colors.primaryContainer
+                  : colors.surfaceVariant,
+            );
+          }.listen(formHasTraveler),
           SplitView(
             mainChild: Material(
               child: Viewer(
                 minScale: 1,
                 maxScale: 20,
-                child: ValueListenableBuilder(
-                  valueListenable: storage,
-                  builder: (context, storage, child) => EntityGraph(
+                child: (InsightfulStorage storage) {
+                  return EntityGraph(
                     storage,
                     setEditablePosition: (position) {
                       editablePosition.value = position;
                     },
-                  ),
-                ),
+                  );
+                }.listen(storage),
               ),
             ),
-            sideChild: ValueListenableBuilder(
-              valueListenable: storage,
-              builder: (context, storage, child) => ValueListenableBuilder(
-                valueListenable: editablePosition,
-                builder: (context, sideBar, child) {
-                  switch (editablePosition.value) {
-                    case null:
-                      return storageForm;
-                    case Position position:
-                      final listenableEntity =
-                          storage.getListenableEntity(position);
+            sideChild: (InsightfulStorage storage) {
+              return (Position? position) {
+                switch (position) {
+                  case null:
+                    return storageForm;
+                  case Position position:
+                    final listenableEntity =
+                        storage.getListenableEntity(position);
 
-                      return ValueListenableBuilder(
-                        valueListenable: listenableEntity,
-                        builder: (context, entity, child) {
-                          return switch (entity) {
-                            TraversableEntity entity => ListenableBuilder(
-                                listenable: storage.entityInsightNotifier,
-                                builder: (child, context) => EntityForm(
+                    return (TraversableEntity? entity) {
+                      return switch (entity) {
+                        TraversableEntity entity => () {
+                            return EntityForm(
+                              entity,
+                              position: position,
+                              hasTraveler: formHasTraveler,
+                              goBack: () {
+                                editablePosition.value = null;
+                              },
+                              insight:
+                                  storage.getEntityInsight(entity.identity),
+                              changeName: (name) {
+                                storage.changeName(position, name);
+                              },
+                              changeType: (type) {
+                                storage.changeType(position, type);
+                              },
+                              toggleLost: (value) {
+                                storage.toggleLost(position, value);
+                              },
+                              toggleCompromised: (value) {
+                                storage.toggleCompromised(position, value);
+                              },
+                              addDependency: (factor, entity) {
+                                storage.addDependency(
+                                  position,
+                                  factor,
                                   entity,
-                                  position: position,
-                                  hasTraveler: formHasTraveler,
-                                  goBack: () {
-                                    editablePosition.value = null;
-                                  },
-                                  insight:
-                                      storage.getEntityInsight(entity.identity),
-                                  changeName: (name) {
-                                    storage.changeName(position, name);
-                                  },
-                                  changeType: (type) {
-                                    storage.changeType(position, type);
-                                  },
-                                  toggleLost: (value) {
-                                    storage.toggleLost(position, value);
-                                  },
-                                  toggleCompromised: (value) {
-                                    storage.toggleCompromised(position, value);
-                                  },
-                                  addDependency: (factor, entity) {
-                                    storage.addDependency(
-                                      position,
-                                      factor,
-                                      entity,
-                                    );
-                                  },
-                                  addDependencyAsFactor: (dependency) {
-                                    storage.addDependencyAsFactor(
-                                      position,
-                                      entity: entity.identity,
-                                      dependency: dependency,
-                                    );
-                                  },
-                                  removeDependency: (factor, entity) {
-                                    storage.removeDependency(
-                                      position,
-                                      factor,
-                                      entity,
-                                    );
-                                  },
-                                  addFactor: () {
-                                    storage.addFactor(
-                                        position, entity.identity);
-                                  },
-                                ),
-                              ),
-                            null => storageForm,
-                          };
-                        },
-                      );
-                  }
-                },
-              ),
-            ),
+                                );
+                              },
+                              addDependencyAsFactor: (dependency) {
+                                storage.addDependencyAsFactor(
+                                  position,
+                                  entity: entity.identity,
+                                  dependency: dependency,
+                                );
+                              },
+                              removeDependency: (factor, entity) {
+                                storage.removeDependency(
+                                  position,
+                                  factor,
+                                  entity,
+                                );
+                              },
+                              addFactor: () {
+                                storage.addFactor(position, entity.identity);
+                              },
+                            );
+                          }.listen(storage.entityInsightNotifier),
+                        null => storageForm,
+                      };
+                    }.listen(listenableEntity);
+                }
+              }.listen(editablePosition);
+            }.listen(storage),
           ),
         ],
       ),
       bottomNavigationBar: BottomAppBar(
         child: [
           const DrawerButton(),
-          ValueListenableBuilder(
-            valueListenable: storage,
-            builder: (context, storage, child) => Text(
+          (storage) {
+            return Text(
               storageName,
               overflow: TextOverflow.fade,
               softWrap: false,
-            ).expand(),
-          ),
+            ).expand();
+          }.listen(storage),
           DragTarget<DeletableTraveler>(
             builder: (context, candidate, rejected) {
               return FloatingActionButton(

@@ -14,18 +14,12 @@ class EntityPlaceholder<DragDataType extends Object> extends StatelessWidget {
 
   @override
   build(context) {
-    return Expanded(
-      child: DragTarget(
-        builder: (context, candidate, rejected) => SizedBox.expand(
-          child: candidate.isNotEmpty
-              ? Ink(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  child: icon.fit(),
-                )
-              : null,
-        ),
-        onAccept: onDragAccepted,
-      ),
-    );
+    return DragTarget(
+      builder: (context, candidate, rejected) => Ink(
+        color: Theme.of(context).colorScheme.primaryContainer,
+        child: icon.fit(),
+      ).hideIf(candidate.isEmpty),
+      onAccept: onDragAccepted,
+    ).expand();
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_gen/gen_l10n/messages.dart';
 import 'package:widget_arrows/widget_arrows.dart';
 
 import 'boundary_icon.dart';
+import 'core/boundaries.dart';
 import 'core/insightful_storage.dart';
 import 'core/position.dart';
 import 'core/traveler.dart';
@@ -24,82 +25,67 @@ class EntityGraph extends StatelessWidget {
 
   @override
   build(context) {
-    return ValueListenableBuilder(
-      valueListenable: storage.boundaries,
-      builder: (context, boundaries, child) {
-        final rows = <Expanded>[];
+    return (Boundaries boundaries) {
+      final rows = <Expanded>[];
 
-        for (var y = boundaries.start.y; y <= boundaries.end.y; ++y) {
-          final row = <Widget>[];
+      for (var y = boundaries.start.y; y <= boundaries.end.y; ++y) {
+        final row = <Widget>[];
 
-          for (var x = boundaries.start.x; x <= boundaries.end.x; ++x) {
-            final position = Position(x, y);
-            final listenableEntity = storage.getListenableEntity(position);
+        for (var x = boundaries.start.x; x <= boundaries.end.x; ++x) {
+          final position = Position(x, y);
+          final listenableEntity = storage.getListenableEntity(position);
 
-            row.add(
-              ValueListenableBuilder(
-                key: ValueKey(x),
-                valueListenable: listenableEntity,
-                builder: (context, entity, child) {
-                  return switch (entity) {
-                    TraversableEntity entity => Expanded(
-                        child: ListenableBuilder(
-                          listenable: storage.entityInsightNotifier,
-                          builder: (context, child) => ScaledDraggable(
-                            keepsSpace: false,
-                            dragData: EntityTraveler(position, entity.identity),
-                            child: EntityCard(
-                              entity,
-                              insight:
-                                  storage.getEntityInsight(entity.identity),
-                              onTap: () {
-                                setEditablePosition(position);
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    null => EntityPlaceholder<GrabbableTraveler>(
-                        onDragAccepted: (source) {
-                          switch (source) {
-                            case EntityTraveler source:
-                              storage.moveEntity(
-                                  from: source.position, to: position);
-                              setEditablePosition(position);
-                            case CreationTraveler _:
-                              storage.createEntity(
-                                position,
-                                AppLocalizations.of(context)!.newEntity,
-                              );
-                              setEditablePosition(position);
-                          }
-                        },
-                        icon: BoundaryIcon(boundaries, position),
-                      ),
-                  };
-                },
-              ),
-            );
-          }
-
-          rows.add(Expanded(key: ValueKey(y), child: Row(children: row)));
+          row.add((TraversableEntity? entity) {
+            return switch (entity) {
+              TraversableEntity entity => () {
+                  return ScaledDraggable(
+                    keepsSpace: false,
+                    dragData: EntityTraveler(position, entity.identity),
+                    child: EntityCard(
+                      entity,
+                      insight: storage.getEntityInsight(entity.identity),
+                      onTap: () {
+                        setEditablePosition(position);
+                      },
+                    ),
+                  ).expand();
+                }.listen(storage.entityInsightNotifier),
+              null => EntityPlaceholder<GrabbableTraveler>(
+                  onDragAccepted: (source) {
+                    switch (source) {
+                      case EntityTraveler source:
+                        storage.moveEntity(from: source.position, to: position);
+                        setEditablePosition(position);
+                      case CreationTraveler _:
+                        storage.createEntity(
+                          position,
+                          AppLocalizations.of(context)!.newEntity,
+                        );
+                        setEditablePosition(position);
+                    }
+                  },
+                  icon: BoundaryIcon(boundaries, position),
+                ),
+            };
+          }.listen(key: ValueKey(x), listenableEntity));
         }
 
-        final graph = IconTheme(
-          data: IconThemeData(
-            color: Theme.of(context).colorScheme.onPrimaryContainer,
-          ),
-          child: rows.toColumn(),
-        );
+        rows.add(row.toRow().expand(key: ValueKey(y)));
+      }
 
-        return ListenableBuilder(
-          listenable: storage.dependencyChangeNotifier,
-          builder: (context, child) => ArrowContainer(
-            key: UniqueKey(),
-            child: graph,
-          ),
+      final graph = IconTheme(
+        data: IconThemeData(
+          color: Theme.of(context).colorScheme.onPrimaryContainer,
+        ),
+        child: rows.toColumn(),
+      );
+
+      return () {
+        return ArrowContainer(
+          key: UniqueKey(),
+          child: graph,
         );
-      },
-    );
+      }.listen(storage.dependencyChangeNotifier);
+    }.listen(storage.boundaries);
   }
 }

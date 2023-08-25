@@ -6,6 +6,7 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'control_panel.dart';
+import 'widget_extension.dart';
 
 void main() {
   runApp(const App());
@@ -41,19 +42,16 @@ class _State extends State<App> {
         ),
         useMaterial3: true,
       ),
-      home: ValueListenableBuilder(
-        valueListenable: workingDirectory,
-        builder: (context, workingDirectory, child) {
-          return switch (workingDirectory) {
-            String workingDirectory => ControlPanel(
-                workingDirectory: workingDirectory,
-                storageNames: storageNames,
-                storageName: 'Personal',
-              ),
-            null => const Center(child: CircularProgressIndicator()),
-          };
-        },
-      ),
+      home: (String? workingDirectory) {
+        return switch (workingDirectory) {
+          String workingDirectory => ControlPanel(
+              workingDirectory: workingDirectory,
+              storageNames: storageNames,
+              storageName: 'Personal',
+            ),
+          null => const Center(child: CircularProgressIndicator()),
+        };
+      }.listen(workingDirectory),
     );
   }
 
