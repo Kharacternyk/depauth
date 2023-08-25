@@ -80,12 +80,7 @@ class EntityGraph extends StatelessWidget {
         child: rows.toColumn(),
       );
 
-      return () {
-        return ArrowContainer(
-          key: UniqueKey(),
-          child: graph,
-        );
-      }.listen(storage.dependencyChangeNotifier);
+      return ArrowContainer(child: graph);
     }.listen(storage.boundaries);
   }
 }

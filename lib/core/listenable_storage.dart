@@ -20,7 +20,6 @@ class ListenableStorage extends Storage {
   late final ValueNotifier<Boundaries> boundaries = ValueNotifier(
     super.getBoundaries(),
   );
-  final dependencyChangeNotifier = _ChangeNotifier();
 
   ValueNotifier<TraversableEntity?> getListenableEntity(Position position) {
     return switch (_entities[position]) {
@@ -94,7 +93,6 @@ class ListenableStorage extends Storage {
   void changeType(Position position, EntityType type) {
     super.changeType(position, type);
     _updateEntities([position].followedBy(getDependantPositions(position)));
-    _updateDependencies();
   }
 
   @override
@@ -121,7 +119,6 @@ class ListenableStorage extends Storage {
       dependency: dependency,
     );
     _updateEntities([position]);
-    _updateDependencies();
   }
 
   @override
@@ -132,7 +129,6 @@ class ListenableStorage extends Storage {
   ) {
     super.addDependency(position, factor, entity);
     _updateEntities([position]);
-    _updateDependencies();
   }
 
   @override
@@ -143,7 +139,6 @@ class ListenableStorage extends Storage {
   ) {
     super.removeDependency(position, factor, entity);
     _updateEntities([position]);
-    _updateDependencies();
   }
 
   @override
@@ -156,7 +151,6 @@ class ListenableStorage extends Storage {
   void removeFactor(Position position, Identity<Factor> factor) {
     super.removeFactor(position, factor);
     _updateEntities([position]);
-    _updateDependencies();
   }
 
   @override
@@ -173,10 +167,6 @@ class ListenableStorage extends Storage {
     _updateEntities(positions);
   }
 
-  void _updateDependencies() {
-    dependencyChangeNotifier._update();
-  }
-
   void _updateBoundaries() {
     boundaries.value = super.getBoundaries();
   }
@@ -185,11 +175,5 @@ class ListenableStorage extends Storage {
     for (final position in positions) {
       _entities[position]?.target?.value = super.getEntity(position);
     }
-  }
-}
-
-class _ChangeNotifier extends ChangeNotifier {
-  void _update() {
-    notifyListeners();
   }
 }
