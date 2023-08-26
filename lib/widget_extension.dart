@@ -10,6 +10,8 @@ extension WidgetExtension on Widget {
   Card toCard({Key? key}) => Card(key: key, child: this);
   Opacity hideIf(bool condition, {Key? key}) =>
       Opacity(opacity: condition ? 0 : 1, key: key, child: this);
+  Tooltip tip(String message, {Key? key}) =>
+      Tooltip(message: message, child: this);
 }
 
 extension WidgetListExtension on List<Widget> {

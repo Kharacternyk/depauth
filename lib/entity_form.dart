@@ -84,29 +84,20 @@ class _State extends State<EntityForm> {
           spacing: 4,
           runSpacing: 4,
           children: [
-            Tooltip(
-              message: messages.ancestorCount,
-              child: Chip(
-                avatar: const Icon(Icons.arrow_upward),
-                label: Text(widget.insight.ancestorCount.toString()),
+            Chip(
+              avatar: const Icon(Icons.arrow_upward),
+              label: Text(widget.insight.ancestorCount.toString()),
+            ).tip(messages.ancestorCount),
+            Chip(
+              avatar: const Icon(Icons.arrow_downward),
+              label: Text(widget.insight.descendantCount.toString()),
+            ).tip(messages.descendantCount),
+            Chip(
+              avatar: const Icon(Icons.swap_vert),
+              label: Text(
+                '${(widget.insight.coupling * 100).toStringAsFixed(0)}%',
               ),
-            ),
-            Tooltip(
-              message: messages.descendantCount,
-              child: Chip(
-                avatar: const Icon(Icons.arrow_downward),
-                label: Text(widget.insight.descendantCount.toString()),
-              ),
-            ),
-            Tooltip(
-              message: messages.couplingTooltip,
-              child: Chip(
-                avatar: const Icon(Icons.swap_vert),
-                label: Text(
-                  '${(widget.insight.coupling * 100).toStringAsFixed(0)}%',
-                ),
-              ),
-            ),
+            ).tip(messages.couplingTooltip),
           ],
         ),
         onTap: widget.goBack,
@@ -163,18 +154,13 @@ class _State extends State<EntityForm> {
           softWrap: false,
         ),
         subtitle: widget.insight.hasLostFactor
-            ? Tooltip(
-                message: messages.automaticallyLost,
-                child: Row(
-                  children: [
-                    Text(messages.automatically),
-                    const Icon(
-                      Icons.info_outlined,
-                      size: 16,
-                    ),
-                  ],
+            ? [
+                Text(messages.automatically),
+                const Icon(
+                  Icons.info_outlined,
+                  size: 16,
                 ),
-              )
+              ].toRow().tip(messages.automaticallyLost)
             : null,
         activeColor: colors.error,
         value: widget.entity.lost,
@@ -191,18 +177,13 @@ class _State extends State<EntityForm> {
           softWrap: false,
         ),
         subtitle: widget.insight.areAllFactorsCompromised
-            ? Tooltip(
-                message: messages.automaticallyCompromised,
-                child: Row(
-                  children: [
-                    Text(messages.automatically),
-                    const Icon(
-                      Icons.info_outlined,
-                      size: 16,
-                    ),
-                  ],
+            ? [
+                Text(messages.automatically),
+                const Icon(
+                  Icons.info_outlined,
+                  size: 16,
                 ),
-              )
+              ].toRow().tip(messages.automaticallyCompromised)
             : null,
         activeColor: colors.error,
         value: widget.entity.compromised,
