@@ -54,10 +54,13 @@ class _State extends State<ControlPanel> {
     storage.value = _getStorage();
   }
 
+  String get _storagePath =>
+      join(widget.workingDirectory, '$storageName.depauth');
+
   InsightfulStorage _getStorage() {
     storageNames.add(storageName);
     return InsightfulStorage(
-      join(widget.workingDirectory, '$storageName.depauth'),
+      _storagePath,
       entityDuplicatePrefix: ' (',
       entityDuplicateSuffix: ')',
     );
@@ -186,8 +189,9 @@ class _State extends State<ControlPanel> {
               storageName,
               overflow: TextOverflow.fade,
               softWrap: false,
-            ).expand();
+            ).tip(_storagePath);
           }.listen(storage),
+          const Spacer(),
           DragTarget<DeletableTraveler>(
             builder: (context, candidate, rejected) {
               return FloatingActionButton(
