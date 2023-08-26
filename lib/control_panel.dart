@@ -189,9 +189,8 @@ class _State extends State<ControlPanel> {
               storageName,
               overflow: TextOverflow.fade,
               softWrap: false,
-            ).tip(_storagePath);
-          }.listen(storage),
-          const Spacer(),
+            );
+          }.listen(storage).tip(_storagePath).expand(),
           DragTarget<DeletableTraveler>(
             builder: (context, candidate, rejected) {
               return FloatingActionButton(
