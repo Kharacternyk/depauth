@@ -11,7 +11,9 @@ extension WidgetExtension on Widget {
   Opacity hideIf(bool condition, {Key? key}) =>
       Opacity(opacity: condition ? 0 : 1, key: key, child: this);
   Tooltip tip(String message, {Key? key}) =>
-      Tooltip(message: message, child: this);
+      Tooltip(message: message, key: key, child: this);
+  FocusTraversalGroup group({Key? key}) =>
+      FocusTraversalGroup(key: key, child: this);
 }
 
 extension WidgetListExtension on List<Widget> {

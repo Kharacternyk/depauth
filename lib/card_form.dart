@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'widget_extension.dart';
+
 class CardForm extends StatelessWidget {
   final List<Widget> children;
 
@@ -16,6 +18,6 @@ class CardForm extends StatelessWidget {
       child: ListView(
         children: children,
       ),
-    );
+    ).group();
   }
 }
