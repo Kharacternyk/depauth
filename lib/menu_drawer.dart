@@ -25,14 +25,25 @@ class MenuDrawer extends StatelessWidget {
       );
     }).toList();
 
-    return NavigationDrawer(
-      children: [
-        const DrawerHeader(child: Logotype()),
-        ...destinations,
-        const AboutListTile(
-          icon: Icon(Icons.info),
-        ),
-      ],
+    return Drawer(
+      child: ListView(
+        children: [
+          DrawerHeader(
+            padding: EdgeInsets.zero,
+            child: Ink(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              child: const Padding(
+                padding: EdgeInsets.all(8),
+                child: Logotype(),
+              ),
+            ),
+          ),
+          ...destinations,
+          const AboutListTile(
+            icon: Icon(Icons.info),
+          ),
+        ],
+      ),
     );
   }
 }
