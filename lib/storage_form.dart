@@ -24,17 +24,17 @@ class StorageForm extends StatelessWidget {
       ListTile(
         leading: const Icon(Icons.numbers),
         title: Text(insight.entityCount.toString()),
-      ).toCard(),
+      ).card,
       ListTile(
         leading: const Icon(Icons.where_to_vote),
         title: Text(messages.resetLoss),
         onTap: resetLoss,
-      ).toCard(),
+      ).card,
       ListTile(
         leading: const Icon(Icons.report_off),
         title: Text(messages.resetCompromise),
         onTap: resetCompromise,
-      ).toCard(),
+      ).card,
     ]);
   }
 }

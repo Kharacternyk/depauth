@@ -37,11 +37,11 @@ class EntityCard extends StatelessWidget {
               dependency.type,
               padding: padding,
             ),
-          ).expand(key: ValueKey((factor.identity, dependency.identity))),
+          ).expand().keyed(ValueKey((factor.identity, dependency.identity))),
         );
       }
       dependencyIcons.add(
-        const Icon(Icons.add).pad(padding).fit().grow().expand(),
+        const Icon(Icons.add).pad(padding).fit.grow.expand(),
       );
     }
 
@@ -65,16 +65,16 @@ class EntityCard extends StatelessWidget {
             child: InkWell(
               onTap: onTap,
               child: [
-                if (entity.factors.isNotEmpty) dependencyIcons.toRow().expand(),
-                Text(entity.name).pad(padding).fit().expand(),
+                if (entity.factors.isNotEmpty) dependencyIcons.row.expand(),
+                Text(entity.name).pad(padding).fit.expand(),
                 EntityIcon(
                   entity.type,
                   padding: padding,
                 ).expand(),
-              ].toColumn(),
+              ].column,
             ),
           ),
-        ).expand(flex: 6),
+        ).expand(6),
         [
           Spacer(flex: lost ? 1 : 2),
           lost || compromised
@@ -85,21 +85,19 @@ class EntityCard extends StatelessWidget {
                       Icon(
                         Icons.not_listed_location,
                         color: colors.onError,
-                      ).fit().grow().expand(),
+                      ).fit.grow.expand(),
                     if (compromised)
                       Icon(
                         Icons.report,
                         color: colors.onError,
-                      ).fit().grow().expand(),
-                  ].toColumn(),
-                ).expand(
-                  flex: lost && compromised ? 2 : 1,
-                )
+                      ).fit.grow.expand(),
+                  ].column,
+                ).expand(lost && compromised ? 2 : 1)
               : const SizedBox.shrink(),
           Spacer(flex: compromised ? 1 : 2),
-        ].toColumn().expand(),
-      ].toRow().expand(flex: 6),
+        ].column.expand(),
+      ].row.expand(6),
       const Spacer(),
-    ].toColumn();
+    ].column;
   }
 }

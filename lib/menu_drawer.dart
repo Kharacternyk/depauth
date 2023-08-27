@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'logotype.dart';
+import 'widget_extension.dart';
 
 class MenuDrawer extends StatelessWidget {
   final Iterable<String> fileDestinations;
@@ -32,10 +33,7 @@ class MenuDrawer extends StatelessWidget {
             padding: EdgeInsets.zero,
             child: Ink(
               color: Theme.of(context).colorScheme.primaryContainer,
-              child: const Padding(
-                padding: EdgeInsets.all(8),
-                child: Logotype(),
-              ),
+              child: const Logotype().pad(const EdgeInsets.all(8)),
             ),
           ),
           ...destinations,

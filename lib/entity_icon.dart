@@ -19,7 +19,7 @@ class EntityIcon extends StatelessWidget {
       child: Icon(
         theme.icon,
         color: theme.foreground,
-      ).pad(padding).fit().grow(),
+      ).pad(padding).fit.grow,
     );
   }
 }

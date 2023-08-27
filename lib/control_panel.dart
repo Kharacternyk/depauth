@@ -248,7 +248,7 @@ class _State extends State<ControlPanel> {
               child: const Icon(Icons.add),
             ),
           ),
-        ].toRow().group(),
+        ].row.group,
       ),
     );
   }

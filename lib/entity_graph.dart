@@ -26,7 +26,7 @@ class EntityGraph extends StatelessWidget {
   @override
   build(context) {
     return (Boundaries boundaries) {
-      final rows = <Expanded>[];
+      final rows = <Widget>[];
 
       for (var y = boundaries.start.y; y <= boundaries.end.y; ++y) {
         final row = <Widget>[];
@@ -35,52 +35,55 @@ class EntityGraph extends StatelessWidget {
           final position = Position(x, y);
           final listenableEntity = storage.getListenableEntity(position);
 
-          row.add((TraversableEntity? entity) {
-            return switch (entity) {
-              TraversableEntity entity => () {
-                  return ScaledDraggable(
-                    keepsSpace: false,
-                    dragData: EntityTraveler(position, entity.identity),
-                    child: EntityCard(
-                      entity,
-                      insight: storage.getEntityInsight(entity.identity),
-                      onTap: () {
-                        setEditablePosition(position);
-                      },
-                    ),
-                  ).expand();
-                }.listen(storage.entityInsightNotifier),
-              null => EntityPlaceholder<GrabbableTraveler>(
-                  onDragAccepted: (source) {
-                    switch (source) {
-                      case EntityTraveler source:
-                        storage.moveEntity(from: source.position, to: position);
-                        setEditablePosition(position);
-                      case CreationTraveler _:
-                        storage.createEntity(
-                          position,
-                          AppLocalizations.of(context)!.newEntity,
-                        );
-                        setEditablePosition(position);
-                    }
-                  },
-                  icon: BoundaryIcon(boundaries, position),
-                ),
-            };
-          }.listen(key: ValueKey(x), listenableEntity));
+          row.add(
+            (TraversableEntity? entity) {
+              return switch (entity) {
+                TraversableEntity entity => () {
+                    return ScaledDraggable(
+                      keepsSpace: false,
+                      dragData: EntityTraveler(position, entity.identity),
+                      child: EntityCard(
+                        entity,
+                        insight: storage.getEntityInsight(entity.identity),
+                        onTap: () {
+                          setEditablePosition(position);
+                        },
+                      ),
+                    ).expand();
+                  }.listen(storage.entityInsightNotifier),
+                null => EntityPlaceholder<GrabbableTraveler>(
+                    onDragAccepted: (source) {
+                      switch (source) {
+                        case EntityTraveler source:
+                          storage.moveEntity(
+                              from: source.position, to: position);
+                          setEditablePosition(position);
+                        case CreationTraveler _:
+                          storage.createEntity(
+                            position,
+                            AppLocalizations.of(context)!.newEntity,
+                          );
+                          setEditablePosition(position);
+                      }
+                    },
+                    icon: BoundaryIcon(boundaries, position),
+                  ),
+              };
+            }.listen(listenableEntity).keyed(ValueKey(x)),
+          );
         }
 
-        rows.add(row.toRow().expand(key: ValueKey(y)));
+        rows.add(row.row.expand().keyed(ValueKey(y)));
       }
 
       final graph = IconTheme(
         data: IconThemeData(
           color: Theme.of(context).colorScheme.onPrimaryContainer,
         ),
-        child: rows.toColumn(),
+        child: rows.column,
       );
 
       return ArrowContainer(child: graph);
-    }.listen(storage.boundaries).group();
+    }.listen(storage.boundaries).group;
   }
 }

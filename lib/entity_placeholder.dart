@@ -17,7 +17,7 @@ class EntityPlaceholder<DragDataType extends Object> extends StatelessWidget {
     return DragTarget(
       builder: (context, candidate, rejected) => Ink(
         color: Theme.of(context).colorScheme.primaryContainer,
-        child: icon.fit(),
+        child: icon.fit,
       ).hideIf(candidate.isEmpty),
       onAccept: onDragAccepted,
     ).expand();

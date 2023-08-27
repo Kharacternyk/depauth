@@ -101,7 +101,7 @@ class _State extends State<EntityForm> {
           ],
         ),
         onTap: widget.goBack,
-      ).toCard(),
+      ).card,
       ListTile(
         leading: const Icon(Icons.edit),
         title: TextField(
@@ -116,7 +116,7 @@ class _State extends State<EntityForm> {
             hintText: messages.name,
           ),
         ),
-      ).toCard(),
+      ).card,
       ListTile(
         leading: const Icon(Icons.category),
         title: DropdownButtonHideUnderline(
@@ -146,7 +146,7 @@ class _State extends State<EntityForm> {
             value: widget.entity.type,
           ),
         ),
-      ).toCard(),
+      ).card,
       CheckboxListTile(
         title: Text(
           messages.lost,
@@ -160,7 +160,7 @@ class _State extends State<EntityForm> {
                   Icons.info_outlined,
                   size: 16,
                 ),
-              ].toRow().tip(messages.automaticallyLost)
+              ].row.tip(messages.automaticallyLost)
             : null,
         activeColor: colors.error,
         value: widget.entity.lost,
@@ -169,7 +169,7 @@ class _State extends State<EntityForm> {
         onChanged: (value) {
           widget.toggleLost(value ?? false);
         },
-      ).toCard(),
+      ).card,
       CheckboxListTile(
         title: Text(
           messages.compromised,
@@ -183,7 +183,7 @@ class _State extends State<EntityForm> {
                   Icons.info_outlined,
                   size: 16,
                 ),
-              ].toRow().tip(messages.automaticallyCompromised)
+              ].row.tip(messages.automaticallyCompromised)
             : null,
         activeColor: colors.error,
         value: widget.entity.compromised,
@@ -193,7 +193,7 @@ class _State extends State<EntityForm> {
         onChanged: (value) {
           widget.toggleCompromised(value ?? false);
         },
-      ).toCard(),
+      ).card,
       for (final (index, factor) in enumerate(widget.entity.factors))
         DragTarget<DependableTraveler>(
           key: ValueKey(factor.identity),
@@ -274,7 +274,7 @@ class _State extends State<EntityForm> {
                   label: const Text("+"),
                   child: const Icon(Icons.link),
                 ),
-              ).toCard(),
+              ).card,
           ],
         );
       },

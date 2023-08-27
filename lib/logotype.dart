@@ -13,6 +13,6 @@ class Logotype extends StatelessWidget {
         DefaultAssetBundle.of(context),
         'assets/logo.si',
       ),
-    ).fit();
+    ).fit;
   }
 }

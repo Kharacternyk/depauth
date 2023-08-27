@@ -18,6 +18,6 @@ class CardForm extends StatelessWidget {
       child: ListView(
         children: children,
       ),
-    ).group();
+    ).group;
   }
 }
