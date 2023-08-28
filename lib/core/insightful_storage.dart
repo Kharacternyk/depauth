@@ -7,6 +7,7 @@ import 'listenable_storage.dart';
 import 'position.dart';
 import 'storage.dart';
 import 'storage_insight.dart';
+import 'tertiary_set.dart';
 
 class InsightfulStorage extends ListenableStorage {
   final entityInsightNotifier = _ChangeNotifier();
@@ -16,12 +17,12 @@ class InsightfulStorage extends ListenableStorage {
     ),
   );
 
-  final Map<Identity<Entity>, bool> _entityLoss = {};
-  final Map<Identity<Factor>, bool> _factorLoss = {};
-  final Map<Identity<Entity>, bool> _entityCompromise = {};
-  final Map<Identity<Factor>, bool> _factorCompromise = {};
-  final Map<Identity<Entity>, Set<Identity<Entity>>> _ancestors = {};
-  final Map<Identity<Entity>, Set<Identity<Entity>>> _descendants = {};
+  final _entityLoss = TertiarySet<Identity<Entity>>();
+  final _factorLoss = TertiarySet<Identity<Factor>>();
+  final _entityCompromise = TertiarySet<Identity<Entity>>();
+  final _factorCompromise = TertiarySet<Identity<Factor>>();
+  final _ancestors = <Identity<Entity>, Set<Identity<Entity>>>{};
+  final _descendants = <Identity<Entity>, Set<Identity<Entity>>>{};
 
   InsightfulStorage(
     super.path, {
@@ -331,24 +332,16 @@ class InsightfulStorage extends ListenableStorage {
   @override
   void resetLoss() {
     super.resetLoss();
-    for (final entity in _entityLoss.keys) {
-      _entityLoss[entity] = false;
-    }
-    for (final factor in _factorLoss.keys) {
-      _factorLoss[factor] = false;
-    }
+    _entityLoss.makeAllFalse();
+    _factorLoss.makeAllFalse();
     _update();
   }
 
   @override
   void resetCompromise() {
     super.resetCompromise();
-    for (final entity in _entityCompromise.keys) {
-      _entityCompromise[entity] = false;
-    }
-    for (final factor in _factorCompromise.keys) {
-      _factorCompromise[factor] = false;
-    }
+    _entityLoss.makeAllFalse();
+    _factorLoss.makeAllFalse();
     _update();
   }
 
@@ -381,7 +374,7 @@ class InsightfulStorage extends ListenableStorage {
   void _clearLoss(Identity<Entity> entity, {bool includingSelf = true}) {
     for (final entity
         in _getDescendants(entity).followedBy([if (includingSelf) entity])) {
-      _entityLoss.remove(entity);
+      _entityLoss[entity] = null;
     }
     _factorLoss.clear();
   }
@@ -389,7 +382,7 @@ class InsightfulStorage extends ListenableStorage {
   void _clearCompromise(Identity<Entity> entity, {bool includingSelf = true}) {
     for (final entity
         in _getDescendants(entity).followedBy([if (includingSelf) entity])) {
-      _entityCompromise.remove(entity);
+      _entityCompromise[entity] = null;
     }
     _factorCompromise.clear();
   }
