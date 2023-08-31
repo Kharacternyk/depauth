@@ -8,8 +8,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_launcher_icons: ^0.13.1
   flutter_localizations:
     sdk: flutter
+  flutter_native_splash: ^2.3.2
   intl: any
   jovial_svg: ^1.1.15
   multi_split_view: ^2.4.0
@@ -29,3 +31,12 @@ flutter:
   generate: true
   assets:
     - assets/
+
+flutter_native_splash:
+  color: "#191c1e"
+
+flutter_launcher_icons:
+  android: true
+  image_path: misc/square.png
+  adaptive_icon_background: "#004d64"
+  adaptive_icon_foreground: misc/square.png

@@ -16,6 +16,7 @@
         platformVersions = [
           "33"
           "32"
+          "31"
         ];
         abiVersions = [
           "arveabi-v7a"
