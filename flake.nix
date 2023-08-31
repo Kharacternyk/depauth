@@ -10,8 +10,8 @@
       };
       sdk = (pkgs.androidenv.composeAndroidPackages {
         buildToolsVersions = [
+          "34.0.0"
           "30.0.3"
-          "28.0.3"
         ];
         platformVersions = [
           "33"
