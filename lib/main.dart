@@ -42,16 +42,18 @@ class _State extends State<App> {
         ),
         useMaterial3: true,
       ),
-      home: (String? workingDirectory) {
-        return switch (workingDirectory) {
-          String workingDirectory => ControlPanel(
-              workingDirectory: workingDirectory,
-              storageNames: storageNames,
-              storageName: 'Personal',
-            ),
-          null => const Center(child: CircularProgressIndicator()),
-        };
-      }.listen(workingDirectory),
+      home: SafeArea(
+        child: (String? workingDirectory) {
+          return switch (workingDirectory) {
+            String workingDirectory => ControlPanel(
+                workingDirectory: workingDirectory,
+                storageNames: storageNames,
+                storageName: 'Personal',
+              ),
+            null => const Center(child: CircularProgressIndicator()),
+          };
+        }.listen(workingDirectory),
+      ),
     );
   }
 
