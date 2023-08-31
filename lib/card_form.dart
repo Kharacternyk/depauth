@@ -9,6 +9,9 @@ class CardForm extends StatelessWidget {
 
   @override
   build(context) {
+    final orientation = MediaQuery.of(context).orientation;
+    const padding = 4.0;
+
     return ListTileTheme(
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(
@@ -16,6 +19,18 @@ class CardForm extends StatelessWidget {
         ),
       ),
       child: ListView(
+        padding: EdgeInsets.fromLTRB(
+          switch (orientation) {
+            Orientation.landscape => 0,
+            Orientation.portrait => padding,
+          },
+          switch (orientation) {
+            Orientation.landscape => padding,
+            Orientation.portrait => 0,
+          },
+          padding,
+          padding,
+        ),
         children: children,
       ),
     ).group;
