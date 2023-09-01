@@ -29,18 +29,15 @@ class ControlPanel extends StatefulWidget {
   });
 
   @override
-  createState() => _State(storageName, storageNames.toSet());
+  createState() => _State();
 }
 
 class _State extends State<ControlPanel> {
   final editablePosition = ValueNotifier<Position?>(null);
   final formHasTraveler = ValueNotifier<bool>(false);
   late final storage = ValueNotifier<InsightfulStorage>(_getStorage());
-
-  final Set<String> storageNames;
-  String storageName;
-
-  _State(this.storageName, this.storageNames);
+  late final storageNames = widget.storageNames.toSet();
+  late var storageName = widget.storageName;
 
   @override
   deactivate() {
