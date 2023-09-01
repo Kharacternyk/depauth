@@ -13,7 +13,7 @@
   "automatically": "Automatically",
   "lost": "Lost",
   "compromised": "Compromised",
-  "automaticallyLost": "This entity is lost because all entities  in at least one factor are lost.",
+  "automaticallyLost": "This entity is lost because all entities in at least one factor are lost.",
   "automaticallyCompromised": "This entity is compromised because all factors have at least one compromised entity.",
   "resetLoss": "Mark all as not lost",
   "resetCompromise": "Mark all as not compromised",
