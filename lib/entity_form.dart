@@ -7,6 +7,7 @@ import 'core/entity_insight.dart';
 import 'core/entity_type.dart';
 import 'core/enumerate.dart';
 import 'core/factor.dart';
+import 'core/interleave.dart';
 import 'core/position.dart';
 import 'core/storage.dart';
 import 'core/traveler.dart';
@@ -15,6 +16,7 @@ import 'debounced_text_field.dart';
 import 'entity_theme.dart';
 import 'entity_type_name.dart';
 import 'scaled_draggable.dart';
+import 'tip.dart';
 import 'widget_extension.dart';
 
 class EntityForm extends StatelessWidget {
@@ -165,71 +167,83 @@ class EntityForm extends StatelessWidget {
           toggleCompromised(value ?? false);
         },
       ).card,
-      for (final (index, factor) in enumerate(entity.factors))
-        DragTarget<DependableTraveler>(
-          key: ValueKey(factor.identity),
-          onAccept: (traveler) {
-            switch (traveler) {
-              case EntityTraveler traveler:
-                addDependency(factor.identity, traveler.entity);
-              case DependencyTraveler traveler:
-                removeDependency(traveler.factor, traveler.entity);
-                addDependency(factor.identity, traveler.entity);
-            }
-          },
-          builder: (context, candidate, rejected) {
-            return ScaledDraggable(
-              dragData: FactorTraveler(position, factor.identity),
-              child: Card(
-                color: candidate.isNotEmpty ? colors.primaryContainer : null,
-                child: ListTile(
-                  mouseCursor: candidate.isNotEmpty
-                      ? SystemMouseCursors.copy
-                      : SystemMouseCursors.grab,
-                  leading: Badge(
-                    isLabelVisible: entity.factors.length > 1,
-                    backgroundColor: colors.primaryContainer,
-                    textColor: colors.onPrimaryContainer,
-                    label: Text((index + 1).toString()),
-                    child: const Icon(Icons.link),
-                  ),
-                  title: factor.dependencies.isNotEmpty
-                      ? Wrap(
-                          spacing: 4,
-                          runSpacing: 4,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            for (final entity in factor.dependencies)
-                              ScaledDraggable(
-                                needsMaterial: true,
-                                dragData: DependencyTraveler(
-                                  position,
-                                  factor.identity,
-                                  entity.identity,
-                                ),
-                                child: AbsorbPointer(
-                                  child: Chip(
-                                    key: ValueKey(entity.identity),
-                                    label: Text(entity.name),
-                                    avatar: Icon(
-                                      EntityTheme(entity.type).icon,
-                                      color:
-                                          EntityTheme(entity.type).foreground,
+      ListTile(
+        title: Tip(entity.factors.isEmpty
+            ? messages.noFactorsTip
+            : messages.accessTip),
+        dense: true,
+      ),
+      ...<Widget>[
+        for (final (index, factor) in enumerate(entity.factors))
+          DragTarget<DependableTraveler>(
+            key: ValueKey(factor.identity),
+            onAccept: (traveler) {
+              switch (traveler) {
+                case EntityTraveler traveler:
+                  addDependency(factor.identity, traveler.entity);
+                case DependencyTraveler traveler:
+                  removeDependency(traveler.factor, traveler.entity);
+                  addDependency(factor.identity, traveler.entity);
+              }
+            },
+            builder: (context, candidate, rejected) {
+              return ScaledDraggable(
+                dragData: FactorTraveler(position, factor.identity),
+                child: Card(
+                  color: candidate.isNotEmpty ? colors.primaryContainer : null,
+                  child: ListTile(
+                    mouseCursor: candidate.isNotEmpty
+                        ? SystemMouseCursors.copy
+                        : SystemMouseCursors.grab,
+                    leading: Badge(
+                      isLabelVisible: entity.factors.length > 1,
+                      backgroundColor: colors.primaryContainer,
+                      textColor: colors.onPrimaryContainer,
+                      label: Text((index + 1).toString()),
+                      child: const Icon(Icons.link),
+                    ),
+                    title: factor.dependencies.isNotEmpty
+                        ? Wrap(
+                            spacing: 4,
+                            runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: <Widget>[
+                              for (final entity in factor.dependencies)
+                                ScaledDraggable(
+                                  needsMaterial: true,
+                                  dragData: DependencyTraveler(
+                                    position,
+                                    factor.identity,
+                                    entity.identity,
+                                  ),
+                                  child: AbsorbPointer(
+                                    child: Chip(
+                                      key: ValueKey(entity.identity),
+                                      label: Text(entity.name),
+                                      avatar: Icon(
+                                        EntityTheme(entity.type).icon,
+                                        color:
+                                            EntityTheme(entity.type).foreground,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                          ],
-                        )
-                      : null,
-                  subtitle: factor.dependencies.isEmpty
-                      ? Text(messages.emptyFactorTip)
-                      : null,
+                            ].interleave(Tip(messages.or)).toList(),
+                          )
+                        : Tip(messages.emptyFactorTip),
+                  ),
                 ),
-              ),
-            );
-          },
-        ),
+              );
+            },
+          ),
+      ]
+          .interleave(
+            ListTile(
+              title: Tip(messages.and),
+              dense: true,
+            ),
+          )
+          .toList(),
     ];
 
     return DragTarget<FactorableTraveler>(
