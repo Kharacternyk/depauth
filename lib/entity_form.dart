@@ -248,20 +248,7 @@ class EntityForm extends StatelessWidget {
 
     return DragTarget<FactorableTraveler>(
       builder: (context, candidate, rejected) {
-        return CardForm(
-          [
-            ...children,
-            if (candidate.isNotEmpty)
-              ListTile(
-                leading: Badge(
-                  backgroundColor: colors.primaryContainer,
-                  textColor: colors.onPrimaryContainer,
-                  label: const Text("+"),
-                  child: const Icon(Icons.link),
-                ),
-              ).card,
-          ],
-        );
+        return CardForm(children);
       },
       onWillAccept: (_) {
         hasTraveler.value = true;
