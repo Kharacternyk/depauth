@@ -10,7 +10,6 @@
   "and": "and",
   "or": "or",
   "name": "Name",
-  "automatically": "Automatically",
   "lost": "Lost",
   "compromised": "Compromised",
   "automaticallyLost": "This entity is lost because all entities in at least one factor are lost.",

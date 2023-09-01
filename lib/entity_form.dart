@@ -123,19 +123,9 @@ class EntityForm extends StatelessWidget {
       ).card,
       CheckboxListTile(
         title: Text(
-          messages.lost,
-          overflow: TextOverflow.fade,
-          softWrap: false,
+          insight.hasLostFactor ? messages.automaticallyLost : messages.lost,
         ),
-        subtitle: insight.hasLostFactor
-            ? [
-                Text(messages.automatically),
-                const Icon(
-                  Icons.info_outlined,
-                  size: 16,
-                ),
-              ].row.tip(messages.automaticallyLost)
-            : null,
+        dense: insight.hasLostFactor,
         activeColor: colors.error,
         value: entity.lost,
         selected: insight.hasLostFactor || entity.lost,
@@ -146,19 +136,11 @@ class EntityForm extends StatelessWidget {
       ).card,
       CheckboxListTile(
         title: Text(
-          messages.compromised,
-          overflow: TextOverflow.fade,
-          softWrap: false,
+          insight.areAllFactorsCompromised
+              ? messages.automaticallyCompromised
+              : messages.compromised,
         ),
-        subtitle: insight.areAllFactorsCompromised
-            ? [
-                Text(messages.automatically),
-                const Icon(
-                  Icons.info_outlined,
-                  size: 16,
-                ),
-              ].row.tip(messages.automaticallyCompromised)
-            : null,
+        dense: insight.areAllFactorsCompromised,
         activeColor: colors.error,
         value: entity.compromised,
         selected: entity.compromised || insight.areAllFactorsCompromised,
