@@ -21,6 +21,7 @@ class SplitView extends StatelessWidget {
           color: colors.onSurfaceVariant,
           highlightedColor: colors.primary,
         ),
+        dividerThickness: 20,
       ),
       child: MultiSplitView(
         axis: switch (MediaQuery.of(context).orientation) {
