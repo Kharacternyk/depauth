@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 
@@ -13,12 +11,13 @@ import 'core/position.dart';
 import 'core/storage.dart';
 import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
+import 'debounced_text_field.dart';
 import 'entity_theme.dart';
 import 'entity_type_name.dart';
 import 'scaled_draggable.dart';
 import 'widget_extension.dart';
 
-class EntityForm extends StatefulWidget {
+class EntityForm extends StatelessWidget {
   final TraversableEntity entity;
   final Position position;
   final EntityInsight insight;
@@ -51,28 +50,6 @@ class EntityForm extends StatefulWidget {
   });
 
   @override
-  createState() => _State();
-}
-
-class _State extends State<EntityForm> {
-  late var nameController = TextEditingController(text: widget.entity.name);
-  Timer? _debouncer;
-
-  @override
-  dispose() {
-    nameController.dispose();
-    super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(oldWidget) {
-    if (oldWidget.entity.identity != widget.entity.identity) {
-      nameController = TextEditingController(text: widget.entity.name);
-    }
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
   build(context) {
     final colors = Theme.of(context).colorScheme;
     final messages = AppLocalizations.of(context)!;
@@ -86,35 +63,30 @@ class _State extends State<EntityForm> {
           children: [
             Chip(
               avatar: const Icon(Icons.arrow_upward),
-              label: Text(widget.insight.ancestorCount.toString()),
+              label: Text(insight.ancestorCount.toString()),
             ).tip(messages.ancestorCount),
             Chip(
               avatar: const Icon(Icons.arrow_downward),
-              label: Text(widget.insight.descendantCount.toString()),
+              label: Text(insight.descendantCount.toString()),
             ).tip(messages.descendantCount),
             Chip(
               avatar: const Icon(Icons.swap_vert),
               label: Text(
-                '${(widget.insight.coupling * 100).toStringAsFixed(0)}%',
+                '${(insight.coupling * 100).toStringAsFixed(0)}%',
               ),
             ).tip(messages.couplingTooltip),
           ],
         ),
-        onTap: widget.goBack,
+        onTap: goBack,
       ).card,
       ListTile(
         leading: const Icon(Icons.edit),
-        title: TextField(
-          controller: nameController,
-          onChanged: (String name) {
-            _debouncer?.cancel();
-            _debouncer = Timer(const Duration(milliseconds: 200), () {
-              widget.changeName(name);
-            });
-          },
-          decoration: InputDecoration(
-            hintText: messages.name,
-          ),
+        title: DebouncedTextField(
+          key: ValueKey(entity.identity),
+          value: entity.name,
+          delay: const Duration(milliseconds: 200),
+          commitValue: changeName,
+          hint: messages.name,
         ),
       ).card,
       ListTile(
@@ -141,9 +113,9 @@ class _State extends State<EntityForm> {
                 )
                 .toList(),
             onChanged: (value) {
-              widget.changeType(value ?? widget.entity.type);
+              changeType(value ?? entity.type);
             },
-            value: widget.entity.type,
+            value: entity.type,
           ),
         ),
       ).card,
@@ -153,7 +125,7 @@ class _State extends State<EntityForm> {
           overflow: TextOverflow.fade,
           softWrap: false,
         ),
-        subtitle: widget.insight.hasLostFactor
+        subtitle: insight.hasLostFactor
             ? [
                 Text(messages.automatically),
                 const Icon(
@@ -163,11 +135,11 @@ class _State extends State<EntityForm> {
               ].row.tip(messages.automaticallyLost)
             : null,
         activeColor: colors.error,
-        value: widget.entity.lost,
-        selected: widget.insight.hasLostFactor || widget.entity.lost,
+        value: entity.lost,
+        selected: insight.hasLostFactor || entity.lost,
         secondary: const Icon(Icons.not_listed_location),
         onChanged: (value) {
-          widget.toggleLost(value ?? false);
+          toggleLost(value ?? false);
         },
       ).card,
       CheckboxListTile(
@@ -176,7 +148,7 @@ class _State extends State<EntityForm> {
           overflow: TextOverflow.fade,
           softWrap: false,
         ),
-        subtitle: widget.insight.areAllFactorsCompromised
+        subtitle: insight.areAllFactorsCompromised
             ? [
                 Text(messages.automatically),
                 const Icon(
@@ -186,29 +158,28 @@ class _State extends State<EntityForm> {
               ].row.tip(messages.automaticallyCompromised)
             : null,
         activeColor: colors.error,
-        value: widget.entity.compromised,
-        selected: widget.entity.compromised ||
-            widget.insight.areAllFactorsCompromised,
+        value: entity.compromised,
+        selected: entity.compromised || insight.areAllFactorsCompromised,
         secondary: const Icon(Icons.report),
         onChanged: (value) {
-          widget.toggleCompromised(value ?? false);
+          toggleCompromised(value ?? false);
         },
       ).card,
-      for (final (index, factor) in enumerate(widget.entity.factors))
+      for (final (index, factor) in enumerate(entity.factors))
         DragTarget<DependableTraveler>(
           key: ValueKey(factor.identity),
           onAccept: (traveler) {
             switch (traveler) {
               case EntityTraveler traveler:
-                widget.addDependency(factor.identity, traveler.entity);
+                addDependency(factor.identity, traveler.entity);
               case DependencyTraveler traveler:
-                widget.removeDependency(traveler.factor, traveler.entity);
-                widget.addDependency(factor.identity, traveler.entity);
+                removeDependency(traveler.factor, traveler.entity);
+                addDependency(factor.identity, traveler.entity);
             }
           },
           builder: (context, candidate, rejected) {
             return ScaledDraggable(
-              dragData: FactorTraveler(widget.position, factor.identity),
+              dragData: FactorTraveler(position, factor.identity),
               child: Card(
                 color: candidate.isNotEmpty ? colors.primaryContainer : null,
                 child: ListTile(
@@ -216,7 +187,7 @@ class _State extends State<EntityForm> {
                       ? SystemMouseCursors.copy
                       : SystemMouseCursors.grab,
                   leading: Badge(
-                    isLabelVisible: widget.entity.factors.length > 1,
+                    isLabelVisible: entity.factors.length > 1,
                     backgroundColor: colors.primaryContainer,
                     textColor: colors.onPrimaryContainer,
                     label: Text((index + 1).toString()),
@@ -232,7 +203,7 @@ class _State extends State<EntityForm> {
                               ScaledDraggable(
                                 needsMaterial: true,
                                 dragData: DependencyTraveler(
-                                  widget.position,
+                                  position,
                                   factor.identity,
                                   entity.identity,
                                 ),
@@ -279,22 +250,22 @@ class _State extends State<EntityForm> {
         );
       },
       onWillAccept: (_) {
-        widget.hasTraveler.value = true;
+        hasTraveler.value = true;
         return true;
       },
       onLeave: (_) {
-        widget.hasTraveler.value = false;
+        hasTraveler.value = false;
       },
       onAccept: (traveler) {
-        widget.hasTraveler.value = false;
+        hasTraveler.value = false;
         switch (traveler) {
           case CreationTraveler _:
-            widget.addFactor();
+            addFactor();
           case EntityTraveler traveler:
-            widget.addDependencyAsFactor(traveler.entity);
+            addDependencyAsFactor(traveler.entity);
           case DependencyTraveler traveler:
-            widget.removeDependency(traveler.factor, traveler.entity);
-            widget.addDependencyAsFactor(traveler.entity);
+            removeDependency(traveler.factor, traveler.entity);
+            addDependencyAsFactor(traveler.entity);
         }
       },
     );
