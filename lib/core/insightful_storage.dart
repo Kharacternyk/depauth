@@ -340,8 +340,8 @@ class InsightfulStorage extends ListenableStorage {
   @override
   void resetCompromise() {
     super.resetCompromise();
-    _entityLoss.makeAllFalse();
-    _factorLoss.makeAllFalse();
+    _entityCompromise.makeAllFalse();
+    _factorCompromise.makeAllFalse();
     _update();
   }
 
