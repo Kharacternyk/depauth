@@ -3,6 +3,7 @@ import 'package:flutter_gen/gen_l10n/messages.dart';
 
 import 'card_form.dart';
 import 'core/storage_insight.dart';
+import 'tip.dart';
 import 'widget_extension.dart';
 
 class StorageForm extends StatelessWidget {
@@ -35,6 +36,9 @@ class StorageForm extends StatelessWidget {
         title: Text(messages.resetCompromise),
         onTap: resetCompromise,
       ).card,
+      ListTile(
+        title: Tip(messages.storageFormTip),
+      ),
     ]);
   }
 }

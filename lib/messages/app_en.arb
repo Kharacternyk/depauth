@@ -5,6 +5,7 @@
   "descendantCount": "Number of entities that depend on this one.",
   "couplingTooltip": "Percentage of entities that are connected to this one.",
   "emptyFactorTip": "Drag entities here to add dependencies.",
+  "storageFormTip": "Click or tap on an entity to edit it. Drag an entity to move it. Drag an entity onto the delete button to delete it.",
   "and": "and",
   "or": "or",
   "name": "Name",
