@@ -65,15 +65,24 @@ class EntityForm extends StatelessWidget {
           runSpacing: 4,
           children: [
             Chip(
-              avatar: const Icon(Icons.arrow_upward),
+              avatar: Icon(
+                Icons.arrow_upward,
+                color: EntityTheme(entity.type).primary,
+              ),
               label: Text(insight.ancestorCount.toString()),
             ).tip(messages.ancestorCount),
             Chip(
-              avatar: const Icon(Icons.arrow_downward),
+              avatar: Icon(
+                Icons.arrow_downward,
+                color: EntityTheme(entity.type).primary,
+              ),
               label: Text(insight.descendantCount.toString()),
             ).tip(messages.descendantCount),
             Chip(
-              avatar: const Icon(Icons.swap_vert),
+              avatar: Icon(
+                Icons.swap_vert,
+                color: EntityTheme(entity.type).primary,
+              ),
               label: Text(
                 '${(insight.coupling * 100).toStringAsFixed(0)}%',
               ),
@@ -106,7 +115,7 @@ class EntityForm extends StatelessWidget {
                         avatar: Ink(
                           child: Icon(
                             EntityTheme(value).icon,
-                            color: EntityTheme(value).foreground,
+                            color: EntityTheme(value).primary,
                           ),
                         ),
                         label: Text(value.getName(context).title),
@@ -207,8 +216,7 @@ class EntityForm extends StatelessWidget {
                                       label: Text(entity.name),
                                       avatar: Icon(
                                         EntityTheme(entity.type).icon,
-                                        color:
-                                            EntityTheme(entity.type).foreground,
+                                        color: EntityTheme(entity.type).primary,
                                       ),
                                     ),
                                   ),

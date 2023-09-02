@@ -31,7 +31,7 @@ class EntityCard extends StatelessWidget {
         dependencyIcons.add(
           ScaledLine(
             name: [factor.identity, dependency.identity].join(':'),
-            color: EntityTheme(dependency.type).arrow.withOpacity(0.5),
+            color: EntityTheme(dependency.type).primary.withOpacity(0.5),
             targetName: dependency.identity.toString(),
             child: EntityIcon(
               dependency.type,

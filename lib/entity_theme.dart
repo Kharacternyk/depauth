@@ -5,13 +5,13 @@ import 'core/entity_type.dart';
 class EntityTheme {
   final Color background;
   final Color foreground;
-  final Color arrow;
+  final Color primary;
   final IconData icon;
 
   EntityTheme._(
     this.background,
     this.foreground,
-    this.arrow,
+    this.primary,
     this.icon,
   );
 
