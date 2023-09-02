@@ -30,6 +30,12 @@ class _State extends State<App> {
   }
 
   @override
+  dispose() {
+    workingDirectory.dispose();
+    super.dispose();
+  }
+
+  @override
   build(BuildContext context) {
     return MaterialApp(
       title: 'DepAuth',

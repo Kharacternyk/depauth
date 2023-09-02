@@ -34,9 +34,15 @@ class _State extends State<Viewer> {
       TransformationController();
 
   @override
-  void initState() {
+  initState() {
     super.initState();
     scale = transformationController.value.getMaxScaleOnAxis();
+  }
+
+  @override
+  dispose() {
+    transformationController.dispose();
+    super.dispose();
   }
 
   @override

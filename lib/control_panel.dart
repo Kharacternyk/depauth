@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 import 'package:path/path.dart';
 
-import 'core/insightful_storage.dart';
+import 'app_storage.dart';
 import 'core/position.dart';
 import 'core/storage_insight.dart';
 import 'core/traveler.dart';
@@ -35,7 +35,7 @@ class ControlPanel extends StatefulWidget {
 class _State extends State<ControlPanel> {
   final editablePosition = ValueNotifier<Position?>(null);
   final formHasTraveler = ValueNotifier<bool>(false);
-  late final storage = ValueNotifier<InsightfulStorage>(_getStorage());
+  late final storage = ValueNotifier(_getStorage());
   late final storageNames = widget.storageNames.toSet();
   late var storageName = widget.storageName;
 
@@ -51,12 +51,20 @@ class _State extends State<ControlPanel> {
     storage.value = _getStorage();
   }
 
+  @override
+  dispose() {
+    editablePosition.dispose();
+    formHasTraveler.dispose();
+    storage.dispose();
+    super.dispose();
+  }
+
   String get _storagePath =>
       join(widget.workingDirectory, '$storageName.depauth');
 
-  InsightfulStorage _getStorage() {
+  AppStorage _getStorage() {
     storageNames.add(storageName);
-    return InsightfulStorage(
+    return AppStorage(
       _storagePath,
       entityDuplicatePrefix: ' (',
       entityDuplicateSuffix: ')',
@@ -67,7 +75,7 @@ class _State extends State<ControlPanel> {
   build(BuildContext context) {
     final messages = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
-    final storageForm = (InsightfulStorage storage) {
+    final storageForm = (AppStorage storage) {
       return (StorageInsight insight) {
         return StorageForm(
           insight: insight,
@@ -100,7 +108,7 @@ class _State extends State<ControlPanel> {
               child: Viewer(
                 minScale: 1,
                 maxScale: 20,
-                child: (InsightfulStorage storage) {
+                child: (AppStorage storage) {
                   return EntityGraph(
                     storage,
                     setEditablePosition: (position) {
@@ -110,7 +118,7 @@ class _State extends State<ControlPanel> {
                 }.listen(storage),
               ),
             ),
-            sideChild: (InsightfulStorage storage) {
+            sideChild: (AppStorage storage) {
               return (Position? position) {
                 switch (position) {
                   case null:

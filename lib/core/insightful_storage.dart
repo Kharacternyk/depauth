@@ -390,6 +390,13 @@ class InsightfulStorage extends ListenableStorage {
   void _update() {
     entityInsightNotifier._update();
   }
+
+  @override
+  dispose() {
+    entityInsightNotifier.dispose();
+    storageInsight.dispose();
+    super.dispose();
+  }
 }
 
 class _ChangeNotifier extends ChangeNotifier {

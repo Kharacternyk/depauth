@@ -167,6 +167,15 @@ class ListenableStorage extends Storage {
     _updateEntities(positions);
   }
 
+  @override
+  dispose() {
+    boundaries.dispose();
+    for (final entity in _entities.values) {
+      entity.target?.dispose();
+    }
+    super.dispose();
+  }
+
   void _updateBoundaries() {
     boundaries.value = super.getBoundaries();
   }
