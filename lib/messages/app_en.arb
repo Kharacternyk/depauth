@@ -5,26 +5,54 @@
   "descendantCount": "Number of entities that depend on this one.",
   "couplingTooltip": "Percentage of entities that are connected to this one.",
   "emptyFactorTip": "Drag entities here to add dependencies.",
-  "noFactorsTip": "One does not need to have access to other entities to access this entity. To change this, drag other entities or the + button here.",
-  "accessTip": "To access this entity, one needs to have access to…",
   "and": "and",
   "or": "or",
   "name": "Name",
   "lost": "Lost",
   "compromised": "Compromised",
-  "automaticallyLost": "This entity is lost because all entities in at least one factor are lost.",
-  "automaticallyCompromised": "This entity is compromised because all factors have at least one compromised entity.",
+  "automaticallyLost": "This {entityType} is lost because all entities in at least one factor are lost.",
+  "@automaticallyLost": {
+    "placeholders": {
+      "entityType": {
+        "type": "String"
+      }
+    }
+  },
+  "automaticallyCompromised": "This {entityType} is compromised because all factors have at least one compromised entity.",
+  "@automaticallyCompromised": {
+    "placeholders": {
+      "entityType": {
+        "type": "String"
+      }
+    }
+  },
+  "accessTip": "To access this {entityType}, one needs to have access to…",
+  "@accessTip": {
+    "placeholders": {
+      "entityType": {
+        "type": "String"
+      }
+    }
+  },
+  "noFactorsTip": "One does not need to have access to other entities to access this {entityType}. To change this, drag other entities or the + button here.",
+  "@noFactorsTip": {
+    "placeholders": {
+      "entityType": {
+        "type": "String"
+      }
+    }
+  },
   "resetLoss": "Mark all as not lost",
   "resetCompromise": "Mark all as not compromised",
   "newEntity": "New Entity",
-  "genericEntity": "Generic Entity",
-  "webService": "Web Service",
-  "secretKnowledge": "Secret Knowledge",
-  "biometrics": "Biometrics",
-  "hardwareKey": "Hardware Key",
-  "phoneNumber": "Phone Number",
-  "device": "Device",
-  "application": "Application",
-  "paymentInformation": "Payment Information",
-  "operatingSystem": "Operating System"
+  "genericEntity": "generic entity",
+  "webService": "web service",
+  "secretKnowledge": "secret knowledge",
+  "biometrics": "biometrics",
+  "hardwareKey": "hardware key",
+  "phoneNumber": "phone number",
+  "device": "device",
+  "application": "application",
+  "paymentInformation": "payment information",
+  "operatingSystem": "operating system"
 }

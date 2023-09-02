@@ -10,6 +10,7 @@ import 'core/factor.dart';
 import 'core/interleave.dart';
 import 'core/position.dart';
 import 'core/storage.dart';
+import 'core/title_case.dart';
 import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
 import 'debounced_text_field.dart';
@@ -108,7 +109,7 @@ class EntityForm extends StatelessWidget {
                             color: EntityTheme(value).foreground,
                           ),
                         ),
-                        label: Text(getEntityTypeName(value, context)),
+                        label: Text(value.getName(context).title),
                       ),
                     ),
                   ),
@@ -121,38 +122,40 @@ class EntityForm extends StatelessWidget {
           ),
         ),
       ).card,
-      CheckboxListTile(
+      SwitchListTile(
         title: Text(
-          insight.hasLostFactor ? messages.automaticallyLost : messages.lost,
+          insight.hasLostFactor
+              ? messages.automaticallyLost(entity.type.getName(context))
+              : messages.lost,
         ),
-        dense: insight.hasLostFactor,
+        dense: true,
         activeColor: colors.error,
         value: entity.lost,
         selected: insight.hasLostFactor || entity.lost,
         secondary: const Icon(Icons.not_listed_location),
-        onChanged: (value) {
-          toggleLost(value ?? false);
-        },
+        onChanged: toggleLost,
       ).card,
-      CheckboxListTile(
+      SwitchListTile(
         title: Text(
           insight.areAllFactorsCompromised
-              ? messages.automaticallyCompromised
+              ? messages.automaticallyCompromised(entity.type.getName(context))
               : messages.compromised,
         ),
-        dense: insight.areAllFactorsCompromised,
+        dense: true,
         activeColor: colors.error,
         value: entity.compromised,
         selected: entity.compromised || insight.areAllFactorsCompromised,
         secondary: const Icon(Icons.report),
-        onChanged: (value) {
-          toggleCompromised(value ?? false);
-        },
+        onChanged: toggleCompromised,
       ).card,
       ListTile(
-        title: Tip(entity.factors.isEmpty
-            ? messages.noFactorsTip
-            : messages.accessTip),
+        title: Tip(
+          entity.factors.isEmpty
+              ? messages.noFactorsTip(entity.type.getName(context))
+              : messages.accessTip(
+                  entity.type.getName(context),
+                ),
+        ),
         dense: true,
       ),
       ...<Widget>[
