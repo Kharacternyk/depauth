@@ -1,9 +1,5 @@
 import 'package:flutter/foundation.dart';
 
-import 'boundaries.dart';
-import 'entity.dart';
-import 'entity_type.dart';
-import 'factor.dart';
 import 'position.dart';
 import 'storage.dart';
 import 'traversable_entity.dart';
@@ -15,9 +11,9 @@ class ListenableStorage extends Storage {
     required super.entityDuplicateSuffix,
   });
 
-  final Map<Position, WeakReference<ValueNotifier<TraversableEntity?>>>
-      _entities = {};
-  late final ValueNotifier<Boundaries> boundaries = ValueNotifier(
+  final _entities =
+      <Position, WeakReference<ValueNotifier<TraversableEntity?>>>{};
+  late final boundaries = ValueNotifier(
     super.getBoundaries(),
   );
 
@@ -41,7 +37,7 @@ class ListenableStorage extends Storage {
   }
 
   @override
-  TraversableEntity? getEntity(Position position) {
+  getEntity(position) {
     return switch (_entities[position]?.target?.value) {
       null => super.getEntity(position),
       TraversableEntity entity => entity,
@@ -49,7 +45,7 @@ class ListenableStorage extends Storage {
   }
 
   @override
-  Identity<Entity>? getEntityIdentity(Position position) {
+  getEntityIdentity(position) {
     return switch (_entities[position]?.target?.value) {
       null => super.getEntityIdentity(position),
       TraversableEntity entity => entity.identity,
@@ -57,19 +53,19 @@ class ListenableStorage extends Storage {
   }
 
   @override
-  Boundaries getBoundaries() {
+  getBoundaries() {
     return boundaries.value;
   }
 
   @override
-  void moveEntity({required Position from, required Position to}) {
+  moveEntity({required from, required to}) {
     super.moveEntity(from: from, to: to);
     _updateEntities([from, to].followedBy(getDependantPositions(to)));
     _updateBoundaries();
   }
 
   @override
-  void deleteEntity(Position position) {
+  deleteEntity(position) {
     final dependants = getDependantPositions(position);
     super.deleteEntity(position);
     _updateEntities([position].followedBy(dependants));
@@ -77,42 +73,38 @@ class ListenableStorage extends Storage {
   }
 
   @override
-  void createEntity(Position position, String name) {
+  createEntity(position, name) {
     super.createEntity(position, name);
     _updateEntities([position]);
     _updateBoundaries();
   }
 
   @override
-  void changeName(Position position, String name) {
+  changeName(position, name) {
     super.changeName(position, name);
     _updateEntities([position].followedBy(getDependantPositions(position)));
   }
 
   @override
-  void changeType(Position position, EntityType type) {
+  changeType(position, type) {
     super.changeType(position, type);
     _updateEntities([position].followedBy(getDependantPositions(position)));
   }
 
   @override
-  void toggleCompromised(Position position, bool value) {
+  toggleCompromised(position, value) {
     super.toggleCompromised(position, value);
     _updateEntities([position]);
   }
 
   @override
-  void toggleLost(Position position, bool value) {
+  toggleLost(position, value) {
     super.toggleLost(position, value);
     _updateEntities([position]);
   }
 
   @override
-  void addDependencyAsFactor(
-    Position position, {
-    required Identity<Entity> entity,
-    required Identity<Entity> dependency,
-  }) {
+  addDependencyAsFactor(position, {required entity, required dependency}) {
     super.addDependencyAsFactor(
       position,
       entity: entity,
@@ -122,46 +114,38 @@ class ListenableStorage extends Storage {
   }
 
   @override
-  void addDependency(
-    Position position,
-    Identity<Factor> factor,
-    Identity<Entity> entity,
-  ) {
+  addDependency(position, factor, entity) {
     super.addDependency(position, factor, entity);
     _updateEntities([position]);
   }
 
   @override
-  void removeDependency(
-    Position position,
-    Identity<Factor> factor,
-    Identity<Entity> entity,
-  ) {
+  removeDependency(position, factor, entity) {
     super.removeDependency(position, factor, entity);
     _updateEntities([position]);
   }
 
   @override
-  void addFactor(Position position, Identity<Entity> entity) {
+  addFactor(position, entity) {
     super.addFactor(position, entity);
     _updateEntities([position]);
   }
 
   @override
-  void removeFactor(Position position, Identity<Factor> factor) {
+  removeFactor(position, factor) {
     super.removeFactor(position, factor);
     _updateEntities([position]);
   }
 
   @override
-  void resetLoss() {
+  resetLoss() {
     final positions = getLostPositions();
     super.resetLoss();
     _updateEntities(positions);
   }
 
   @override
-  void resetCompromise() {
+  resetCompromise() {
     final positions = getCompromisedPositions();
     super.resetCompromise();
     _updateEntities(positions);

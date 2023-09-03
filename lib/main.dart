@@ -36,7 +36,7 @@ class _State extends State<Application> {
   }
 
   @override
-  build(BuildContext context) {
+  build(context) {
     return MaterialApp(
       title: 'DepAuth',
       localizationsDelegates: AppLocalizations.localizationsDelegates,

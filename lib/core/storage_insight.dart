@@ -21,7 +21,7 @@ class StorageInsight {
       );
 
   @override
-  bool operator ==(Object other) =>
+  operator ==(other) =>
       other is StorageInsight &&
       entityCount == other.entityCount &&
       hasLostEntities == other.hasLostEntities &&

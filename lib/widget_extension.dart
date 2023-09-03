@@ -22,13 +22,13 @@ extension ValueBuilderExtension<T> on Widget Function(T) {
   ValueListenableBuilder<T> listen(ValueNotifier<T> notifier) =>
       ValueListenableBuilder(
         valueListenable: notifier,
-        builder: (context, value, child) => this.call(value),
+        builder: (context, value, child) => call(value),
       );
 }
 
 extension BuilderExtension on Widget Function() {
   ListenableBuilder listen(Listenable notifier) => ListenableBuilder(
         listenable: notifier,
-        builder: (context, child) => this.call(),
+        builder: (context, child) => call(),
       );
 }

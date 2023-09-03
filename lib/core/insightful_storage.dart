@@ -235,7 +235,7 @@ class InsightfulStorage extends ListenableStorage {
   }
 
   @override
-  void deleteEntity(Position position) {
+  deleteEntity(position) {
     _getEntity(position, (entity) {
       _clearCompromise(entity);
       _clearLoss(entity);
@@ -247,7 +247,7 @@ class InsightfulStorage extends ListenableStorage {
   }
 
   @override
-  void toggleCompromised(Position position, bool value) {
+  toggleCompromised(position, value) {
     _getEntity(position, (entity) {
       _clearCompromise(entity, includingSelf: false);
     });
@@ -270,7 +270,7 @@ class InsightfulStorage extends ListenableStorage {
   }
 
   @override
-  void toggleLost(Position position, bool value) {
+  toggleLost(position, value) {
     _getEntity(position, (entity) {
       _clearLoss(entity, includingSelf: false);
     });
@@ -293,11 +293,7 @@ class InsightfulStorage extends ListenableStorage {
   }
 
   @override
-  void addDependencyAsFactor(
-    Position position, {
-    required Identity<Entity> entity,
-    required Identity<Entity> dependency,
-  }) {
+  addDependencyAsFactor(position, {required entity, required dependency}) {
     _clearLoss(entity);
     _clearCompromise(entity);
     _clearCoupling(upward: [dependency], downward: [entity]);
@@ -309,11 +305,7 @@ class InsightfulStorage extends ListenableStorage {
   }
 
   @override
-  void addDependency(
-    Position position,
-    Identity<Factor> factor,
-    Identity<Entity> entity,
-  ) {
+  addDependency(position, factor, entity) {
     _getEntity(position, (changedEntity) {
       _clearLoss(changedEntity);
       _clearCompromise(changedEntity);
@@ -324,11 +316,7 @@ class InsightfulStorage extends ListenableStorage {
   }
 
   @override
-  void removeDependency(
-    Position position,
-    Identity<Factor> factor,
-    Identity<Entity> entity,
-  ) {
+  removeDependency(position, factor, entity) {
     _getEntity(position, (changedEntity) {
       _clearLoss(changedEntity);
       _clearCompromise(changedEntity);
@@ -339,7 +327,7 @@ class InsightfulStorage extends ListenableStorage {
   }
 
   @override
-  void addFactor(Position position, Identity<Entity> entity) {
+  addFactor(position, entity) {
     _getEntity(position, (entity) {
       _clearLoss(entity);
       _clearCompromise(entity);
@@ -349,7 +337,7 @@ class InsightfulStorage extends ListenableStorage {
   }
 
   @override
-  void removeFactor(Position position, Identity<Factor> factor) {
+  removeFactor(position, factor) {
     _getEntity(position, (entity) {
       _clearLoss(entity);
       _clearCompromise(entity);
@@ -363,7 +351,7 @@ class InsightfulStorage extends ListenableStorage {
   }
 
   @override
-  void resetLoss() {
+  resetLoss() {
     super.resetLoss();
     _entityLoss.makeAllFalse();
     _factorLoss.makeAllFalse();
@@ -379,7 +367,7 @@ class InsightfulStorage extends ListenableStorage {
   }
 
   @override
-  void resetCompromise() {
+  resetCompromise() {
     super.resetCompromise();
     _entityCompromise.makeAllFalse();
     _factorCompromise.makeAllFalse();
@@ -395,7 +383,7 @@ class InsightfulStorage extends ListenableStorage {
   }
 
   @override
-  void createEntity(Position position, String name) {
+  createEntity(position, name) {
     super.createEntity(position, name);
     storageInsight.value = storageInsight.value.increment();
     _update();

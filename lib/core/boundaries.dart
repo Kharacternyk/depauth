@@ -7,7 +7,7 @@ class Boundaries {
   const Boundaries(this.start, this.end);
 
   @override
-  bool operator ==(Object other) =>
+  operator ==(other) =>
       other is Boundaries && start == other.start && end == other.end;
 
   @override

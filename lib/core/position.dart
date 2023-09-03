@@ -5,8 +5,7 @@ class Position {
   const Position(this.x, this.y);
 
   @override
-  bool operator ==(Object other) =>
-      other is Position && x == other.x && y == other.y;
+  operator ==(other) => other is Position && x == other.x && y == other.y;
 
   @override
   int get hashCode => Object.hash(x, y);

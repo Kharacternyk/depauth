@@ -480,12 +480,11 @@ class Identity<T> {
   const Identity._(this._value);
 
   @override
-  bool operator ==(Object other) =>
-      other is Identity<T> && _value == other._value;
+  operator ==(other) => other is Identity<T> && _value == other._value;
 
   @override
   int get hashCode => _value.hashCode;
 
   @override
-  String toString() => _value.toString();
+  toString() => _value.toString();
 }

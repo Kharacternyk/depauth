@@ -22,16 +22,15 @@ class Scale extends InheritedWidget {
   const Scale(this.value, {required super.child, super.key});
 
   @override
-  bool updateShouldNotify(Scale oldWidget) => value != oldWidget.value;
+  updateShouldNotify(Scale oldWidget) => value != oldWidget.value;
 
   static Scale? maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<Scale>();
 }
 
 class _State extends State<Viewer> {
-  double scale = 0;
-  final TransformationController transformationController =
-      TransformationController();
+  var scale = .0;
+  final transformationController = TransformationController();
 
   @override
   initState() {
