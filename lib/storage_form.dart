@@ -21,10 +21,11 @@ class StorageForm extends StatelessWidget {
   @override
   build(context) {
     final messages = AppLocalizations.of(context)!;
+
     return CardForm([
       ListTile(
-        leading: const Icon(Icons.numbers),
-        title: Text(insight.entityCount.toString()),
+        leading: const Icon(Icons.style),
+        title: Text(messages.entityCount(insight.entityCount)),
       ).card,
       if (insight.hasLostEntities)
         ListTile(
@@ -38,9 +39,10 @@ class StorageForm extends StatelessWidget {
           title: Text(messages.resetCompromise),
           onTap: resetCompromise,
         ).card,
-      ListTile(
-        title: Tip(messages.storageFormTip),
-      ),
+      if (insight.entityCount > 0)
+        ListTile(
+          title: Tip(messages.storageFormTip),
+        ),
     ]);
   }
 }

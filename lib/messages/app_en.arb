@@ -6,6 +6,15 @@
   "couplingTooltip": "Percentage of entities that are connected to this one.",
   "emptyFactorTip": "Drag entities here to add dependencies.",
   "storageFormTip": "Click or tap on an entity to edit it. Drag an entity to move it. Drag an entity onto the delete button to delete it.",
+  "entityCount": "{entityCount, plural, =0{No entities} =1{1 entity} other{{entityCount} entities}}",
+  "@entityCount": {
+    "placeholders": {
+      "entityCount": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
   "and": "and",
   "or": "or",
   "name": "Name",
