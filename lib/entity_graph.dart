@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 import 'package:widget_arrows/widget_arrows.dart';
 
-import 'boundary_icon.dart';
 import 'core/boundaries.dart';
 import 'core/insightful_storage.dart';
 import 'core/position.dart';
@@ -66,7 +65,8 @@ class EntityGraph extends StatelessWidget {
                           setEditablePosition(position);
                       }
                     },
-                    icon: BoundaryIcon(boundaries, position),
+                    boundaries: boundaries,
+                    position: position,
                   ),
               };
             }.listen(listenableEntity).keyed(ValueKey(x)),
@@ -76,14 +76,7 @@ class EntityGraph extends StatelessWidget {
         rows.add(row.row.expand().keyed(ValueKey(y)));
       }
 
-      final graph = IconTheme(
-        data: IconThemeData(
-          color: Theme.of(context).colorScheme.onPrimaryContainer,
-        ),
-        child: rows.column,
-      );
-
-      return ArrowContainer(child: graph);
+      return ArrowContainer(child: rows.column);
     }.listen(storage.boundaries).group;
   }
 }
