@@ -14,6 +14,8 @@ class InsightfulStorage extends ListenableStorage {
   late final storageInsight = ValueNotifier(
     StorageInsight(
       entityCount: getEntityCount(),
+      hasLostEntities: _lostPositions.isNotEmpty,
+      hasCompromisedEntities: _compromisedPositions.isNotEmpty,
     ),
   );
 
@@ -23,6 +25,9 @@ class InsightfulStorage extends ListenableStorage {
   final _factorCompromise = TertiarySet<Identity<Factor>>();
   final _ancestors = <Identity<Entity>, Set<Identity<Entity>>>{};
   final _descendants = <Identity<Entity>, Set<Identity<Entity>>>{};
+
+  late final _lostPositions = super.getLostPositions().toSet();
+  late final _compromisedPositions = super.getCompromisedPositions().toSet();
 
   InsightfulStorage(
     super.path, {
@@ -246,7 +251,21 @@ class InsightfulStorage extends ListenableStorage {
     _getEntity(position, (entity) {
       _clearCompromise(entity, includingSelf: false);
     });
+
     super.toggleCompromised(position, value);
+
+    if (value) {
+      _compromisedPositions.add(position);
+    } else {
+      _compromisedPositions.remove(position);
+    }
+
+    storageInsight.value = StorageInsight(
+      entityCount: storageInsight.value.entityCount,
+      hasLostEntities: storageInsight.value.hasLostEntities,
+      hasCompromisedEntities: _compromisedPositions.isNotEmpty,
+    );
+
     _update();
   }
 
@@ -255,7 +274,21 @@ class InsightfulStorage extends ListenableStorage {
     _getEntity(position, (entity) {
       _clearLoss(entity, includingSelf: false);
     });
+
     super.toggleLost(position, value);
+
+    if (value) {
+      _lostPositions.add(position);
+    } else {
+      _lostPositions.remove(position);
+    }
+
+    storageInsight.value = StorageInsight(
+      entityCount: storageInsight.value.entityCount,
+      hasLostEntities: _lostPositions.isNotEmpty,
+      hasCompromisedEntities: storageInsight.value.hasCompromisedEntities,
+    );
+
     _update();
   }
 
@@ -334,6 +367,14 @@ class InsightfulStorage extends ListenableStorage {
     super.resetLoss();
     _entityLoss.makeAllFalse();
     _factorLoss.makeAllFalse();
+    _lostPositions.clear();
+
+    storageInsight.value = StorageInsight(
+      entityCount: storageInsight.value.entityCount,
+      hasLostEntities: false,
+      hasCompromisedEntities: storageInsight.value.hasCompromisedEntities,
+    );
+
     _update();
   }
 
@@ -342,6 +383,14 @@ class InsightfulStorage extends ListenableStorage {
     super.resetCompromise();
     _entityCompromise.makeAllFalse();
     _factorCompromise.makeAllFalse();
+    _compromisedPositions.clear();
+
+    storageInsight.value = StorageInsight(
+      entityCount: storageInsight.value.entityCount,
+      hasLostEntities: storageInsight.value.hasLostEntities,
+      hasCompromisedEntities: false,
+    );
+
     _update();
   }
 
@@ -350,6 +399,16 @@ class InsightfulStorage extends ListenableStorage {
     super.createEntity(position, name);
     storageInsight.value = storageInsight.value.increment();
     _update();
+  }
+
+  @override
+  getLostPositions() {
+    return _lostPositions;
+  }
+
+  @override
+  getCompromisedPositions() {
+    return _compromisedPositions;
   }
 
   void _getEntity(Position position, void Function(Identity<Entity>) callback) {

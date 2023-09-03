@@ -26,16 +26,18 @@ class StorageForm extends StatelessWidget {
         leading: const Icon(Icons.numbers),
         title: Text(insight.entityCount.toString()),
       ).card,
-      ListTile(
-        leading: const Icon(Icons.where_to_vote),
-        title: Text(messages.resetLoss),
-        onTap: resetLoss,
-      ).card,
-      ListTile(
-        leading: const Icon(Icons.report_off),
-        title: Text(messages.resetCompromise),
-        onTap: resetCompromise,
-      ).card,
+      if (insight.hasLostEntities)
+        ListTile(
+          leading: const Icon(Icons.where_to_vote),
+          title: Text(messages.resetLoss),
+          onTap: resetLoss,
+        ).card,
+      if (insight.hasCompromisedEntities)
+        ListTile(
+          leading: const Icon(Icons.report_off),
+          title: Text(messages.resetCompromise),
+          onTap: resetCompromise,
+        ).card,
       ListTile(
         title: Tip(messages.storageFormTip),
       ),
