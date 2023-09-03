@@ -168,7 +168,7 @@ class EntityForm extends StatelessWidget {
         dense: true,
       ),
       ...<Widget>[
-        for (final (index, factor) in enumerate(entity.factors))
+        for (final (index, factor) in entity.factors.enumerate)
           DragTarget<DependableTraveler>(
             key: ValueKey(factor.identity),
             onAccept: (traveler) {
