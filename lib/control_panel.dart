@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 import 'package:path/path.dart';
 
-import 'app_storage.dart';
+import 'application_storage.dart';
 import 'core/position.dart';
 import 'core/storage_insight.dart';
 import 'core/traveler.dart';
@@ -62,9 +62,9 @@ class _State extends State<ControlPanel> {
   String get _storagePath =>
       join(widget.workingDirectory, '$storageName.depauth');
 
-  AppStorage _getStorage() {
+  ApplicationStorage _getStorage() {
     storageNames.add(storageName);
-    return AppStorage(
+    return ApplicationStorage(
       _storagePath,
       entityDuplicatePrefix: ' (',
       entityDuplicateSuffix: ')',
@@ -75,7 +75,7 @@ class _State extends State<ControlPanel> {
   build(BuildContext context) {
     final messages = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
-    final storageForm = (AppStorage storage) {
+    final storageForm = (ApplicationStorage storage) {
       return (StorageInsight insight) {
         return StorageForm(
           insight: insight,
@@ -108,7 +108,7 @@ class _State extends State<ControlPanel> {
               child: Viewer(
                 minScale: 1,
                 maxScale: 20,
-                child: (AppStorage storage) {
+                child: (ApplicationStorage storage) {
                   return EntityGraph(
                     storage,
                     setEditablePosition: (position) {
@@ -118,7 +118,7 @@ class _State extends State<ControlPanel> {
                 }.listen(storage),
               ),
             ),
-            sideChild: (AppStorage storage) {
+            sideChild: (ApplicationStorage storage) {
               return (Position? position) {
                 switch (position) {
                   case null:

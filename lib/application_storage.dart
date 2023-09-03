@@ -4,10 +4,10 @@ import 'package:flutter/widgets.dart';
 
 import 'core/insightful_storage.dart';
 
-class AppStorage extends InsightfulStorage {
+class ApplicationStorage extends InsightfulStorage {
   AppLifecycleListener? lifecycleListener;
 
-  AppStorage(
+  ApplicationStorage(
     super.path, {
     required super.entityDuplicatePrefix,
     required super.entityDuplicateSuffix,

@@ -9,17 +9,17 @@ import 'control_panel.dart';
 import 'widget_extension.dart';
 
 void main() {
-  runApp(const App());
+  runApp(const Application());
 }
 
-class App extends StatefulWidget {
-  const App({super.key});
+class Application extends StatefulWidget {
+  const Application({super.key});
 
   @override
   createState() => _State();
 }
 
-class _State extends State<App> {
+class _State extends State<Application> {
   final workingDirectory = ValueNotifier<String?>(null);
   Iterable<String> storageNames = const [];
 
