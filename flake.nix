@@ -27,6 +27,13 @@
     {
       devShell = pkgs.mkShell {
         ANDROID_SDK_ROOT = "${sdk}/libexec/android-sdk";
+        XDG_DATA_DIRS = pkgs.lib.strings.concatMapStringsSep
+          ":"
+          (package: "${package}/share/gsettings-schemas/${package.name}")
+          [
+            pkgs.gsettings-desktop-schemas
+            pkgs.gtk3
+          ];
         buildInputs = [
           sdk
           pkgs.jdk17
