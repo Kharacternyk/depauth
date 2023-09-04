@@ -24,7 +24,7 @@ class ControlPanel extends StatefulWidget {
 
 class _State extends State<ControlPanel> {
   final editablePosition = ValueNotifier<Position?>(null);
-  final formHasTraveler = ValueNotifier<bool>(false);
+  final formHasTraveler = ValueNotifier(false);
   late final storage = ValueNotifier(_getStorage());
   var storagePath = './DepAuth/Personal.depauth';
 
