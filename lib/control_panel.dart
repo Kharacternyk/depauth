@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
-import 'package:path/path.dart';
 
 import 'application_storage.dart';
 import 'core/position.dart';
@@ -17,16 +16,7 @@ import 'viewer.dart';
 import 'widget_extension.dart';
 
 class ControlPanel extends StatefulWidget {
-  final String storageName;
-  final Iterable<String> storageNames;
-  final String workingDirectory;
-
-  const ControlPanel({
-    required this.storageName,
-    required this.storageNames,
-    required this.workingDirectory,
-    super.key,
-  });
+  const ControlPanel({super.key});
 
   @override
   createState() => _State();
@@ -36,8 +26,7 @@ class _State extends State<ControlPanel> {
   final editablePosition = ValueNotifier<Position?>(null);
   final formHasTraveler = ValueNotifier<bool>(false);
   late final storage = ValueNotifier(_getStorage());
-  late final storageNames = widget.storageNames.toSet();
-  late var storageName = widget.storageName;
+  var storagePath = './DepAuth/Personal.depauth';
 
   @override
   deactivate() {
@@ -59,13 +48,9 @@ class _State extends State<ControlPanel> {
     super.dispose();
   }
 
-  String get _storagePath =>
-      join(widget.workingDirectory, '$storageName.depauth');
-
   ApplicationStorage _getStorage() {
-    storageNames.add(storageName);
     return ApplicationStorage(
-      _storagePath,
+      storagePath,
       entityDuplicatePrefix: ' (',
       entityDuplicateSuffix: ')',
     );
@@ -86,14 +71,7 @@ class _State extends State<ControlPanel> {
     }.listen(storage);
 
     return Scaffold(
-      drawer: MenuDrawer(
-        fileDestinations: storageNames,
-        changeDestination: (storageName) {
-          this.storageName = storageName;
-          storage.value.dispose();
-          storage.value = _getStorage();
-        },
-      ),
+      drawer: const MenuDrawer(),
       body: Stack(
         children: [
           (bool formHasTraveler) {
@@ -191,11 +169,11 @@ class _State extends State<ControlPanel> {
           const DrawerButton(),
           (storage) {
             return Text(
-              storageName,
+              storagePath,
               overflow: TextOverflow.fade,
               softWrap: false,
             );
-          }.listen(storage).tip(_storagePath).expand(),
+          }.listen(storage).tip(storagePath).expand(),
           DragTarget<DeletableTraveler>(
             builder: (context, candidate, rejected) {
               return FloatingActionButton(
