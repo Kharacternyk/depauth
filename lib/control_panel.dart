@@ -25,49 +25,58 @@ class ControlPanel extends StatefulWidget {
 class _State extends State<ControlPanel> {
   final editablePosition = ValueNotifier<Position?>(null);
   final formHasTraveler = ValueNotifier(false);
-  late final storage = ValueNotifier(_getStorage());
-  var storagePath = './DepAuth/Personal.depauth';
+  final storage = ValueNotifier<ApplicationStorage?>(null);
+
+  @override
+  initState() {
+    super.initState();
+    ApplicationStorage.listStorageNames().then((names) {
+      final name = names.firstOrNull ?? 'Personal';
+      return ApplicationStorage.getStorage(name);
+    }).then((value) {
+      storage.value = value;
+    });
+  }
 
   @override
   deactivate() {
-    storage.value.dispose();
+    storage.value?.dispose();
     super.deactivate();
   }
 
   @override
   activate() {
     super.activate();
-    storage.value = _getStorage();
+    if (storage.value case ApplicationStorage deactivatedStorage) {
+      storage.value = ApplicationStorage(deactivatedStorage.path);
+    }
   }
 
   @override
   dispose() {
+    storage.value?.dispose();
+    storage.dispose();
     editablePosition.dispose();
     formHasTraveler.dispose();
-    storage.dispose();
     super.dispose();
-  }
-
-  ApplicationStorage _getStorage() {
-    return ApplicationStorage(
-      storagePath,
-      entityDuplicatePrefix: ' (',
-      entityDuplicateSuffix: ')',
-    );
   }
 
   @override
   build(BuildContext context) {
+    const spinner = Center(child: CircularProgressIndicator());
     final messages = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
-    final storageForm = (ApplicationStorage storage) {
-      return (StorageInsight insight) {
-        return StorageForm(
-          insight: insight,
-          resetLoss: storage.resetLoss,
-          resetCompromise: storage.resetCompromise,
-        );
-      }.listen(storage.storageInsight);
+    final storageForm = (ApplicationStorage? storage) {
+      if (storage case ApplicationStorage storage) {
+        return (StorageInsight insight) {
+          return StorageForm(
+            insight: insight,
+            resetLoss: storage.resetLoss,
+            resetCompromise: storage.resetCompromise,
+          );
+        }.listen(storage.storageInsight);
+      }
+      return spinner;
     }.listen(storage);
 
     return Scaffold(
@@ -86,80 +95,86 @@ class _State extends State<ControlPanel> {
               child: Viewer(
                 minScale: 1,
                 maxScale: 20,
-                child: (ApplicationStorage storage) {
-                  return EntityGraph(
-                    storage,
-                    setEditablePosition: (position) {
-                      editablePosition.value = position;
-                    },
-                  );
+                child: (ApplicationStorage? storage) {
+                  if (storage case ApplicationStorage storage) {
+                    return EntityGraph(
+                      storage,
+                      setEditablePosition: (position) {
+                        editablePosition.value = position;
+                      },
+                    );
+                  }
+                  return spinner;
                 }.listen(storage),
               ),
             ),
-            sideChild: (ApplicationStorage storage) {
-              return (Position? position) {
-                switch (position) {
-                  case null:
-                    return storageForm;
-                  case Position position:
-                    final listenableEntity =
-                        storage.getListenableEntity(position);
+            sideChild: (ApplicationStorage? storage) {
+              if (storage case ApplicationStorage storage) {
+                return (Position? position) {
+                  switch (position) {
+                    case null:
+                      return storageForm;
+                    case Position position:
+                      final listenableEntity =
+                          storage.getListenableEntity(position);
 
-                    return (TraversableEntity? entity) {
-                      return switch (entity) {
-                        TraversableEntity entity => () {
-                            return EntityForm(
-                              entity,
-                              position: position,
-                              hasTraveler: formHasTraveler,
-                              goBack: () {
-                                editablePosition.value = null;
-                              },
-                              insight:
-                                  storage.getEntityInsight(entity.identity),
-                              changeName: (name) {
-                                storage.changeName(position, name);
-                              },
-                              changeType: (type) {
-                                storage.changeType(position, type);
-                              },
-                              toggleLost: (value) {
-                                storage.toggleLost(position, value);
-                              },
-                              toggleCompromised: (value) {
-                                storage.toggleCompromised(position, value);
-                              },
-                              addDependency: (factor, entity) {
-                                storage.addDependency(
-                                  position,
-                                  factor,
-                                  entity,
-                                );
-                              },
-                              addDependencyAsFactor: (dependency) {
-                                storage.addDependencyAsFactor(
-                                  position,
-                                  entity: entity.identity,
-                                  dependency: dependency,
-                                );
-                              },
-                              removeDependency: (factor, entity) {
-                                storage.removeDependency(
-                                  position,
-                                  factor,
-                                  entity,
-                                );
-                              },
-                              addFactor: () {
-                                storage.addFactor(position, entity.identity);
-                              },
-                            );
-                          }.listen(storage.entityInsightNotifier),
-                        null => storageForm,
-                      };
-                    }.listen(listenableEntity);
-                }
-              }.listen(editablePosition);
+                      return (TraversableEntity? entity) {
+                        return switch (entity) {
+                          TraversableEntity entity => () {
+                              return EntityForm(
+                                entity,
+                                position: position,
+                                hasTraveler: formHasTraveler,
+                                goBack: () {
+                                  editablePosition.value = null;
+                                },
+                                insight:
+                                    storage.getEntityInsight(entity.identity),
+                                changeName: (name) {
+                                  storage.changeName(position, name);
+                                },
+                                changeType: (type) {
+                                  storage.changeType(position, type);
+                                },
+                                toggleLost: (value) {
+                                  storage.toggleLost(position, value);
+                                },
+                                toggleCompromised: (value) {
+                                  storage.toggleCompromised(position, value);
+                                },
+                                addDependency: (factor, entity) {
+                                  storage.addDependency(
+                                    position,
+                                    factor,
+                                    entity,
+                                  );
+                                },
+                                addDependencyAsFactor: (dependency) {
+                                  storage.addDependencyAsFactor(
+                                    position,
+                                    entity: entity.identity,
+                                    dependency: dependency,
+                                  );
+                                },
+                                removeDependency: (factor, entity) {
+                                  storage.removeDependency(
+                                    position,
+                                    factor,
+                                    entity,
+                                  );
+                                },
+                                addFactor: () {
+                                  storage.addFactor(position, entity.identity);
+                                },
+                              );
+                            }.listen(storage.entityInsightNotifier),
+                          null => storageForm,
+                        };
+                      }.listen(listenableEntity);
+                  }
+                }.listen(editablePosition);
+              }
+              return spinner;
             }.listen(storage),
           ),
         ],
@@ -167,13 +182,16 @@ class _State extends State<ControlPanel> {
       bottomNavigationBar: BottomAppBar(
         child: [
           const DrawerButton(),
-          (storage) {
-            return Text(
-              storagePath,
-              overflow: TextOverflow.fade,
-              softWrap: false,
-            );
-          }.listen(storage).tip(storagePath).expand(),
+          (ApplicationStorage? storage) {
+            if (storage case ApplicationStorage storage) {
+              return Text(
+                storage.path,
+                overflow: TextOverflow.fade,
+                softWrap: false,
+              ).tip(storage.path);
+            }
+            return spinner;
+          }.listen(storage).expand(),
           DragTarget<DeletableTraveler>(
             builder: (context, candidate, rejected) {
               return FloatingActionButton(
@@ -199,12 +217,12 @@ class _State extends State<ControlPanel> {
             onAccept: (traveler) {
               switch (traveler) {
                 case EntityTraveler traveler:
-                  storage.value.deleteEntity(traveler.position);
+                  storage.value?.deleteEntity(traveler.position);
                 case FactorTraveler traveler:
                   storage.value
-                      .removeFactor(traveler.position, traveler.factor);
+                      ?.removeFactor(traveler.position, traveler.factor);
                 case DependencyTraveler traveler:
-                  storage.value.removeDependency(
+                  storage.value?.removeDependency(
                     traveler.position,
                     traveler.factor,
                     traveler.entity,
