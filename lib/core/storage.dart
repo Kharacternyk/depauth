@@ -10,7 +10,6 @@ import 'statement.dart';
 import 'traversable_entity.dart';
 
 class Storage {
-  final String path;
   final Database _database;
   final String entityDuplicatePrefix;
   final String entityDuplicateSuffix;
@@ -407,7 +406,7 @@ class Storage {
   }
 
   Storage(
-    this.path, {
+    String path, {
     required this.entityDuplicatePrefix,
     required this.entityDuplicateSuffix,
   }) : _database = sqlite3.open(path) {
