@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/messages.dart';
 
 import 'logotype.dart';
 import 'widget_extension.dart';
@@ -8,6 +9,8 @@ class MenuDrawer extends StatelessWidget {
 
   @override
   build(context) {
+    final messages = AppLocalizations.of(context)!;
+
     return Drawer(
       child: ListView(
         children: [
@@ -18,8 +21,11 @@ class MenuDrawer extends StatelessWidget {
               child: const Logotype().pad(const EdgeInsets.all(8)),
             ),
           ),
-          const AboutListTile(
-            icon: Icon(Icons.info),
+          AboutListTile(
+            icon: const Icon(Icons.info),
+            aboutBoxChildren: [
+              Text(messages.getHelp),
+            ],
           ),
         ],
       ),
