@@ -63,10 +63,14 @@ class Application extends StatefulWidget {
 
 class _State extends State<Application> {
   late final storageNames = Queue.of(widget.storageNames);
-  late var storage = ApplicationStorage(
-    name: storageNames.first,
-    path: join(widget.storagesPath, '${storageNames.first}.depauth'),
-  );
+  late var storage = _getStorage();
+
+  ApplicationStorage _getStorage() {
+    return ApplicationStorage(
+      name: storageNames.first,
+      path: join(widget.storagesPath, '${storageNames.first}.depauth'),
+    );
+  }
 
   @override
   build(context) {
@@ -84,7 +88,18 @@ class _State extends State<Application> {
       home: SafeArea(
         child: StoragePanel(
           storage: storage,
-          drawer: const MenuDrawer(),
+          drawer: MenuDrawer(
+            storageName: storage.name,
+            siblingNames: storageNames.skip(1),
+            selectSibling: (name) {
+              setState(() {
+                storage.dispose();
+                storageNames.remove(name);
+                storageNames.addFirst(name);
+                storage = _getStorage();
+              });
+            },
+          ),
         ),
       ),
     );

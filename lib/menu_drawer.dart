@@ -5,7 +5,16 @@ import 'logotype.dart';
 import 'widget_extension.dart';
 
 class MenuDrawer extends StatelessWidget {
-  const MenuDrawer({super.key});
+  final ValueNotifier<String> storageName;
+  final Iterable<String> siblingNames;
+  final void Function(String) selectSibling;
+
+  const MenuDrawer({
+    required this.storageName,
+    required this.siblingNames,
+    required this.selectSibling,
+    super.key,
+  });
 
   @override
   build(context) {
@@ -21,6 +30,14 @@ class MenuDrawer extends StatelessWidget {
               child: const Logotype().pad(const EdgeInsets.all(8)),
             ),
           ),
+          for (final name in siblingNames)
+            ListTile(
+              leading: const Icon(Icons.file_open),
+              title: Text(name),
+              onTap: () {
+                selectSibling(name);
+              },
+            ),
           AboutListTile(
             icon: const Icon(Icons.info),
             aboutBoxChildren: [
