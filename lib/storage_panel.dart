@@ -8,7 +8,6 @@ import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
 import 'entity_form.dart';
 import 'entity_graph.dart';
-import 'menu_drawer.dart';
 import 'scaled_draggable.dart';
 import 'split_view.dart';
 import 'storage_form.dart';
@@ -16,9 +15,14 @@ import 'viewer.dart';
 import 'widget_extension.dart';
 
 class StoragePanel extends StatefulWidget {
-  final String storagePath;
+  final ApplicationStorage storage;
+  final Widget drawer;
 
-  const StoragePanel(this.storagePath, {super.key});
+  const StoragePanel({
+    required this.storage,
+    required this.drawer,
+    super.key,
+  });
 
   @override
   createState() => _State();
@@ -27,26 +31,12 @@ class StoragePanel extends StatefulWidget {
 class _State extends State<StoragePanel> {
   final editablePosition = ValueNotifier<Position?>(null);
   final formHasTraveler = ValueNotifier(false);
-  late var storage = ApplicationStorage(widget.storagePath);
 
   @override
   dispose() {
-    storage.dispose();
     editablePosition.dispose();
     formHasTraveler.dispose();
     super.dispose();
-  }
-
-  @override
-  deactivate() {
-    storage.dispose();
-    super.deactivate();
-  }
-
-  @override
-  activate() {
-    super.activate();
-    storage = ApplicationStorage(widget.storagePath);
   }
 
   @override
@@ -56,13 +46,13 @@ class _State extends State<StoragePanel> {
     final storageForm = (StorageInsight insight) {
       return StorageForm(
         insight: insight,
-        resetLoss: storage.resetLoss,
-        resetCompromise: storage.resetCompromise,
+        resetLoss: widget.storage.resetLoss,
+        resetCompromise: widget.storage.resetCompromise,
       );
-    }.listen(storage.storageInsight);
+    }.listen(widget.storage.storageInsight);
 
     return Scaffold(
-      drawer: const MenuDrawer(),
+      drawer: widget.drawer,
       body: Stack(
         children: [
           (bool formHasTraveler) {
@@ -78,7 +68,7 @@ class _State extends State<StoragePanel> {
                 minScale: 1,
                 maxScale: 20,
                 child: EntityGraph(
-                  storage,
+                  widget.storage,
                   setEditablePosition: (position) {
                     editablePosition.value = position;
                   },
@@ -91,7 +81,7 @@ class _State extends State<StoragePanel> {
                   return storageForm;
                 case Position position:
                   final listenableEntity =
-                      storage.getListenableEntity(position);
+                      widget.storage.getListenableEntity(position);
 
                   return (TraversableEntity? entity) {
                     return switch (entity) {
@@ -103,45 +93,47 @@ class _State extends State<StoragePanel> {
                             goBack: () {
                               editablePosition.value = null;
                             },
-                            insight: storage.getEntityInsight(entity.identity),
+                            insight: widget.storage
+                                .getEntityInsight(entity.identity),
                             changeName: (name) {
-                              storage.changeName(position, name);
+                              widget.storage.changeName(position, name);
                             },
                             changeType: (type) {
-                              storage.changeType(position, type);
+                              widget.storage.changeType(position, type);
                             },
                             toggleLost: (value) {
-                              storage.toggleLost(position, value);
+                              widget.storage.toggleLost(position, value);
                             },
                             toggleCompromised: (value) {
-                              storage.toggleCompromised(position, value);
+                              widget.storage.toggleCompromised(position, value);
                             },
                             addDependency: (factor, entity) {
-                              storage.addDependency(
+                              widget.storage.addDependency(
                                 position,
                                 factor,
                                 entity,
                               );
                             },
                             addDependencyAsFactor: (dependency) {
-                              storage.addDependencyAsFactor(
+                              widget.storage.addDependencyAsFactor(
                                 position,
                                 entity: entity.identity,
                                 dependency: dependency,
                               );
                             },
                             removeDependency: (factor, entity) {
-                              storage.removeDependency(
+                              widget.storage.removeDependency(
                                 position,
                                 factor,
                                 entity,
                               );
                             },
                             addFactor: () {
-                              storage.addFactor(position, entity.identity);
+                              widget.storage
+                                  .addFactor(position, entity.identity);
                             },
                           );
-                        }.listen(storage.entityInsightNotifier),
+                        }.listen(widget.storage.entityInsightNotifier),
                       null => storageForm,
                     };
                   }.listen(listenableEntity);
@@ -153,11 +145,13 @@ class _State extends State<StoragePanel> {
       bottomNavigationBar: BottomAppBar(
         child: [
           const DrawerButton(),
-          Text(
-            widget.storagePath,
-            overflow: TextOverflow.fade,
-            softWrap: false,
-          ).tip(widget.storagePath).expand(),
+          (String name) {
+            return Text(
+              name,
+              overflow: TextOverflow.fade,
+              softWrap: false,
+            ).tip(name);
+          }.listen(widget.storage.name).expand(),
           DragTarget<DeletableTraveler>(
             builder: (context, candidate, rejected) {
               return FloatingActionButton(
@@ -183,11 +177,12 @@ class _State extends State<StoragePanel> {
             onAccept: (traveler) {
               switch (traveler) {
                 case EntityTraveler traveler:
-                  storage.deleteEntity(traveler.position);
+                  widget.storage.deleteEntity(traveler.position);
                 case FactorTraveler traveler:
-                  storage.removeFactor(traveler.position, traveler.factor);
+                  widget.storage
+                      .removeFactor(traveler.position, traveler.factor);
                 case DependencyTraveler traveler:
-                  storage.removeDependency(
+                  widget.storage.removeDependency(
                     traveler.position,
                     traveler.factor,
                     traveler.entity,
