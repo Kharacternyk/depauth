@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 
-import 'logotype.dart';
-import 'widget_extension.dart';
+import 'core/pending_value_notifier.dart';
+import 'debounced_text_field.dart';
 
 class MenuDrawer extends StatelessWidget {
-  final ValueNotifier<String> storageName;
-  final Iterable<String> siblingNames;
-  final void Function(String) selectSibling;
+  final Iterable<PendingValueNotifier<String>> storageNames;
+  final void Function(PendingValueNotifier<String>) select;
 
   const MenuDrawer({
-    required this.storageName,
-    required this.siblingNames,
-    required this.selectSibling,
+    required this.storageNames,
+    required this.select,
     super.key,
   });
 
@@ -24,18 +22,25 @@ class MenuDrawer extends StatelessWidget {
       child: ListView(
         children: [
           DrawerHeader(
-            padding: EdgeInsets.zero,
-            child: Ink(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              child: const Logotype().pad(const EdgeInsets.all(8)),
+            child: ListTile(
+              leading: const Icon(Icons.edit),
+              title: DebouncedTextField(
+                key: ValueKey(storageNames.first.initialValue),
+                value: storageNames.first.value,
+                delay: const Duration(milliseconds: 200),
+                commitValue: (value) {
+                  storageNames.first.value = value;
+                },
+                hint: messages.name,
+              ),
             ),
           ),
-          for (final name in siblingNames)
+          for (final name in storageNames.skip(1))
             ListTile(
               leading: const Icon(Icons.file_open),
-              title: Text(name),
+              title: Text(name.value),
               onTap: () {
-                selectSibling(name);
+                select(name);
               },
             ),
           AboutListTile(

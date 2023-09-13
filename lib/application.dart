@@ -8,6 +8,7 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'core/insightful_storage.dart';
+import 'core/pending_value_notifier.dart';
 import 'menu_drawer.dart';
 import 'storage_panel.dart';
 
@@ -63,9 +64,9 @@ class Application extends StatefulWidget {
 }
 
 class _State extends State<Application> {
-  final pendingRenames = <String, String>{};
-  late final storageNames = Queue.of(widget.storageNames);
-  late final name = ValueNotifier(storageNames.first);
+  late final storageNames = Queue.of(
+    widget.storageNames.map(PendingValueNotifier.new),
+  );
   late var storage = _getStorage();
 
   @override
@@ -74,10 +75,17 @@ class _State extends State<Application> {
     AppLifecycleListener(onExitRequested: () async {
       storage.dispose();
       try {
-        await Future.wait([
-          for (final rename in pendingRenames.entries)
-            File(_getPath(rename.key)).rename(_getPath(rename.value))
-        ]);
+        await Future.wait(
+          storageNames
+              .where(
+                (notifier) => notifier.dirty,
+              )
+              .map(
+                (notifier) => File(_getPath(notifier.initialValue)).rename(
+                  _getPath(notifier.value),
+                ),
+              ),
+        );
       } catch (_) {}
       return AppExitResponse.exit;
     });
@@ -85,14 +93,14 @@ class _State extends State<Application> {
 
   InsightfulStorage _getStorage() {
     return InsightfulStorage(
-      _getPath(storageNames.first),
+      _getPath(storageNames.first.initialValue),
       entityDuplicatePrefix: ' (',
       entityDuplicateSuffix: ')',
     );
   }
 
   String _getPath(String name) {
-    return join(widget.storagesPath, '${storageNames.first}.depauth');
+    return join(widget.storagesPath, '$name.depauth');
   }
 
   @override
@@ -110,12 +118,11 @@ class _State extends State<Application> {
       ),
       home: SafeArea(
         child: StoragePanel(
-          name: name,
+          name: storageNames.first,
           storage: storage,
           drawer: MenuDrawer(
-            storageName: name,
-            siblingNames: storageNames.skip(1),
-            selectSibling: (name) {
+            storageNames: storageNames,
+            select: (name) {
               setState(() {
                 storage.dispose();
                 storageNames.remove(name);
