@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 
-import 'application_storage.dart';
+import 'core/insightful_storage.dart';
 import 'core/position.dart';
 import 'core/storage_insight.dart';
 import 'core/traveler.dart';
@@ -15,10 +15,12 @@ import 'viewer.dart';
 import 'widget_extension.dart';
 
 class StoragePanel extends StatefulWidget {
-  final ApplicationStorage storage;
+  final ValueNotifier<String> name;
+  final InsightfulStorage storage;
   final Widget drawer;
 
   const StoragePanel({
+    required this.name,
     required this.storage,
     required this.drawer,
     super.key,
@@ -151,7 +153,7 @@ class _State extends State<StoragePanel> {
               overflow: TextOverflow.fade,
               softWrap: false,
             ).tip(name);
-          }.listen(widget.storage.name).expand(),
+          }.listen(widget.name).expand(),
           DragTarget<DeletableTraveler>(
             builder: (context, candidate, rejected) {
               return FloatingActionButton(

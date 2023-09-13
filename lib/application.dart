@@ -1,12 +1,13 @@
 import 'dart:collection';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'application_storage.dart';
+import 'core/insightful_storage.dart';
 import 'menu_drawer.dart';
 import 'storage_panel.dart';
 
@@ -51,7 +52,7 @@ class Application extends StatefulWidget {
     var storageNames = storages.map((storage) => storage.name);
 
     if (storageNames.isEmpty) {
-      storageNames = ['Personal'];
+      storageNames = const ['Personal'];
     }
 
     return Application._(storagesDirectory.path, storageNames);
@@ -62,14 +63,36 @@ class Application extends StatefulWidget {
 }
 
 class _State extends State<Application> {
+  final pendingRenames = <String, String>{};
   late final storageNames = Queue.of(widget.storageNames);
+  late final name = ValueNotifier(storageNames.first);
   late var storage = _getStorage();
 
-  ApplicationStorage _getStorage() {
-    return ApplicationStorage(
-      name: storageNames.first,
-      path: join(widget.storagesPath, '${storageNames.first}.depauth'),
+  @override
+  initState() {
+    super.initState();
+    AppLifecycleListener(onExitRequested: () async {
+      storage.dispose();
+      try {
+        await Future.wait([
+          for (final rename in pendingRenames.entries)
+            File(_getPath(rename.key)).rename(_getPath(rename.value))
+        ]);
+      } catch (_) {}
+      return AppExitResponse.exit;
+    });
+  }
+
+  InsightfulStorage _getStorage() {
+    return InsightfulStorage(
+      _getPath(storageNames.first),
+      entityDuplicatePrefix: ' (',
+      entityDuplicateSuffix: ')',
     );
+  }
+
+  String _getPath(String name) {
+    return join(widget.storagesPath, '${storageNames.first}.depauth');
   }
 
   @override
@@ -87,9 +110,10 @@ class _State extends State<Application> {
       ),
       home: SafeArea(
         child: StoragePanel(
+          name: name,
           storage: storage,
           drawer: MenuDrawer(
-            storageName: storage.name,
+            storageName: name,
             siblingNames: storageNames.skip(1),
             selectSibling: (name) {
               setState(() {
