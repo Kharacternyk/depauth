@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/messages.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -105,33 +104,19 @@ class _State extends State<StatefulApplication> {
 
   @override
   build(context) {
-    return MaterialApp(
-      title: 'DepAuth',
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      theme: ThemeData.from(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blueGrey,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
-      home: SafeArea(
-        child: StoragePanel(
-          name: storageNames.first,
-          storage: storage,
-          drawer: MenuDrawer(
-            storageNames: storageNames,
-            select: (name) {
-              setState(() {
-                storage.dispose();
-                storageNames.remove(name);
-                storageNames.addFirst(name);
-                storage = _getStorage();
-              });
-            },
-          ),
-        ),
+    return StoragePanel(
+      name: storageNames.first,
+      storage: storage,
+      drawer: MenuDrawer(
+        storageNames: storageNames,
+        select: (name) {
+          setState(() {
+            storage.dispose();
+            storageNames.remove(name);
+            storageNames.addFirst(name);
+            storage = _getStorage();
+          });
+        },
       ),
     );
   }
