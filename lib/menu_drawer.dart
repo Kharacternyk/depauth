@@ -21,20 +21,19 @@ class MenuDrawer extends StatelessWidget {
     return Drawer(
       child: ListView(
         children: [
-          DrawerHeader(
-            child: ListTile(
-              leading: const Icon(Icons.edit),
-              title: DebouncedTextField(
-                key: ValueKey(storageNames.first.initialValue),
-                value: storageNames.first.value,
-                delay: const Duration(milliseconds: 200),
-                commitValue: (value) {
-                  storageNames.first.value = value;
-                },
-                hint: messages.name,
-              ),
+          ListTile(
+            leading: const Icon(Icons.edit_document),
+            title: DebouncedTextField(
+              key: ValueKey(storageNames.first.initialValue),
+              value: storageNames.first.value,
+              delay: const Duration(milliseconds: 200),
+              commitValue: (value) {
+                storageNames.first.value = value;
+              },
+              hint: messages.name,
             ),
           ),
+          const Divider(),
           for (final name in storageNames.skip(1))
             ListTile(
               leading: const Icon(Icons.file_open),
@@ -43,6 +42,7 @@ class MenuDrawer extends StatelessWidget {
                 select(name);
               },
             ),
+          const Divider(),
           AboutListTile(
             icon: const Icon(Icons.info),
             aboutBoxChildren: [
