@@ -12,13 +12,13 @@ import 'core/pending_value_notifier.dart';
 import 'menu_drawer.dart';
 import 'storage_panel.dart';
 
-class Application extends StatefulWidget {
+class StatefulApplication extends StatefulWidget {
   final String storagesPath;
   final Iterable<String> storageNames;
 
-  const Application._(this.storagesPath, this.storageNames);
+  const StatefulApplication._(this.storagesPath, this.storageNames);
 
-  static Future<Application> get() async {
+  static Future<StatefulApplication> get() async {
     var documentsDirectory = Directory('.');
 
     try {
@@ -56,14 +56,14 @@ class Application extends StatefulWidget {
       storageNames = const ['Personal'];
     }
 
-    return Application._(storagesDirectory.path, storageNames);
+    return StatefulApplication._(storagesDirectory.path, storageNames);
   }
 
   @override
   createState() => _State();
 }
 
-class _State extends State<Application> {
+class _State extends State<StatefulApplication> {
   late final storageNames = Queue.of(
     widget.storageNames.map(PendingValueNotifier.new),
   );
