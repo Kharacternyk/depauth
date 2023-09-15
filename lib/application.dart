@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 
-class StatelessApplication extends StatelessWidget {
-  final Widget child;
+import 'storage_scaffold_loader.dart';
 
-  const StatelessApplication(this.child, {super.key});
+class Application extends StatelessWidget {
+  const Application({super.key});
 
   @override
   build(context) {
     return MaterialApp(
-      title: 'DepAuth',
+      onGenerateTitle: (context) {
+        return AppLocalizations.of(context)!.applicationName;
+      },
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData.from(
@@ -19,7 +21,9 @@ class StatelessApplication extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: SafeArea(child: child),
+      home: const SafeArea(
+        child: StorageScaffoldLoader(),
+      ),
     );
   }
 }
