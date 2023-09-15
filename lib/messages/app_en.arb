@@ -5,6 +5,7 @@
   "entityDuplicateSuffix": ")",
   "fallbackDocumentsPath": ".",
   "defaultStorageName": "Personal",
+  "space": " ",
   "getHelp": "If you need support, want to report a bug or suggest an improvement, please write to hello@depauth.com",
   "addButtonTooltip": "Drag this button onto an empty space to create a new entity.",
   "deleteButtonTooltip": "Drag onto this button to delete.",
@@ -14,6 +15,15 @@
   "emptyFactorTip": "Drag entities here to add dependencies.",
   "singletonPlaceholderTip": "Drag the + button here to create a new entity.",
   "storageFormTip": "Drag the + button onto an empty space to create a new entity. Click or tap on an entity to edit it. Drag an entity to move it. Drag an entity onto the delete button to delete it.",
+  "couplingValue": "{value}",
+  "@couplingValue": {
+    "placeholders": {
+      "value": {
+        "type": "num",
+        "format": "percentPattern"
+      }
+    }
+  },
   "entityCount": "{entityCount, plural, =0{No entities} =1{1 entity} other{{entityCount} entities}}",
   "@entityCount": {
     "placeholders": {

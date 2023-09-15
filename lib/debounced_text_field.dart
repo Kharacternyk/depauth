@@ -34,7 +34,7 @@ class _State extends State<DebouncedTextField> {
   build(context) {
     return TextField(
       controller: controller,
-      onChanged: (String value) {
+      onChanged: (value) {
         debouncer?.cancel();
         debouncer = Timer(widget.delay, () {
           widget.commitValue(value);

@@ -83,9 +83,7 @@ class EntityForm extends StatelessWidget {
                 Icons.swap_vert,
                 color: EntityTheme(entity.type).primary,
               ),
-              label: Text(
-                '${(insight.coupling * 100).toStringAsFixed(0)}%',
-              ),
+              label: Text(messages.couplingValue(insight.coupling)),
             ).tip(messages.couplingTooltip),
           ],
         ),
@@ -118,7 +116,9 @@ class EntityForm extends StatelessWidget {
                             color: EntityTheme(value).primary,
                           ),
                         ),
-                        label: Text(value.getName(context).title),
+                        label: Text(
+                          value.getName(context).title(messages.space),
+                        ),
                       ),
                     ),
                   ),
