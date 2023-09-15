@@ -69,7 +69,7 @@ class InsightfulStorage extends ListenableStorage {
     ancestors.remove(entity);
 
     for (final ancestor in ancestors) {
-      if (_ancestors[ancestor]?.contains(entity) == true) {
+      if (_ancestors[ancestor]?.contains(entity) ?? false) {
         _ancestors[ancestor]
           ?..addAll(ancestors)
           ..remove(ancestor);
@@ -96,7 +96,7 @@ class InsightfulStorage extends ListenableStorage {
     descendants.remove(entity);
 
     for (final descendant in descendants) {
-      if (_descendants[descendant]?.contains(entity) == true) {
+      if (_descendants[descendant]?.contains(entity) ?? false) {
         _descendants[descendant]
           ?..addAll(descendants)
           ..remove(descendant);
@@ -119,7 +119,7 @@ class InsightfulStorage extends ListenableStorage {
     for (final factor in getFactors(entity)) {
       final lost = _isFactorLost(factor, seenWithThis);
 
-      if (lost == true) {
+      if (lost ?? false) {
         hasLostFactor = true;
         isCacheable = true;
         break;

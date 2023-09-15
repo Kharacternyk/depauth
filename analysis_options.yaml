@@ -7,3 +7,23 @@ analyzer:
 linter:
   rules:
     empty_catches: false
+    avoid_dynamic_calls: true
+    test_types_in_equals: true
+    unnecessary_statements: true
+    avoid_escaping_inner_quotes: true
+    avoid_multiple_declarations_per_line: true
+    join_return_with_assignment: true
+    leading_newlines_in_multiline_strings: true
+    no_default_cases: true
+    no_literal_bool_comparisons: true
+    omit_local_variable_types: true
+    only_throw_errors: true
+    prefer_final_in_for_each: true
+    prefer_foreach: true
+    prefer_single_quotes: true
+    type_literal_in_constant_pattern: true
+    unnecessary_breaks: true
+    unnecessary_lambdas: true
+    use_if_null_to_convert_nulls_to_bools: true
+    use_named_constants: true
+    use_super_parameters: true
