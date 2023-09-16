@@ -29,8 +29,9 @@ class InsightfulStorage extends ListenableStorage {
   late final _lostPositions = super.getLostPositions().toSet();
   late final _compromisedPositions = super.getCompromisedPositions().toSet();
 
-  InsightfulStorage(
-    super.path, {
+  InsightfulStorage({
+    required super.name,
+    required super.path,
     required super.entityDuplicatePrefix,
     required super.entityDuplicateSuffix,
   });

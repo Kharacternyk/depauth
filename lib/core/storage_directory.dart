@@ -5,7 +5,6 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'insightful_storage.dart';
-import 'pending_value_notifier.dart';
 
 class StorageDirectory {
   final String storagesPath;
@@ -13,10 +12,10 @@ class StorageDirectory {
   final String entityDuplicatePrefix;
   final String entityDuplicateSuffix;
 
-  final Queue<PendingValueNotifier<String>> _storageNames;
+  final Queue<String> _storageNames;
   late var _currentStorage = _getStorage();
 
-  Iterable<PendingValueNotifier<String>> get storageNames => _storageNames;
+  Iterable<String> get siblingNames => _storageNames.skip(1);
   InsightfulStorage get currentStorage => _currentStorage;
 
   StorageDirectory._(
@@ -27,31 +26,33 @@ class StorageDirectory {
     required this.entityDuplicateSuffix,
   });
 
-  void switchStorage(PendingValueNotifier<String> name) {
+  void switchStorage(String name) {
+    ({String from, String to})? rename;
+
+    if (_currentStorage.name.value != _storageNames.first) {
+      rename = (
+        from: _storageNames.first,
+        to: _currentStorage.name.value,
+      );
+    }
+
     _currentStorage.dispose();
+
+    if (rename != null) {
+      File(_getPath(rename.from)).renameSync(_getPath(rename.to));
+      _storageNames.removeFirst();
+      _storageNames.addFirst(rename.to);
+    }
+
     _storageNames.remove(name);
     _storageNames.addFirst(name);
     _currentStorage = _getStorage();
   }
 
-  Future<void> dispose() async {
-    _currentStorage.dispose();
-    await Future.wait(
-      storageNames
-          .where(
-            (notifier) => notifier.dirty,
-          )
-          .map(
-            (notifier) => File(_getPath(notifier.initialValue)).rename(
-              _getPath(notifier.value),
-            ),
-          ),
-    );
-  }
-
   InsightfulStorage _getStorage() {
     return InsightfulStorage(
-      _getPath(storageNames.first.initialValue),
+      name: _storageNames.first,
+      path: _getPath(_storageNames.first),
       entityDuplicatePrefix: entityDuplicatePrefix,
       entityDuplicateSuffix: entityDuplicateSuffix,
     );
@@ -111,9 +112,7 @@ class StorageDirectory {
       applicationFileExtension: applicationFileExtension,
       entityDuplicateSuffix: entityDuplicateSuffix,
       entityDuplicatePrefix: entityDuplicatePrefix,
-      Queue.of(
-        storageNames.map(PendingValueNotifier.new),
-      ),
+      Queue.of(storageNames),
     );
   }
 }

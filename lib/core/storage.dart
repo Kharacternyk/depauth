@@ -405,8 +405,23 @@ class Storage {
     return Position(x as int, y as int);
   }
 
-  Storage(
-    String path, {
+  late final _nameQuery = Query(_database, '''
+    select name from meta
+  ''');
+  String getName() {
+    return _nameQuery.select().first.values.first as String;
+  }
+
+  late final _setNameStatement = Statement(_database, '''
+    update meta set name = ?
+  ''');
+  void setName(String name) {
+    _setNameStatement.execute([name]);
+  }
+
+  Storage({
+    required String path,
+    required String name,
     required this.entityDuplicatePrefix,
     required this.entityDuplicateSuffix,
   }) : _database = sqlite3.open(path) {
@@ -420,6 +435,10 @@ class Storage {
       pragma synchronous = full;
       pragma user_version = 1;
 
+      create table if not exists meta(
+        identity integer primary key,
+        name text not null
+      ) strict, without rowid;
       create table if not exists entities(
         identity integer primary key,
         name text not null,
@@ -470,6 +489,12 @@ class Storage {
         end;
       end;
     ''');
+
+    _database.execute('''
+      insert or ignore
+      into meta(identity, name)
+      values(0, ?)
+    ''', [name]);
   }
 
   void dispose() => _database.dispose();

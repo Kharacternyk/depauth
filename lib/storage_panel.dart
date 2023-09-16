@@ -15,12 +15,10 @@ import 'viewer.dart';
 import 'widget_extension.dart';
 
 class StoragePanel extends StatefulWidget {
-  final ValueNotifier<String> name;
   final InsightfulStorage storage;
   final Widget drawer;
 
   const StoragePanel({
-    required this.name,
     required this.storage,
     required this.drawer,
     super.key,
@@ -153,7 +151,7 @@ class _State extends State<StoragePanel> {
               overflow: TextOverflow.fade,
               softWrap: false,
             ).tip(name);
-          }.listen(widget.name).expand(),
+          }.listen(widget.storage.name).expand(),
           DragTarget<DeletableTraveler>(
             builder: (context, candidate, rejected) {
               return FloatingActionButton(

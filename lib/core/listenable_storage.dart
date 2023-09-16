@@ -5,17 +5,18 @@ import 'storage.dart';
 import 'traversable_entity.dart';
 
 class ListenableStorage extends Storage {
-  ListenableStorage(
-    super.path, {
+  ListenableStorage({
+    required super.name,
+    required super.path,
     required super.entityDuplicatePrefix,
     required super.entityDuplicateSuffix,
   });
 
   final _entities =
       <Position, WeakReference<ValueNotifier<TraversableEntity?>>>{};
-  late final boundaries = ValueNotifier(
-    super.getBoundaries(),
-  );
+
+  late final boundaries = ValueNotifier(super.getBoundaries());
+  late final name = ValueNotifier(super.getName());
 
   ValueNotifier<TraversableEntity?> getListenableEntity(Position position) {
     return switch (_entities[position]) {
@@ -154,10 +155,20 @@ class ListenableStorage extends Storage {
   @override
   dispose() {
     boundaries.dispose();
+    name.dispose();
     for (final entity in _entities.values) {
       entity.target?.dispose();
     }
     super.dispose();
+  }
+
+  @override
+  getName() => name.value;
+
+  @override
+  setName(name) {
+    super.setName(name);
+    this.name.value = name;
   }
 
   void _updateBoundaries() {

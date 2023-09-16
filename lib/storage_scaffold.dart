@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import 'core/storage_directory.dart';
@@ -34,10 +32,6 @@ class _State extends State<StorageScaffold> {
   @override
   initState() {
     super.initState();
-    AppLifecycleListener(onExitRequested: () async {
-      await storageDirectory?.dispose();
-      return AppExitResponse.exit;
-    });
     StorageDirectory.get(
       fallbackDocumentsPath: widget.fallbackDocumentsPath,
       defaultStorageName: widget.defaultStorageName,
@@ -56,10 +50,12 @@ class _State extends State<StorageScaffold> {
   build(context) {
     if (storageDirectory case StorageDirectory storageDirectory) {
       return StoragePanel(
-        name: storageDirectory.storageNames.first,
         storage: storageDirectory.currentStorage,
         drawer: MenuDrawer(
-          storageNames: storageDirectory.storageNames,
+          storageKey: ValueKey(storageDirectory.currentStorage),
+          storageName: storageDirectory.currentStorage.name,
+          rename: storageDirectory.currentStorage.setName,
+          siblingNames: storageDirectory.siblingNames,
           select: (name) {
             setState(() {
               storageDirectory.switchStorage(name);
