@@ -33,6 +33,12 @@ class _State extends State<StoragePanel> {
   final formHasTraveler = ValueNotifier(false);
 
   @override
+  didUpdateWidget(oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    editablePosition.value = null;
+  }
+
+  @override
   dispose() {
     editablePosition.dispose();
     formHasTraveler.dispose();
