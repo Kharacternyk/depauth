@@ -17,6 +17,8 @@ class StorageScaffoldLoader extends StatelessWidget {
       entityDuplicateSuffix: messages.entityDuplicateSuffix,
       defaultStorageName: messages.defaultStorageName,
       fallbackDocumentsPath: messages.fallbackDocumentsPath,
+      newStorageName: messages.newStorageName,
+      deduplicateStorageName: messages.deduplicatedStorageName,
     );
   }
 }

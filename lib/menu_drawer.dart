@@ -9,7 +9,8 @@ class MenuDrawer extends StatelessWidget {
   final void Function(String) rename;
   final bool Function() isRenameCanceled;
   final Iterable<String> siblingNames;
-  final void Function(String) select;
+  final void Function(String) selectStorage;
+  final void Function() createStorage;
 
   const MenuDrawer({
     required this.storageKey,
@@ -17,7 +18,8 @@ class MenuDrawer extends StatelessWidget {
     required this.rename,
     required this.isRenameCanceled,
     required this.siblingNames,
-    required this.select,
+    required this.selectStorage,
+    required this.createStorage,
     super.key,
   });
 
@@ -45,9 +47,14 @@ class MenuDrawer extends StatelessWidget {
               leading: const Icon(Icons.file_open),
               title: Text(name),
               onTap: () {
-                select(name);
+                selectStorage(name);
               },
             ),
+          ListTile(
+            leading: const Icon(Icons.add),
+            title: Text(messages.newStorageName),
+            onTap: createStorage,
+          ),
           const Divider(),
           AboutListTile(
             icon: const Icon(Icons.info),

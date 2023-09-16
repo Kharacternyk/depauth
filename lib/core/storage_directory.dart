@@ -1,21 +1,24 @@
-import 'dart:collection';
 import 'dart:io';
 
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sanitize_filename/sanitize_filename.dart';
 
 import 'insightful_storage.dart';
+import 'set_queue.dart';
 
 class StorageDirectory {
   final String storagesPath;
   final String applicationFileExtension;
   final String entityDuplicatePrefix;
   final String entityDuplicateSuffix;
+  final String newStorageName;
+  final String Function(String, int) deduplicateStorageName;
 
-  final Queue<String> _storageNames;
+  final SetQueue<String> _storageNames;
   late var _currentStorage = _getStorage();
 
-  Iterable<String> get siblingNames => _storageNames.skip(1);
+  Iterable<String> get siblingNames => _storageNames.tail;
   InsightfulStorage get currentStorage => _currentStorage;
 
   StorageDirectory._(
@@ -24,29 +27,64 @@ class StorageDirectory {
     required this.applicationFileExtension,
     required this.entityDuplicatePrefix,
     required this.entityDuplicateSuffix,
+    required this.newStorageName,
+    required this.deduplicateStorageName,
   });
 
-  void switchStorage(String name) {
-    ({String from, String to})? rename;
+  void createStorage() {
+    _disposeCurrentStorage();
+    _storageNames.addFirst(_deduplicateName(newStorageName));
+    _currentStorage = _getStorage();
+  }
 
-    if (_currentStorage.name.value != _storageNames.first) {
-      rename = (
-        from: _storageNames.first,
-        to: _currentStorage.name.value,
-      );
+  void switchStorage(String name) {
+    _disposeCurrentStorage();
+    _storageNames.addFirst(_sanitize(name));
+    _currentStorage = _getStorage();
+  }
+
+  void _disposeCurrentStorage() {
+    final initialCurrentStorageName = _storageNames.first;
+
+    _storageNames.remove(initialCurrentStorageName);
+
+    final actualCurrentStorageName =
+        _deduplicateName(_sanitize(_currentStorage.name.value));
+
+    if (actualCurrentStorageName != _currentStorage.name.value) {
+      _currentStorage.setName(actualCurrentStorageName);
     }
 
     _currentStorage.dispose();
 
-    if (rename != null) {
-      File(_getPath(rename.from)).renameSync(_getPath(rename.to));
-      _storageNames.removeFirst();
-      _storageNames.addFirst(rename.to);
+    if (actualCurrentStorageName != initialCurrentStorageName) {
+      File(_getPath(initialCurrentStorageName))
+          .renameSync(_getPath(actualCurrentStorageName));
     }
 
-    _storageNames.remove(name);
-    _storageNames.addFirst(name);
-    _currentStorage = _getStorage();
+    _storageNames.addFirst(actualCurrentStorageName);
+  }
+
+  String _sanitize(String name) {
+    final sanitized = sanitizeFilename(name);
+
+    if (sanitized.isEmpty) {
+      return newStorageName;
+    }
+
+    return sanitized;
+  }
+
+  String _deduplicateName(String name) {
+    var deduplicatedName = name;
+    var i = 0;
+
+    while (_storageNames.contains(deduplicatedName)) {
+      ++i;
+      deduplicatedName = deduplicateStorageName(name, i);
+    }
+
+    return deduplicatedName;
   }
 
   InsightfulStorage _getStorage() {
@@ -69,6 +107,8 @@ class StorageDirectory {
     required String entityDuplicateSuffix,
     required String applicationName,
     required String applicationFileExtension,
+    required String newStorageName,
+    required String Function(String, int) deduplicateStorageName,
   }) async {
     var documentsDirectory = Directory(fallbackDocumentsPath);
 
@@ -112,7 +152,9 @@ class StorageDirectory {
       applicationFileExtension: applicationFileExtension,
       entityDuplicateSuffix: entityDuplicateSuffix,
       entityDuplicatePrefix: entityDuplicatePrefix,
-      Queue.of(storageNames),
+      deduplicateStorageName: deduplicateStorageName,
+      newStorageName: newStorageName,
+      SetQueue(storageNames),
     );
   }
 }
