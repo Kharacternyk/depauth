@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 
 import 'position.dart';
-import 'storage.dart';
+import 'tracked_disposal_storage.dart';
 import 'traversable_entity.dart';
 
-class ListenableStorage extends Storage {
+class ListenableStorage extends TrackedDisposalStorage {
   ListenableStorage({
     required super.name,
     required super.path,

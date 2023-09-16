@@ -7,6 +7,7 @@ class MenuDrawer extends StatelessWidget {
   final Key storageKey;
   final ValueNotifier<String> storageName;
   final void Function(String) rename;
+  final bool Function() isRenameCanceled;
   final Iterable<String> siblingNames;
   final void Function(String) select;
 
@@ -14,6 +15,7 @@ class MenuDrawer extends StatelessWidget {
     required this.storageKey,
     required this.storageName,
     required this.rename,
+    required this.isRenameCanceled,
     required this.siblingNames,
     required this.select,
     super.key,
@@ -34,6 +36,7 @@ class MenuDrawer extends StatelessWidget {
               delay: const Duration(milliseconds: 200),
               commitValue: rename,
               hint: messages.name,
+              isCanceled: isRenameCanceled,
             ),
           ),
           const Divider(),

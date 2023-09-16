@@ -6,6 +6,7 @@ class DebouncedTextField extends StatefulWidget {
   final String value;
   final Duration delay;
   final void Function(String) commitValue;
+  final bool Function() isCanceled;
   final String hint;
 
   const DebouncedTextField({
@@ -13,6 +14,7 @@ class DebouncedTextField extends StatefulWidget {
     required this.delay,
     required this.commitValue,
     required this.hint,
+    required this.isCanceled,
     super.key,
   });
 
@@ -37,7 +39,9 @@ class _State extends State<DebouncedTextField> {
       onChanged: (value) {
         debouncer?.cancel();
         debouncer = Timer(widget.delay, () {
-          widget.commitValue(value);
+          if (!widget.isCanceled()) {
+            widget.commitValue(value);
+          }
         });
       },
       decoration: InputDecoration(

@@ -49,12 +49,15 @@ class _State extends State<StorageScaffold> {
   @override
   build(context) {
     if (storageDirectory case StorageDirectory storageDirectory) {
+      final storage = storageDirectory.currentStorage;
+
       return StoragePanel(
-        storage: storageDirectory.currentStorage,
+        storage: storage,
         drawer: MenuDrawer(
-          storageKey: ValueKey(storageDirectory.currentStorage),
-          storageName: storageDirectory.currentStorage.name,
-          rename: storageDirectory.currentStorage.setName,
+          storageKey: ValueKey(storage),
+          storageName: storage.name,
+          rename: storage.setName,
+          isRenameCanceled: () => storage.disposed,
           siblingNames: storageDirectory.siblingNames,
           select: (name) {
             setState(() {

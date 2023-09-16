@@ -34,6 +34,7 @@ class EntityForm extends StatelessWidget {
   final void Function(Identity<Entity>) addDependencyAsFactor;
   final void Function(Identity<Factor>, Identity<Entity>) addDependency;
   final void Function(Identity<Factor>, Identity<Entity>) removeDependency;
+  final bool Function() isRenameCanceled;
 
   const EntityForm(
     this.entity, {
@@ -49,6 +50,7 @@ class EntityForm extends StatelessWidget {
     required this.addDependencyAsFactor,
     required this.addDependency,
     required this.removeDependency,
+    required this.isRenameCanceled,
     super.key,
   });
 
@@ -97,6 +99,7 @@ class EntityForm extends StatelessWidget {
           delay: const Duration(milliseconds: 200),
           commitValue: changeName,
           hint: messages.name,
+          isCanceled: isRenameCanceled,
         ),
       ).card,
       ListTile(

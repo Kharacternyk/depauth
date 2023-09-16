@@ -96,6 +96,7 @@ class _State extends State<StoragePanel> {
                             entity,
                             position: position,
                             hasTraveler: formHasTraveler,
+                            isRenameCanceled: () => widget.storage.disposed,
                             goBack: () {
                               editablePosition.value = null;
                             },
