@@ -120,7 +120,7 @@ class EntityForm extends StatelessWidget {
                           ),
                         ),
                         label: Text(
-                          value.getName(context).title(messages.space),
+                          value.getName(context).title(messages.wordSeparator),
                         ),
                       ),
                     ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/messages.dart';
 import 'package:widget_arrows/widget_arrows.dart';
 
 import 'core/entity_insight.dart';
@@ -24,13 +25,17 @@ class EntityCard extends StatelessWidget {
   build(context) {
     const padding = EdgeInsets.all(8);
     final colors = Theme.of(context).colorScheme;
+    final messages = AppLocalizations.of(context)!;
     final dependencyIcons = <Widget>[];
 
     for (final factor in entity.factors) {
       for (final dependency in factor.dependencies) {
         dependencyIcons.add(
           ScaledLine(
-            name: [factor.identity, dependency.identity].join(':'),
+            name: [
+              factor.identity,
+              dependency.identity,
+            ].join(messages.arrowIdentitySeparator),
             color: EntityTheme(dependency.type).primary.withOpacity(0.5),
             targetName: dependency.identity.toString(),
             child: EntityIcon(

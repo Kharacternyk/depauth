@@ -4,6 +4,8 @@
   "entityDuplicatePrefix": " (",
   "entityDuplicateSuffix": ")",
   "fallbackDocumentsPath": ".",
+  "wordSeparator": " ",
+  "arrowIdentitySeparator": ":",
   "defaultStorageName": "Personal",
   "newStorageName": "New",
   "deduplicatedStorageName": "{storageName} ({duplicateCount})",
@@ -17,7 +19,6 @@
       }
     }
   },
-  "space": " ",
   "getHelp": "If you need support, want to report a bug or suggest an improvement, please write to hello@depauth.com",
   "addButtonTooltip": "Drag this button onto an empty space to create a new entity.",
   "deleteButtonTooltip": "Drag onto this button to delete.",
