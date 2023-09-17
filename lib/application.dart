@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 
-import 'storage_scaffold_loader.dart';
+import 'storage_directory_scaffold_loader.dart';
 
 class Application extends StatelessWidget {
   const Application({super.key});
@@ -22,7 +22,7 @@ class Application extends StatelessWidget {
         useMaterial3: true,
       ),
       home: const SafeArea(
-        child: StorageScaffoldLoader(),
+        child: StorageDirectoryScaffoldLoader(),
       ),
     );
   }
