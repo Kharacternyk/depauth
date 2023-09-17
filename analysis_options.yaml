@@ -4,6 +4,10 @@ analyzer:
     strict-casts: true
     strict-inference: true
     strict-raw-types: true
+  optional-checks:
+    chrome-os-manifest-checks: true
+  exclude:
+    - build/**
 linter:
   rules:
     empty_catches: false
