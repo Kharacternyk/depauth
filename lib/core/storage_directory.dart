@@ -31,6 +31,13 @@ class StorageDirectory {
     required this.deduplicateStorageName,
   });
 
+  void deleteStorage(String name) {
+    if (_storageNames.contains(name) && name != _storageNames.first) {
+      _storageNames.remove(name);
+      File(_getPath(name)).deleteSync();
+    }
+  }
+
   void createStorage() {
     _disposeCurrentStorage();
     _storageNames.addFirst(_deduplicateName(newStorageName));

@@ -42,3 +42,9 @@ class DependencyTraveler
 
   const DependencyTraveler(this.position, this.factor, this.entity);
 }
+
+class StorageTraveler implements DeletableTraveler {
+  final String storageName;
+
+  const StorageTraveler(this.storageName);
+}

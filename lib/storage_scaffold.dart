@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'core/edit_subject.dart';
 import 'core/storage_directory.dart';
-import 'menu_drawer.dart';
+import 'storage_directory_form.dart';
 import 'storage_panel.dart';
+import 'widget_extension.dart';
 
 class StorageScaffold extends StatefulWidget {
   final String applicationName;
@@ -31,7 +33,18 @@ class StorageScaffold extends StatefulWidget {
 }
 
 class _State extends State<StorageScaffold> {
+  final formHasTraveler = ValueNotifier(false);
+  final editSubject = ValueNotifier<EditSubject>(const StorageSubject());
+  final siblingNames = ValueNotifier<Iterable<String>>(const []);
   StorageDirectory? storageDirectory;
+
+  @override
+  dispose() {
+    formHasTraveler.dispose();
+    editSubject.dispose();
+    siblingNames.dispose();
+    super.dispose();
+  }
 
   @override
   initState() {
@@ -49,6 +62,7 @@ class _State extends State<StorageScaffold> {
       setState(() {
         storageDirectory = directory;
       });
+      siblingNames.value = directory.siblingNames;
     });
   }
 
@@ -57,26 +71,37 @@ class _State extends State<StorageScaffold> {
     if (storageDirectory case StorageDirectory storageDirectory) {
       final storage = storageDirectory.currentStorage;
 
-      return StoragePanel(
-        storage: storage,
-        drawer: MenuDrawer(
-          storageKey: ValueKey(storage),
-          storageName: storage.name,
-          rename: storage.setName,
-          isRenameCanceled: () => storage.disposed,
-          siblingNames: storageDirectory.siblingNames,
-          selectStorage: (name) {
-            setState(() {
-              storageDirectory.switchStorage(name);
-            });
+      return (Iterable<String> siblingNames) {
+        return StoragePanel(
+          storage: storage,
+          editSubject: editSubject,
+          formHasTraveler: formHasTraveler,
+          storageDirectoryForm: StorageDirectoryForm(
+            hasTraveler: formHasTraveler,
+            storageName: storage.name,
+            siblingNames: siblingNames,
+            selectStorage: (name) {
+              setState(() {
+                storageDirectory.switchStorage(name);
+              });
+              this.siblingNames.value = storageDirectory.siblingNames;
+            },
+            createStorage: () {
+              setState(() {
+                storageDirectory.createStorage();
+              });
+              this.siblingNames.value = storageDirectory.siblingNames;
+            },
+            editCurrentStorage: () {
+              editSubject.value = const StorageSubject();
+            },
+          ),
+          deleteStorage: (traveler) {
+            storageDirectory.deleteStorage(traveler.storageName);
+            this.siblingNames.value = storageDirectory.siblingNames;
           },
-          createStorage: () {
-            setState(() {
-              storageDirectory.createStorage();
-            });
-          },
-        ),
-      );
+        );
+      }.listen(siblingNames);
     }
 
     return const Center(child: CircularProgressIndicator());

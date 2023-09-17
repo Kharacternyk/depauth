@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 
+import 'core/edit_subject.dart';
 import 'core/insightful_storage.dart';
-import 'core/position.dart';
 import 'core/storage_insight.dart';
 import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
@@ -14,30 +14,21 @@ import 'storage_form.dart';
 import 'viewer.dart';
 import 'widget_extension.dart';
 
-class StoragePanel extends StatefulWidget {
+class StoragePanel extends StatelessWidget {
   final InsightfulStorage storage;
-  final Widget drawer;
+  final Widget storageDirectoryForm;
+  final ValueNotifier<EditSubject> editSubject;
+  final ValueNotifier<bool> formHasTraveler;
+  final void Function(StorageTraveler) deleteStorage;
 
   const StoragePanel({
     required this.storage,
-    required this.drawer,
+    required this.storageDirectoryForm,
+    required this.editSubject,
+    required this.formHasTraveler,
+    required this.deleteStorage,
     super.key,
   });
-
-  @override
-  createState() => _State();
-}
-
-class _State extends State<StoragePanel> {
-  final editablePosition = ValueNotifier<Position?>(null);
-  final formHasTraveler = ValueNotifier(false);
-
-  @override
-  dispose() {
-    editablePosition.dispose();
-    formHasTraveler.dispose();
-    super.dispose();
-  }
 
   @override
   build(BuildContext context) {
@@ -45,14 +36,19 @@ class _State extends State<StoragePanel> {
     final colors = Theme.of(context).colorScheme;
     final storageForm = (StorageInsight insight) {
       return StorageForm(
+        storageName: storage.name,
         insight: insight,
-        resetLoss: widget.storage.resetLoss,
-        resetCompromise: widget.storage.resetCompromise,
+        resetLoss: storage.resetLoss,
+        resetCompromise: storage.resetCompromise,
+        goBack: () {
+          editSubject.value = const StorageDirectorySubject();
+        },
+        rename: storage.setName,
+        isRenameCanceled: () => storage.disposed,
       );
-    }.listen(widget.storage.storageInsight);
+    }.listen(storage.storageInsight);
 
     return Scaffold(
-      drawer: widget.drawer,
       body: Stack(
         children: [
           (bool formHasTraveler) {
@@ -68,20 +64,23 @@ class _State extends State<StoragePanel> {
                 minScale: 1,
                 maxScale: 20,
                 child: EntityGraph(
-                  widget.storage,
+                  storage,
                   setEditablePosition: (position) {
-                    editablePosition.value = position;
+                    editSubject.value = EntitySubject(position);
                   },
                 ),
               ),
             ),
-            sideChild: (Position? position) {
-              switch (position) {
-                case null:
+            sideChild: (EditSubject subject) {
+              switch (subject) {
+                case StorageSubject _:
                   return storageForm;
-                case Position position:
+                case StorageDirectorySubject _:
+                  return storageDirectoryForm;
+                case EntitySubject subject:
+                  final position = subject.position;
                   final listenableEntity =
-                      widget.storage.getListenableEntity(position);
+                      storage.getListenableEntity(position);
 
                   return (TraversableEntity? entity) {
                     return switch (entity) {
@@ -90,69 +89,60 @@ class _State extends State<StoragePanel> {
                             entity,
                             position: position,
                             hasTraveler: formHasTraveler,
-                            isRenameCanceled: () => widget.storage.disposed,
+                            isRenameCanceled: () => storage.disposed,
                             goBack: () {
-                              editablePosition.value = null;
+                              editSubject.value = const StorageSubject();
                             },
-                            insight: widget.storage
-                                .getEntityInsight(entity.identity),
+                            insight: storage.getEntityInsight(entity.identity),
                             changeName: (name) {
-                              widget.storage.changeName(position, name);
+                              storage.changeName(position, name);
                             },
                             changeType: (type) {
-                              widget.storage.changeType(position, type);
+                              storage.changeType(position, type);
                             },
                             toggleLost: (value) {
-                              widget.storage.toggleLost(position, value);
+                              storage.toggleLost(position, value);
                             },
                             toggleCompromised: (value) {
-                              widget.storage.toggleCompromised(position, value);
+                              storage.toggleCompromised(position, value);
                             },
                             addDependency: (factor, entity) {
-                              widget.storage.addDependency(
+                              storage.addDependency(
                                 position,
                                 factor,
                                 entity,
                               );
                             },
                             addDependencyAsFactor: (dependency) {
-                              widget.storage.addDependencyAsFactor(
+                              storage.addDependencyAsFactor(
                                 position,
                                 entity: entity.identity,
                                 dependency: dependency,
                               );
                             },
                             removeDependency: (factor, entity) {
-                              widget.storage.removeDependency(
+                              storage.removeDependency(
                                 position,
                                 factor,
                                 entity,
                               );
                             },
                             addFactor: () {
-                              widget.storage
-                                  .addFactor(position, entity.identity);
+                              storage.addFactor(position, entity.identity);
                             },
                           );
-                        }.listen(widget.storage.entityInsightNotifier),
+                        }.listen(storage.entityInsightNotifier),
                       null => storageForm,
                     };
                   }.listen(listenableEntity);
               }
-            }.listen(editablePosition),
+            }.listen(editSubject),
           ),
         ],
       ),
       bottomNavigationBar: BottomAppBar(
         child: [
-          const DrawerButton(),
-          (String name) {
-            return Text(
-              name,
-              overflow: TextOverflow.fade,
-              softWrap: false,
-            ).tip(name);
-          }.listen(widget.storage.name).expand(),
+          const Spacer(),
           DragTarget<DeletableTraveler>(
             builder: (context, candidate, rejected) {
               return FloatingActionButton(
@@ -178,16 +168,17 @@ class _State extends State<StoragePanel> {
             onAccept: (traveler) {
               switch (traveler) {
                 case EntityTraveler traveler:
-                  widget.storage.deleteEntity(traveler.position);
+                  storage.deleteEntity(traveler.position);
                 case FactorTraveler traveler:
-                  widget.storage
-                      .removeFactor(traveler.position, traveler.factor);
+                  storage.removeFactor(traveler.position, traveler.factor);
                 case DependencyTraveler traveler:
-                  widget.storage.removeDependency(
+                  storage.removeDependency(
                     traveler.position,
                     traveler.factor,
                     traveler.entity,
                   );
+                case StorageTraveler traveler:
+                  deleteStorage(traveler);
               }
             },
           ),

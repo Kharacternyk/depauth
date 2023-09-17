@@ -59,36 +59,10 @@ class EntityForm extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final messages = AppLocalizations.of(context)!;
 
-    final children = [
+    final form = CardForm([
       ListTile(
         leading: const BackButtonIcon(),
-        title: Wrap(
-          spacing: 4,
-          runSpacing: 4,
-          children: [
-            Chip(
-              avatar: Icon(
-                Icons.arrow_upward,
-                color: EntityTheme(entity.type).primary,
-              ),
-              label: Text(insight.ancestorCount.toString()),
-            ).tip(messages.ancestorCount),
-            Chip(
-              avatar: Icon(
-                Icons.arrow_downward,
-                color: EntityTheme(entity.type).primary,
-              ),
-              label: Text(insight.descendantCount.toString()),
-            ).tip(messages.descendantCount),
-            Chip(
-              avatar: Icon(
-                Icons.swap_vert,
-                color: EntityTheme(entity.type).primary,
-              ),
-              label: Text(messages.couplingValue(insight.coupling)),
-            ).tip(messages.couplingTooltip),
-          ],
-        ),
+        title: Text(messages.back),
         onTap: goBack,
       ).card,
       ListTile(
@@ -132,6 +106,36 @@ class EntityForm extends StatelessWidget {
             },
             value: entity.type,
           ),
+        ),
+      ).card,
+      ListTile(
+        leading: const Icon(Icons.insights),
+        title: Wrap(
+          spacing: 4,
+          runSpacing: 4,
+          children: [
+            Chip(
+              avatar: Icon(
+                Icons.arrow_upward,
+                color: EntityTheme(entity.type).primary,
+              ),
+              label: Text(insight.ancestorCount.toString()),
+            ).tip(messages.ancestorCount),
+            Chip(
+              avatar: Icon(
+                Icons.arrow_downward,
+                color: EntityTheme(entity.type).primary,
+              ),
+              label: Text(insight.descendantCount.toString()),
+            ).tip(messages.descendantCount),
+            Chip(
+              avatar: Icon(
+                Icons.swap_vert,
+                color: EntityTheme(entity.type).primary,
+              ),
+              label: Text(messages.couplingValue(insight.coupling)),
+            ).tip(messages.couplingTooltip),
+          ],
         ),
       ).card,
       SwitchListTile(
@@ -240,19 +244,12 @@ class EntityForm extends StatelessWidget {
             ),
           )
           .toList(),
-    ];
+    ]);
 
     return DragTarget<FactorableTraveler>(
-      builder: (context, candidate, rejected) {
-        return CardForm(children);
-      },
-      onWillAccept: (_) {
-        hasTraveler.value = true;
-        return true;
-      },
-      onLeave: (_) {
-        hasTraveler.value = false;
-      },
+      builder: (context, candidate, rejected) => form,
+      onWillAccept: (_) => hasTraveler.value = true,
+      onLeave: (_) => hasTraveler.value = false,
       onAccept: (traveler) {
         hasTraveler.value = false;
         switch (traveler) {
