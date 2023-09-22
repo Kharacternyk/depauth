@@ -29,14 +29,8 @@ class Scale extends InheritedWidget {
 }
 
 class _State extends State<Viewer> {
-  var scale = .0;
   final transformationController = TransformationController();
-
-  @override
-  initState() {
-    super.initState();
-    scale = transformationController.value.getMaxScaleOnAxis();
-  }
+  late var scale = transformationController.value.getMaxScaleOnAxis();
 
   @override
   dispose() {
@@ -50,13 +44,12 @@ class _State extends State<Viewer> {
       minScale: widget.minScale,
       maxScale: widget.maxScale,
       transformationController: transformationController,
-      onInteractionEnd: (details) => setState(() {
-        scale = transformationController.value.getMaxScaleOnAxis();
-      }),
-      child: Scale(
-        scale,
-        child: widget.child,
-      ),
+      onInteractionEnd: (details) {
+        setState(() {
+          scale = transformationController.value.getMaxScaleOnAxis();
+        });
+      },
+      child: Scale(scale, child: widget.child),
     );
   }
 }

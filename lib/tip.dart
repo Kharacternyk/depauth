@@ -9,9 +9,6 @@ class Tip extends StatelessWidget {
   build(context) {
     final style = Theme.of(context).textTheme.bodySmall;
 
-    return Text(
-      message,
-      style: style,
-    );
+    return Text(message, style: style);
   }
 }
