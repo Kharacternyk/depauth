@@ -3,6 +3,7 @@ import 'package:flutter_gen/gen_l10n/messages.dart';
 import 'package:widget_arrows/widget_arrows.dart';
 
 import 'core/boundaries.dart';
+import 'core/edit_subject.dart';
 import 'core/insightful_storage.dart';
 import 'core/position.dart';
 import 'core/traveler.dart';
@@ -14,11 +15,11 @@ import 'widget_extension.dart';
 
 class EntityGraph extends StatelessWidget {
   final InsightfulStorage storage;
-  final void Function(Position) setEditablePosition;
+  final ValueNotifier<EditSubject> editSubject;
 
   const EntityGraph(
     this.storage, {
-    required this.setEditablePosition,
+    required this.editSubject,
     super.key,
   });
 
@@ -44,9 +45,8 @@ class EntityGraph extends StatelessWidget {
                       child: EntityCard(
                         entity,
                         insight: storage.getEntityInsight(entity.identity),
-                        onTap: () {
-                          setEditablePosition(position);
-                        },
+                        editSubject: editSubject,
+                        position: position,
                       ),
                     ).expand();
                   }.listen(storage.entityInsightNotifier),
@@ -56,13 +56,13 @@ class EntityGraph extends StatelessWidget {
                         case EntityTraveler source:
                           storage.moveEntity(
                               from: source.position, to: position);
-                          setEditablePosition(position);
+                          editSubject.value = EntitySubject(position);
                         case CreationTraveler _:
                           storage.createEntity(
                             position,
                             AppLocalizations.of(context)!.newEntity,
                           );
-                          setEditablePosition(position);
+                          editSubject.value = EntitySubject(position);
                       }
                     },
                     boundaries: boundaries,

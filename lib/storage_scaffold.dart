@@ -63,12 +63,7 @@ class StorageScaffold extends StatelessWidget {
               child: Viewer(
                 minScale: 1,
                 maxScale: 20,
-                child: EntityGraph(
-                  storage,
-                  setEditablePosition: (position) {
-                    editSubject.value = EntitySubject(position);
-                  },
-                ),
+                child: EntityGraph(storage, editSubject: editSubject),
               ),
             ),
             sideChild: (EditSubject subject) {

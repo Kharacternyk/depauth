@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 import 'package:widget_arrows/widget_arrows.dart';
 
+import 'core/edit_subject.dart';
 import 'core/entity_insight.dart';
+import 'core/position.dart';
 import 'core/traversable_entity.dart';
 import 'entity_icon.dart';
 import 'entity_theme.dart';
@@ -11,13 +13,15 @@ import 'widget_extension.dart';
 
 class EntityCard extends StatelessWidget {
   final TraversableEntity entity;
-  final VoidCallback onTap;
+  final ValueNotifier<EditSubject> editSubject;
   final EntityInsight insight;
+  final Position position;
 
   const EntityCard(
     this.entity, {
-    required this.onTap,
+    required this.editSubject,
     required this.insight,
+    required this.position,
     super.key,
   });
 
@@ -56,6 +60,14 @@ class EntityCard extends StatelessWidget {
 
     final lost = insight.hasLostFactor || entity.lost;
     final compromised = insight.areAllFactorsCompromised || entity.compromised;
+    final lostIcon = Icon(
+      Icons.not_listed_location,
+      color: colors.onError,
+    ).fit.grow;
+    final compromisedIcon = Icon(
+      Icons.report,
+      color: colors.onError,
+    ).fit.grow;
 
     return [
       const Spacer(),
@@ -68,7 +80,9 @@ class EntityCard extends StatelessWidget {
             margin: EdgeInsets.zero,
             shape: const Border(),
             child: InkWell(
-              onTap: onTap,
+              onTap: () {
+                editSubject.value = EntitySubject(position);
+              },
               child: [
                 if (entity.factors.isNotEmpty) dependencyIcons.row.expand(),
                 Text(entity.name).pad(padding).fit.expand(),
@@ -81,25 +95,48 @@ class EntityCard extends StatelessWidget {
           ),
         ).expand(6),
         [
-          Spacer(flex: lost ? 1 : 2),
-          lost || compromised
-              ? Material(
+          (EditSubject subject) {
+            if (subject case EntitySubject subject
+                when subject.position == position) {
+              return Material(
+                color: colors.secondary,
+                child: Icon(
+                  Icons.edit,
+                  color: colors.onSecondary,
+                ).fit.grow,
+              ).expand();
+            }
+            return const Spacer();
+          }.listen(editSubject),
+          ...switch ((lost, compromised)) {
+            (true, true) => [
+                Material(
                   color: colors.error,
                   child: [
-                    if (lost)
-                      Icon(
-                        Icons.not_listed_location,
-                        color: colors.onError,
-                      ).fit.grow.expand(),
-                    if (compromised)
-                      Icon(
-                        Icons.report,
-                        color: colors.onError,
-                      ).fit.grow.expand(),
+                    lostIcon,
+                    compromisedIcon,
                   ].column,
-                ).expand(lost && compromised ? 2 : 1)
-              : const SizedBox.shrink(),
-          Spacer(flex: compromised ? 1 : 2),
+                ).expand(2)
+              ],
+            (true, _) => [
+                Material(
+                  color: colors.error,
+                  child: lostIcon,
+                ).expand(),
+                const Spacer()
+              ],
+            (_, true) => [
+                const Spacer(),
+                Material(
+                  color: colors.error,
+                  child: compromisedIcon,
+                ).expand(),
+              ],
+            _ => [
+                const Spacer(flex: 2),
+              ],
+          },
+          const Spacer(flex: 1),
         ].column.expand(),
       ].row.expand(6),
       const Spacer(),
