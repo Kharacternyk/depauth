@@ -113,8 +113,8 @@ class EntityCard extends StatelessWidget {
                 Material(
                   color: colors.error,
                   child: [
-                    lostIcon,
-                    compromisedIcon,
+                    lostIcon.expand(),
+                    compromisedIcon.expand(),
                   ].column,
                 ).expand(2)
               ],
