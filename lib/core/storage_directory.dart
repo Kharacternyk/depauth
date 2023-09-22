@@ -109,7 +109,6 @@ class StorageDirectory {
 
   static Future<StorageDirectory> get({
     required String fallbackDocumentsPath,
-    required String defaultStorageName,
     required String entityDuplicatePrefix,
     required String entityDuplicateSuffix,
     required String applicationName,
@@ -151,7 +150,7 @@ class StorageDirectory {
     var storageNames = storages.map((storage) => storage.name);
 
     if (storageNames.isEmpty) {
-      storageNames = [defaultStorageName];
+      storageNames = [newStorageName];
     }
 
     return StorageDirectory._(

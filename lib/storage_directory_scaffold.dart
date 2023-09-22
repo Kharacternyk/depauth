@@ -10,7 +10,6 @@ class StorageDirectoryScaffold extends StatefulWidget {
   final String applicationName;
   final String applicationFileExtension;
   final String fallbackDocumentsPath;
-  final String defaultStorageName;
   final String entityDuplicatePrefix;
   final String entityDuplicateSuffix;
   final String newStorageName;
@@ -20,7 +19,6 @@ class StorageDirectoryScaffold extends StatefulWidget {
     required this.applicationName,
     required this.applicationFileExtension,
     required this.fallbackDocumentsPath,
-    required this.defaultStorageName,
     required this.entityDuplicatePrefix,
     required this.entityDuplicateSuffix,
     required this.newStorageName,
@@ -51,7 +49,6 @@ class _State extends State<StorageDirectoryScaffold> {
     super.initState();
     StorageDirectory.get(
       fallbackDocumentsPath: widget.fallbackDocumentsPath,
-      defaultStorageName: widget.defaultStorageName,
       entityDuplicatePrefix: widget.entityDuplicatePrefix,
       entityDuplicateSuffix: widget.entityDuplicateSuffix,
       applicationName: widget.applicationName,

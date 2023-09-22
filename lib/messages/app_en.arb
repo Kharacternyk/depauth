@@ -6,8 +6,7 @@
   "fallbackDocumentsPath": ".",
   "wordSeparator": " ",
   "arrowIdentitySeparator": ":",
-  "defaultStorageName": "Personal",
-  "newStorageName": "New",
+  "newStorageName": "New Document",
   "deduplicatedStorageName": "{storageName} ({duplicateCount})",
   "@deduplicatedStorageName": {
     "placeholders": {
@@ -21,14 +20,15 @@
   },
   "back": "Back",
   "getHelp": "If you need support, want to report a bug or suggest an improvement, please write to hello@depauth.com",
-  "addButtonTooltip": "Drag this button onto an empty space to create a new entity.",
-  "deleteButtonTooltip": "Drag onto this button to delete.",
-  "ancestorCount": "Number of entities that this one depends on.",
-  "descendantCount": "Number of entities that depend on this one.",
-  "couplingTooltip": "Percentage of entities that are connected to this one.",
-  "emptyFactorTip": "Drag entities here to add dependencies.",
-  "singletonPlaceholderTip": "Drag the + button here to create a new entity.",
-  "storageFormTip": "Drag the + button onto an empty space to create a new entity. Click or tap on an entity to edit it. Drag an entity to move it. Drag an entity onto the delete button to delete it.",
+  "addButtonTooltip": "Drag this button onto an empty space to create a new card, or onto the side form to create a new document or dependency group.",
+  "deleteButtonTooltip": "Drag onto this button to delete cards and documents, or remove dependencies between cards.",
+  "ancestorCount": "Number of cards that this one depends on.",
+  "descendantCount": "Number of cards that depend on this one.",
+  "couplingTooltip": "Percentage of cards that are connected to this one.",
+  "emptyFactorTip": "Drag cards here to add dependencies.",
+  "singletonPlaceholderTip": "Drag the + button here to create a new card.",
+  "storageFormTip": "Drag the + button onto an empty space to create a new card. Click or tap on a card to edit it. Drag a card to move it. Drag a card onto the delete button to delete it.",
+  "storageDirectoryFormTip": "Drag the + button here to create a new document. Drag a document onto the delete button to delete the document.",
   "couplingValue": "{value}",
   "@couplingValue": {
     "placeholders": {
@@ -38,7 +38,7 @@
       }
     }
   },
-  "entityCount": "{entityCount, plural, =0{No entities} =1{1 entity} other{{entityCount} entities}}",
+  "entityCount": "{entityCount, plural, =0{No cards} =1{1 card} other{{entityCount} cards}}",
   "@entityCount": {
     "placeholders": {
       "entityCount": {
@@ -52,7 +52,7 @@
   "name": "Name",
   "lost": "Lost",
   "compromised": "Compromised",
-  "automaticallyLost": "This {entityType} is lost because all entities in at least one factor are lost.",
+  "automaticallyLost": "This {entityType} is lost because all dependencies in at least one group are lost.",
   "@automaticallyLost": {
     "placeholders": {
       "entityType": {
@@ -60,7 +60,7 @@
       }
     }
   },
-  "automaticallyCompromised": "This {entityType} is compromised because all factors have at least one compromised entity.",
+  "automaticallyCompromised": "This {entityType} is compromised because all dependency groups have at least one compromised dependency.",
   "@automaticallyCompromised": {
     "placeholders": {
       "entityType": {
@@ -76,7 +76,7 @@
       }
     }
   },
-  "noFactorsTip": "One does not need to have access to other entities to access this {entityType}. To change this, drag other entities or the + button here.",
+  "noFactorsTip": "One does not need to have access to other cards to access this {entityType}. To change this, drag other cards or the + button here.",
   "@noFactorsTip": {
     "placeholders": {
       "entityType": {
@@ -84,9 +84,9 @@
       }
     }
   },
-  "resetLoss": "Mark all as not lost",
-  "resetCompromise": "Mark all as not compromised",
-  "newEntity": "New Entity",
+  "resetLoss": "Mark all cards as not lost",
+  "resetCompromise": "Mark all cards as not compromised",
+  "newEntity": "New Card",
   "genericEntity": "generic entity",
   "webService": "web service",
   "secretKnowledge": "secret knowledge",
