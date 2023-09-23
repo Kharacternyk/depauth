@@ -31,6 +31,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+  assets:
+    - assets/
 
 flutter_native_splash:
   color: "#191c1e"
