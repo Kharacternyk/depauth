@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:widget_arrows/widget_arrows.dart';
 
-import 'viewer.dart';
+import 'scale.dart';
 
 class ScaledLine extends StatelessWidget {
   final Widget child;

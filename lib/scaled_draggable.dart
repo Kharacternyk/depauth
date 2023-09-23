@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'late_widget.dart';
-import 'viewer.dart';
+import 'scale.dart';
 
 class ScaledDraggable<DragDataType extends Object> extends StatelessWidget {
   final Widget child;

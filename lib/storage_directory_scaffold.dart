@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'bottom_bar.dart';
 import 'core/edit_subject.dart';
 import 'core/storage_directory.dart';
+import 'core/traveler.dart';
 import 'storage_directory_form.dart';
 import 'storage_scaffold.dart';
+import 'view_region.dart';
+import 'view_region_indicator.dart';
 import 'widget_extension.dart';
 
 class StorageDirectoryScaffold extends StatefulWidget {
@@ -34,6 +38,9 @@ class _State extends State<StorageDirectoryScaffold> {
   final formHasTraveler = ValueNotifier(false);
   final editSubject = ValueNotifier<EditSubject>(const StorageSubject());
   final siblingNames = ValueNotifier<Iterable<String>>(const []);
+  final viewRegion = ValueNotifier<ViewRegion>(
+    const ViewRegion(aspectRatio: 1),
+  );
   StorageDirectory? storageDirectory;
 
   @override
@@ -41,6 +48,8 @@ class _State extends State<StorageDirectoryScaffold> {
     formHasTraveler.dispose();
     editSubject.dispose();
     siblingNames.dispose();
+    viewRegion.dispose();
+    storageDirectory?.currentStorage.dispose();
     super.dispose();
   }
 
@@ -73,6 +82,7 @@ class _State extends State<StorageDirectoryScaffold> {
           storage: storage,
           editSubject: editSubject,
           formHasTraveler: formHasTraveler,
+          viewRegion: viewRegion,
           storageDirectoryForm: StorageDirectoryForm(
             hasTraveler: formHasTraveler,
             storageName: storage.name,
@@ -93,10 +103,26 @@ class _State extends State<StorageDirectoryScaffold> {
               editSubject.value = const StorageSubject();
             },
           ),
-          deleteStorage: (traveler) {
-            storageDirectory.deleteStorage(traveler.storageName);
-            this.siblingNames.value = storageDirectory.siblingNames;
-          },
+          bottomBar: BottomBar(
+            viewRegionIndicator: ViewRegionIndicator.new.listen(viewRegion),
+            delete: (traveler) {
+              switch (traveler) {
+                case EntityTraveler traveler:
+                  storage.deleteEntity(traveler.position);
+                case FactorTraveler traveler:
+                  storage.removeFactor(traveler.position, traveler.factor);
+                case DependencyTraveler traveler:
+                  storage.removeDependency(
+                    traveler.position,
+                    traveler.factor,
+                    traveler.entity,
+                  );
+                case StorageTraveler traveler:
+                  storageDirectory.deleteStorage(traveler.storageName);
+                  this.siblingNames.value = storageDirectory.siblingNames;
+              }
+            },
+          ),
         );
       }.listen(siblingNames);
     }

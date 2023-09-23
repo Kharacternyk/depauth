@@ -1,38 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/messages.dart';
 
 import 'core/edit_subject.dart';
 import 'core/insightful_storage.dart';
 import 'core/storage_insight.dart';
-import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
 import 'entity_form.dart';
 import 'entity_graph.dart';
-import 'scaled_draggable.dart';
 import 'split_view.dart';
 import 'storage_form.dart';
+import 'view_region.dart';
 import 'viewer.dart';
 import 'widget_extension.dart';
 
 class StorageScaffold extends StatelessWidget {
   final InsightfulStorage storage;
   final Widget storageDirectoryForm;
+  final Widget bottomBar;
   final ValueNotifier<EditSubject> editSubject;
   final ValueNotifier<bool> formHasTraveler;
-  final void Function(StorageTraveler) deleteStorage;
+  final ValueNotifier<ViewRegion> viewRegion;
 
   const StorageScaffold({
     required this.storage,
     required this.storageDirectoryForm,
+    required this.bottomBar,
     required this.editSubject,
     required this.formHasTraveler,
-    required this.deleteStorage,
+    required this.viewRegion,
     super.key,
   });
 
   @override
   build(BuildContext context) {
-    final messages = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
     final storageForm = (StorageInsight insight) {
       return StorageForm(
@@ -63,6 +62,7 @@ class StorageScaffold extends StatelessWidget {
               child: Viewer(
                 minScale: 1,
                 maxScale: 20,
+                region: viewRegion,
                 child: EntityGraph(storage, editSubject: editSubject),
               ),
             ),
@@ -135,69 +135,7 @@ class StorageScaffold extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: BottomAppBar(
-        child: [
-          const Spacer(),
-          DragTarget<DeletableTraveler>(
-            builder: (context, candidate, rejected) {
-              return FloatingActionButton(
-                backgroundColor:
-                    candidate.isNotEmpty ? colors.error : colors.errorContainer,
-                foregroundColor: candidate.isNotEmpty
-                    ? colors.onError
-                    : colors.onErrorContainer,
-                onPressed: () {
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(
-                      SnackBar(
-                        content: Text(messages.deleteButtonTooltip),
-                        showCloseIcon: true,
-                      ),
-                    );
-                },
-                tooltip: messages.deleteButtonTooltip,
-                child: const Icon(Icons.delete),
-              );
-            },
-            onAccept: (traveler) {
-              switch (traveler) {
-                case EntityTraveler traveler:
-                  storage.deleteEntity(traveler.position);
-                case FactorTraveler traveler:
-                  storage.removeFactor(traveler.position, traveler.factor);
-                case DependencyTraveler traveler:
-                  storage.removeDependency(
-                    traveler.position,
-                    traveler.factor,
-                    traveler.entity,
-                  );
-                case StorageTraveler traveler:
-                  deleteStorage(traveler);
-              }
-            },
-          ),
-          const SizedBox(width: 8),
-          ScaledDraggable(
-            dragData: const CreationTraveler(),
-            child: FloatingActionButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context)
-                  ..hideCurrentSnackBar()
-                  ..showSnackBar(
-                    SnackBar(
-                      content: Text(messages.addButtonTooltip),
-                      showCloseIcon: true,
-                    ),
-                  );
-              },
-              tooltip: messages.addButtonTooltip,
-              mouseCursor: SystemMouseCursors.grab,
-              child: const Icon(Icons.add),
-            ),
-          ),
-        ].row.group,
-      ),
+      bottomNavigationBar: bottomBar,
     );
   }
 }
