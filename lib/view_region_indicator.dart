@@ -19,7 +19,7 @@ class ViewRegionIndicator extends StatelessWidget {
       color: Theme.of(context).colorScheme.primaryContainer,
       elevation: 0,
       child: AspectRatio(
-        aspectRatio: region.aspectRatio,
+        aspectRatio: region.aspectRatio.clamp(.5, 2),
         child: [
           FractionalSpacer(region.relativeOffset.dx),
           FractionalSpacer(

@@ -68,14 +68,16 @@ class _State extends State<Viewer> {
     if (key.currentContext?.findRenderObject() case RenderBox box) {
       final origin = transformationController.toScene(Offset.zero);
 
-      widget.region.value = ViewRegion(
-        aspectRatio: box.size.aspectRatio,
-        scale: scale,
-        relativeOffset: Offset(
-          origin.dx / box.size.width,
-          origin.dy / box.size.height,
-        ),
-      );
+      if (box.size.width > 0 && box.size.height > 0) {
+        widget.region.value = ViewRegion(
+          aspectRatio: box.size.aspectRatio,
+          scale: scale,
+          relativeOffset: Offset(
+            origin.dx / box.size.width,
+            origin.dy / box.size.height,
+          ),
+        );
+      }
     }
   }
 }
