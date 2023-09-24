@@ -178,6 +178,13 @@ class EntityForm extends StatelessWidget {
         for (final (index, factor) in entity.factors.enumerate)
           DragTarget<DependableTraveler>(
             key: ValueKey(factor.identity),
+            onWillAccept: (traveler) {
+              if (traveler case EntityTraveler traveler
+                  when traveler.entity == entity.identity) {
+                return false;
+              }
+              return true;
+            },
             onAccept: (traveler) {
               switch (traveler) {
                 case EntityTraveler traveler:
@@ -248,7 +255,14 @@ class EntityForm extends StatelessWidget {
 
     return DragTarget<FactorableTraveler>(
       builder: (context, candidate, rejected) => form,
-      onWillAccept: (_) => hasTraveler.value = true,
+      onWillAccept: (traveler) {
+        if (traveler case EntityTraveler traveler
+            when traveler.entity == entity.identity) {
+          return false;
+        }
+        hasTraveler.value = true;
+        return true;
+      },
       onLeave: (_) => hasTraveler.value = false,
       onAccept: (traveler) {
         hasTraveler.value = false;
