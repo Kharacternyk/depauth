@@ -249,9 +249,7 @@ class InsightfulStorage extends ListenableStorage {
 
   @override
   toggleCompromised(position, value) {
-    _getEntity(position, (entity) {
-      _clearCompromise(entity, includingSelf: false);
-    });
+    _getEntity(position, _clearCompromise);
 
     super.toggleCompromised(position, value);
 
@@ -272,9 +270,7 @@ class InsightfulStorage extends ListenableStorage {
 
   @override
   toggleLost(position, value) {
-    _getEntity(position, (entity) {
-      _clearLoss(entity, includingSelf: false);
-    });
+    _getEntity(position, _clearLoss);
 
     super.toggleLost(position, value);
 
@@ -419,17 +415,15 @@ class InsightfulStorage extends ListenableStorage {
     expandedDownward.forEach(_ancestors.remove);
   }
 
-  void _clearLoss(Identity<Entity> entity, {bool includingSelf = true}) {
-    for (final entity
-        in _getDescendants(entity).followedBy([if (includingSelf) entity])) {
+  void _clearLoss(Identity<Entity> entity) {
+    for (final entity in _getDescendants(entity).followedBy([entity])) {
       _entityLoss[entity] = null;
     }
     _factorLoss.clear();
   }
 
-  void _clearCompromise(Identity<Entity> entity, {bool includingSelf = true}) {
-    for (final entity
-        in _getDescendants(entity).followedBy([if (includingSelf) entity])) {
+  void _clearCompromise(Identity<Entity> entity) {
+    for (final entity in _getDescendants(entity).followedBy([entity])) {
       _entityCompromise[entity] = null;
     }
     _factorCompromise.clear();
