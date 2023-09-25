@@ -89,8 +89,8 @@ class EntityForm extends StatelessWidget {
                       child: Chip(
                         avatar: Ink(
                           child: Icon(
-                            EntityTheme(value).icon,
-                            color: EntityTheme(value).primary,
+                            value.icon,
+                            color: value.primaryColor,
                           ),
                         ),
                         label: Text(
@@ -117,21 +117,21 @@ class EntityForm extends StatelessWidget {
             Chip(
               avatar: Icon(
                 Icons.arrow_upward,
-                color: EntityTheme(entity.type).primary,
+                color: entity.type.primaryColor,
               ),
               label: Text(insight.ancestorCount.toString()),
             ).tip(messages.ancestorCount),
             Chip(
               avatar: Icon(
                 Icons.arrow_downward,
-                color: EntityTheme(entity.type).primary,
+                color: entity.type.primaryColor,
               ),
               label: Text(insight.descendantCount.toString()),
             ).tip(messages.descendantCount),
             Chip(
               avatar: Icon(
                 Icons.swap_vert,
-                color: EntityTheme(entity.type).primary,
+                color: entity.type.primaryColor,
               ),
               label: Text(messages.couplingValue(insight.coupling)),
             ).tip(messages.couplingTooltip),
@@ -229,8 +229,8 @@ class EntityForm extends StatelessWidget {
                                       key: ValueKey(entity.identity),
                                       label: Text(entity.name),
                                       avatar: Icon(
-                                        EntityTheme(entity.type).icon,
-                                        color: EntityTheme(entity.type).primary,
+                                        entity.type.icon,
+                                        color: entity.type.primaryColor,
                                       ),
                                     ),
                                   ),

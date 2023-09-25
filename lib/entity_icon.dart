@@ -12,14 +12,9 @@ class EntityIcon extends StatelessWidget {
 
   @override
   build(context) {
-    final theme = EntityTheme(type);
-
     return Ink(
-      color: theme.background,
-      child: Icon(
-        theme.icon,
-        color: theme.foreground,
-      ).pad(padding).fit.grow,
+      color: type.background,
+      child: Icon(type.icon, color: type.foreground).pad(padding).fit.grow,
     );
   }
 }
