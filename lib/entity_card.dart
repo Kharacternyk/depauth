@@ -111,7 +111,7 @@ class EntityCard extends StatelessWidget {
                         style: TextStyle(color: colors.onSurfaceVariant),
                       ).fit.expand(),
                     ].row,
-                  ).expand(),
+                  ).grow.expand(),
                   spacer,
                 ].row.expand()
               : spacer,
@@ -167,7 +167,7 @@ class EntityCard extends StatelessWidget {
                         style: TextStyle(color: colors.onSurfaceVariant),
                       ).fit.expand(),
                     ].row,
-                  ).expand(),
+                  ).grow.expand(),
                   spacer,
                 ].row.expand()
               : spacer,
