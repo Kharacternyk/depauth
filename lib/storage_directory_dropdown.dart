@@ -29,7 +29,6 @@ class StorageDirectoryDropdown extends StatelessWidget {
       children: [
         if (siblingNames.isNotEmpty)
           ListTile(
-            dense: true,
             title: Wrap(
               spacing: 4,
               runSpacing: 4,
@@ -53,7 +52,6 @@ class StorageDirectoryDropdown extends StatelessWidget {
         ListTile(
           key: UniqueKey(),
           title: Text(messages.storageDirectoryFormTip),
-          dense: true,
         ),
       ],
     );

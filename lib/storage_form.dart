@@ -73,7 +73,6 @@ class StorageForm extends StatelessWidget {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          dense: true,
         ),
     ]);
   }

@@ -113,7 +113,6 @@ class EntityForm extends StatelessWidget {
               ? messages.automaticallyLost(entity.type.getName(context))
               : messages.lost,
         ),
-        dense: true,
         activeColor: colors.error,
         value: entity.lost,
         selected: insight.hasLostFactor || entity.lost,
@@ -126,7 +125,6 @@ class EntityForm extends StatelessWidget {
               ? messages.automaticallyCompromised(entity.type.getName(context))
               : messages.compromised,
         ),
-        dense: true,
         activeColor: colors.error,
         value: entity.compromised,
         selected: entity.compromised || insight.areAllFactorsCompromised,
@@ -142,7 +140,6 @@ class EntityForm extends StatelessWidget {
                 ),
           style: TextStyle(color: colors.onSurfaceVariant),
         ),
-        dense: true,
       ),
       ...<Widget>[
         for (final (index, factor) in entity.factors.enumerate)
@@ -208,7 +205,6 @@ class EntityForm extends StatelessWidget {
                             ].interleave(Text(messages.or)).toList(),
                           )
                         : Text(messages.emptyFactorTip),
-                    dense: true,
                   ),
                 ),
               );
@@ -221,7 +217,6 @@ class EntityForm extends StatelessWidget {
                 messages.and,
                 style: TextStyle(color: colors.onSurfaceVariant),
               ),
-              dense: true,
             ),
           )
           .toList(),
