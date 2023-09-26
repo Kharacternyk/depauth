@@ -28,6 +28,9 @@ class EntityCard extends StatelessWidget {
   @override
   build(context) {
     const padding = EdgeInsets.all(8);
+    const spacer = Spacer();
+    const spacer2 = Spacer(flex: 2);
+
     final colors = Theme.of(context).colorScheme;
     final messages = AppLocalizations.of(context)!;
     final dependencyIcons = <Widget>[];
@@ -70,9 +73,9 @@ class EntityCard extends StatelessWidget {
     ).fit.grow;
 
     return [
-      const Spacer(),
+      spacer,
       [
-        const Spacer(),
+        spacer,
         ArrowElement(
           id: entity.identity.toString(),
           child: Card(
@@ -95,6 +98,23 @@ class EntityCard extends StatelessWidget {
           ),
         ).expand(6),
         [
+          insight.ancestorCount > 0
+              ? [
+                  Material(
+                    color: colors.surfaceVariant,
+                    child: [
+                      Icon(Icons.arrow_upward, color: colors.onSurfaceVariant)
+                          .fit
+                          .expand(),
+                      Text(
+                        insight.ancestorCount.toString(),
+                        style: TextStyle(color: colors.onSurfaceVariant),
+                      ).fit.expand(),
+                    ].row,
+                  ).expand(),
+                  spacer,
+                ].row.expand()
+              : spacer,
           (EditSubject subject) {
             if (subject case EntitySubject subject
                 when subject.position == position) {
@@ -104,9 +124,9 @@ class EntityCard extends StatelessWidget {
                   Icons.edit,
                   color: colors.onSecondary,
                 ).fit.grow,
-              ).expand();
+              ).expand(2);
             }
-            return const Spacer();
+            return spacer2;
           }.listen(editSubject),
           ...switch ((lost, compromised)) {
             (true, true) => [
@@ -116,30 +136,44 @@ class EntityCard extends StatelessWidget {
                     lostIcon.expand(),
                     compromisedIcon.expand(),
                   ].column,
-                ).expand(2)
+                ).expand(4)
               ],
             (true, _) => [
                 Material(
                   color: colors.error,
                   child: lostIcon,
-                ).expand(),
-                const Spacer()
+                ).expand(2),
+                spacer2
               ],
             (_, true) => [
-                const Spacer(),
+                spacer2,
                 Material(
                   color: colors.error,
                   child: compromisedIcon,
-                ).expand(),
+                ).expand(2),
               ],
-            _ => [
-                const Spacer(flex: 2),
-              ],
+            _ => [const Spacer(flex: 4)],
           },
-          const Spacer(flex: 1),
+          insight.descendantCount > 0
+              ? [
+                  Material(
+                    color: colors.surfaceVariant,
+                    child: [
+                      Icon(Icons.arrow_downward, color: colors.onSurfaceVariant)
+                          .fit
+                          .expand(),
+                      Text(
+                        insight.descendantCount.toString(),
+                        style: TextStyle(color: colors.onSurfaceVariant),
+                      ).fit.expand(),
+                    ].row,
+                  ).expand(),
+                  spacer,
+                ].row.expand()
+              : spacer,
         ].column.expand(),
       ].row.expand(6),
-      const Spacer(),
+      spacer,
     ].column;
   }
 }

@@ -108,36 +108,6 @@ class EntityForm extends StatelessWidget {
           ),
         ),
       ).card,
-      ListTile(
-        leading: const Icon(Icons.insights),
-        title: Wrap(
-          spacing: 4,
-          runSpacing: 4,
-          children: [
-            Chip(
-              avatar: Icon(
-                Icons.arrow_upward,
-                color: entity.type.primaryColor,
-              ),
-              label: Text(insight.ancestorCount.toString()),
-            ).tip(messages.ancestorCount),
-            Chip(
-              avatar: Icon(
-                Icons.arrow_downward,
-                color: entity.type.primaryColor,
-              ),
-              label: Text(insight.descendantCount.toString()),
-            ).tip(messages.descendantCount),
-            Chip(
-              avatar: Icon(
-                Icons.swap_vert,
-                color: entity.type.primaryColor,
-              ),
-              label: Text(messages.couplingValue(insight.coupling)),
-            ).tip(messages.couplingTooltip),
-          ],
-        ),
-      ).card,
       SwitchListTile(
         title: Text(
           insight.hasLostFactor
