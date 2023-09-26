@@ -4,7 +4,7 @@ import 'bottom_bar.dart';
 import 'core/edit_subject.dart';
 import 'core/storage_directory.dart';
 import 'core/traveler.dart';
-import 'storage_directory_form.dart';
+import 'storage_directory_dropdown.dart';
 import 'storage_scaffold.dart';
 import 'view_region.dart';
 import 'view_region_indicator.dart';
@@ -83,9 +83,7 @@ class _State extends State<StorageDirectoryScaffold> {
           editSubject: editSubject,
           formHasTraveler: formHasTraveler,
           viewRegion: viewRegion,
-          storageDirectoryForm: StorageDirectoryForm(
-            hasTraveler: formHasTraveler,
-            storageName: storage.name,
+          storageDirectoryDropdown: StorageDirectoryDropdown(
             siblingNames: siblingNames,
             selectStorage: (name) {
               setState(() {
@@ -94,13 +92,8 @@ class _State extends State<StorageDirectoryScaffold> {
               this.siblingNames.value = storageDirectory.siblingNames;
             },
             createStorage: () {
-              setState(() {
-                storageDirectory.createStorage();
-              });
+              storageDirectory.createStorage();
               this.siblingNames.value = storageDirectory.siblingNames;
-            },
-            editCurrentStorage: () {
-              editSubject.value = const StorageSubject();
             },
           ),
           bottomBar: BottomBar(

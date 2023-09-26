@@ -10,7 +10,3 @@ class EntitySubject implements EditSubject {
 class StorageSubject implements EditSubject {
   const StorageSubject();
 }
-
-class StorageDirectorySubject implements EditSubject {
-  const StorageDirectorySubject();
-}

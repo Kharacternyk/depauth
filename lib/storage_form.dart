@@ -7,22 +7,22 @@ import 'debounced_text_field.dart';
 import 'widget_extension.dart';
 
 class StorageForm extends StatelessWidget {
-  final ValueNotifier<String> storageName;
+  final String storageName;
   final StorageInsight insight;
   final VoidCallback resetLoss;
   final VoidCallback resetCompromise;
-  final VoidCallback goBack;
   final void Function(String) rename;
   final bool Function() isRenameCanceled;
+  final Widget storageDirectoryDropdown;
 
   const StorageForm({
     required this.storageName,
     required this.insight,
     required this.resetLoss,
     required this.resetCompromise,
-    required this.goBack,
     required this.rename,
     required this.isRenameCanceled,
+    required this.storageDirectoryDropdown,
     super.key,
   });
 
@@ -32,20 +32,17 @@ class StorageForm extends StatelessWidget {
 
     return CardForm([
       ListTile(
-        leading: const BackButtonIcon(),
-        title: Text(messages.back),
-        onTap: goBack,
-      ).card,
-      ListTile(
         leading: const Icon(Icons.edit_document),
         title: DebouncedTextField(
-          value: storageName.value,
+          key: ValueKey(storageName),
+          value: storageName,
           delay: const Duration(milliseconds: 200),
           commitValue: rename,
           hint: messages.name,
           isCanceled: isRenameCanceled,
         ),
       ).card,
+      storageDirectoryDropdown,
       ListTile(
         leading: const Icon(Icons.style),
         title: Text(messages.entityCount(insight.entityCount)),
@@ -62,6 +59,12 @@ class StorageForm extends StatelessWidget {
           title: Text(messages.resetCompromise),
           onTap: resetCompromise,
         ).card,
+      AboutListTile(
+        icon: const Icon(Icons.info),
+        aboutBoxChildren: [
+          Text(messages.getHelp),
+        ],
+      ).card,
       if (insight.entityCount > 0)
         ListTile(
           title: Text(

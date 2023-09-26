@@ -39,9 +39,12 @@ class StorageDirectory {
   }
 
   void createStorage() {
-    _disposeCurrentStorage();
-    _storageNames.addFirst(_deduplicateName(newStorageName));
-    _currentStorage = _getStorage();
+    final current = _storageNames.first;
+    final name = _deduplicateName(newStorageName);
+
+    _storageNames.addFirst(name);
+    _storageNames.addFirst(current);
+    File(_getPath(name)).createSync();
   }
 
   void switchStorage(String name) {

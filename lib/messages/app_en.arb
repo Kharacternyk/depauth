@@ -19,13 +19,14 @@
     }
   },
   "back": "Back",
+  "otherDocuments": "Other documents",
   "getHelp": "If you need support, want to report a bug or suggest an improvement, please write to hello@depauth.com",
   "addButtonTooltip": "Drag this button onto an empty space to create a new card, or onto the side form to create a new document or dependency group.",
   "deleteButtonTooltip": "Drag onto this button to delete cards and documents, or remove dependencies between cards.",
   "emptyFactorTip": "Drag cards here to add dependencies.",
   "singletonPlaceholderTip": "Drag the + button here to create a new card.",
   "storageFormTip": "Drag the + button onto an empty space to create a new card. Click or tap on a card to edit it. Drag a card to move it. Drag a card onto the delete button to delete it.",
-  "storageDirectoryFormTip": "Drag the + button here to create a new document. Drag a document onto the delete button to delete the document.",
+  "storageDirectoryFormTip": "Drag the + button here to create a new document. Click or tap on a document to view and edit it. Drag a document onto the delete button to delete it.",
   "entityCount": "{entityCount, plural, =0{No cards} =1{1 card} other{{entityCount} cards}}",
   "@entityCount": {
     "placeholders": {
