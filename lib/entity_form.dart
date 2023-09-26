@@ -17,7 +17,6 @@ import 'debounced_text_field.dart';
 import 'entity_theme.dart';
 import 'entity_type_name.dart';
 import 'scaled_draggable.dart';
-import 'tip.dart';
 import 'widget_extension.dart';
 
 class EntityForm extends StatelessWidget {
@@ -135,12 +134,13 @@ class EntityForm extends StatelessWidget {
         onChanged: toggleCompromised,
       ).card,
       ListTile(
-        title: Tip(
+        title: Text(
           entity.factors.isEmpty
               ? messages.noFactorsTip(entity.type.getName(context))
               : messages.accessTip(
                   entity.type.getName(context),
                 ),
+          style: TextStyle(color: colors.onSurfaceVariant),
         ),
         dense: true,
       ),
@@ -205,9 +205,10 @@ class EntityForm extends StatelessWidget {
                                     ),
                                   ),
                                 ),
-                            ].interleave(Tip(messages.or)).toList(),
+                            ].interleave(Text(messages.or)).toList(),
                           )
-                        : Tip(messages.emptyFactorTip),
+                        : Text(messages.emptyFactorTip),
+                    dense: true,
                   ),
                 ),
               );
@@ -216,7 +217,10 @@ class EntityForm extends StatelessWidget {
       ]
           .interleave(
             ListTile(
-              title: Tip(messages.and),
+              title: Text(
+                messages.and,
+                style: TextStyle(color: colors.onSurfaceVariant),
+              ),
               dense: true,
             ),
           )

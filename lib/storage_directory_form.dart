@@ -4,7 +4,6 @@ import 'package:flutter_gen/gen_l10n/messages.dart';
 import 'card_form.dart';
 import 'core/traveler.dart';
 import 'scaled_draggable.dart';
-import 'tip.dart';
 import 'widget_extension.dart';
 
 class StorageDirectoryForm extends StatelessWidget {
@@ -56,7 +55,12 @@ class StorageDirectoryForm extends StatelessWidget {
         ],
       ).card,
       ListTile(
-        title: Tip(messages.storageDirectoryFormTip),
+        title: Text(
+          messages.storageDirectoryFormTip,
+          style:
+              TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+        ),
+        dense: true,
       ),
     ]);
 

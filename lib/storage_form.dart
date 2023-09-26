@@ -4,7 +4,6 @@ import 'package:flutter_gen/gen_l10n/messages.dart';
 import 'card_form.dart';
 import 'core/storage_insight.dart';
 import 'debounced_text_field.dart';
-import 'tip.dart';
 import 'widget_extension.dart';
 
 class StorageForm extends StatelessWidget {
@@ -65,7 +64,13 @@ class StorageForm extends StatelessWidget {
         ).card,
       if (insight.entityCount > 0)
         ListTile(
-          title: Tip(messages.storageFormTip),
+          title: Text(
+            messages.storageFormTip,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          dense: true,
         ),
     ]);
   }
