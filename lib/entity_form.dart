@@ -80,26 +80,25 @@ class EntityForm extends StatelessWidget {
         title: DropdownButtonHideUnderline(
           child: DropdownButton(
             isExpanded: true,
-            items: EntityType.values
-                .map(
-                  (value) => DropdownMenuItem(
-                    value: value,
-                    child: AbsorbPointer(
-                      child: Chip(
-                        avatar: Ink(
-                          child: Icon(
-                            value.icon,
-                            color: value.primaryColor,
-                          ),
+            items: [
+              for (final value in EntityType.values)
+                DropdownMenuItem(
+                  value: value,
+                  child: AbsorbPointer(
+                    child: Chip(
+                      avatar: Ink(
+                        child: Icon(
+                          value.icon,
+                          color: value.primaryColor,
                         ),
-                        label: Text(
-                          value.getName(context).title(messages.wordSeparator),
-                        ),
+                      ),
+                      label: Text(
+                        value.getName(context).title(messages.wordSeparator),
                       ),
                     ),
                   ),
-                )
-                .toList(),
+                ),
+            ],
             onChanged: (value) {
               changeType(value ?? entity.type);
             },
