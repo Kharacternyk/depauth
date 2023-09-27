@@ -184,6 +184,7 @@ class EntityForm extends StatelessWidget {
                             children: <Widget>[
                               for (final entity in factor.dependencies)
                                 ScaledDraggable(
+                                  key: ValueKey(entity.identity),
                                   needsMaterial: true,
                                   dragData: DependencyTraveler(
                                     position,
@@ -192,7 +193,6 @@ class EntityForm extends StatelessWidget {
                                   ),
                                   child: AbsorbPointer(
                                     child: Chip(
-                                      key: ValueKey(entity.identity),
                                       label: Text(entity.name),
                                       avatar: Icon(
                                         entity.type.icon,

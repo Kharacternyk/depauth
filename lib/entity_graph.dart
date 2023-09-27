@@ -29,51 +29,49 @@ class EntityGraph extends StatelessWidget {
       final rows = <Widget>[];
 
       for (var y = boundaries.start.y; y <= boundaries.end.y; ++y) {
-        final row = <Widget>[];
+        final cells = <Widget>[];
 
         for (var x = boundaries.start.x; x <= boundaries.end.x; ++x) {
           final position = Position(x, y);
           final listenableEntity = storage.getListenableEntity(position);
+          final cell = (TraversableEntity? entity) {
+            return switch (entity) {
+              TraversableEntity entity => () {
+                  return ScaledDraggable(
+                    keepsSpace: false,
+                    dragData: EntityTraveler(position, entity.identity),
+                    child: EntityCard(
+                      entity,
+                      insight: storage.getEntityInsight(entity.identity),
+                      editSubject: editSubject,
+                      position: position,
+                    ),
+                  ).expand();
+                }.listen(storage.entityInsightNotifier),
+              null => EntityPlaceholder<GrabbableTraveler>(
+                  onDragAccepted: (source) {
+                    switch (source) {
+                      case EntityTraveler source:
+                        storage.moveEntity(from: source.position, to: position);
+                        editSubject.value = EntitySubject(position);
+                      case CreationTraveler _:
+                        storage.createEntity(
+                          position,
+                          AppLocalizations.of(context)!.newEntity,
+                        );
+                        editSubject.value = EntitySubject(position);
+                    }
+                  },
+                  boundaries: boundaries,
+                  position: position,
+                ),
+            };
+          }.listen(listenableEntity);
 
-          row.add(
-            (TraversableEntity? entity) {
-              return switch (entity) {
-                TraversableEntity entity => () {
-                    return ScaledDraggable(
-                      keepsSpace: false,
-                      dragData: EntityTraveler(position, entity.identity),
-                      child: EntityCard(
-                        entity,
-                        insight: storage.getEntityInsight(entity.identity),
-                        editSubject: editSubject,
-                        position: position,
-                      ),
-                    ).expand();
-                  }.listen(storage.entityInsightNotifier),
-                null => EntityPlaceholder<GrabbableTraveler>(
-                    onDragAccepted: (source) {
-                      switch (source) {
-                        case EntityTraveler source:
-                          storage.moveEntity(
-                              from: source.position, to: position);
-                          editSubject.value = EntitySubject(position);
-                        case CreationTraveler _:
-                          storage.createEntity(
-                            position,
-                            AppLocalizations.of(context)!.newEntity,
-                          );
-                          editSubject.value = EntitySubject(position);
-                      }
-                    },
-                    boundaries: boundaries,
-                    position: position,
-                  ),
-              };
-            }.listen(listenableEntity).keyed(ValueKey(x)),
-          );
+          cells.add(cell);
         }
 
-        rows.add(row.row.expand().keyed(ValueKey(y)));
+        rows.add(cells.row.expand());
       }
 
       return ArrowContainer(child: rows.column);
