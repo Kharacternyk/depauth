@@ -45,12 +45,6 @@ class InsightfulStorage extends ListenableStorage {
       areAllFactorsCompromised: _areAllFactorsCompromised(entity, const {}),
       ancestorCount: ancestors.length,
       descendantCount: descendants.length,
-      coupling: (ancestors.length +
-              descendants.length -
-              ancestors.intersection(descendants).length) /
-          (storageInsight.value.entityCount > 1
-              ? storageInsight.value.entityCount - 1
-              : 1),
     );
   }
 
