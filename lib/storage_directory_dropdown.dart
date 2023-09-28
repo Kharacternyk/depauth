@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 
+import 'card_dropdown.dart';
 import 'core/traveler.dart';
 import 'scaled_draggable.dart';
 
@@ -20,12 +21,9 @@ class StorageDirectoryDropdown extends StatelessWidget {
   build(context) {
     final messages = AppLocalizations.of(context)!;
 
-    final dropdown = ExpansionTile(
-      shape: const Border(),
-      collapsedShape: const Border(),
+    final dropdown = CardDropdown(
       leading: const Icon(Icons.file_copy),
       title: Text(messages.otherDocuments),
-      expandedCrossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (siblingNames.isNotEmpty)
           ListTile(

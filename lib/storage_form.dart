@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 
+import 'about_dropdown.dart';
 import 'card_form.dart';
 import 'core/storage_insight.dart';
 import 'debounced_text_field.dart';
@@ -55,12 +56,7 @@ class StorageForm extends StatelessWidget {
           title: Text(messages.resetCompromise),
           onTap: resetCompromise,
         ).card.keyed(const ValueKey(1)),
-      AboutListTile(
-        icon: const Icon(Icons.info),
-        aboutBoxChildren: [
-          Text(messages.getHelp),
-        ],
-      ).card,
+      const AboutDropdown(),
       if (insight.entityCount > 0)
         ListTile(
           key: const ValueKey(2),
