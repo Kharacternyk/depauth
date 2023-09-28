@@ -5,6 +5,7 @@ import 'core/edit_subject.dart';
 import 'core/storage_directory.dart';
 import 'core/traveler.dart';
 import 'storage_directory_dropdown.dart';
+import 'storage_insight_row.dart';
 import 'storage_scaffold.dart';
 import 'view_region.dart';
 import 'view_region_indicator.dart';
@@ -97,7 +98,12 @@ class _State extends State<StorageDirectoryScaffold> {
             },
           ),
           bottomBar: BottomBar(
-            viewRegionIndicator: ViewRegionIndicator.new.listen(viewRegion),
+            children: [
+              ViewRegionIndicator.new.listen(viewRegion),
+              StorageInsightRow.new.listen(
+                storageDirectory.currentStorage.storageInsight,
+              ),
+            ],
             delete: (traveler) {
               switch (traveler) {
                 case EntityTraveler traveler:

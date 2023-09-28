@@ -14,10 +14,8 @@ class ViewRegionIndicator extends StatelessWidget {
   build(context) {
     final invertedScale = 1 / region.scale;
 
-    return Card(
-      margin: EdgeInsets.zero,
+    return Ink(
       color: Theme.of(context).colorScheme.primaryContainer,
-      elevation: 0,
       child: AspectRatio(
         aspectRatio: region.aspectRatio.clamp(.5, 2),
         child: [

@@ -6,11 +6,11 @@ import 'scaled_draggable.dart';
 import 'widget_extension.dart';
 
 class BottomBar extends StatelessWidget {
-  final Widget viewRegionIndicator;
+  final List<Widget> children;
   final void Function(DeletableTraveler) delete;
 
   const BottomBar({
-    required this.viewRegionIndicator,
+    required this.children,
     required this.delete,
     super.key,
   });
@@ -22,7 +22,7 @@ class BottomBar extends StatelessWidget {
 
     return BottomAppBar(
       child: [
-        viewRegionIndicator,
+        ...children,
         const Spacer(),
         DragTarget<DeletableTraveler>(
           builder: (context, candidate, rejected) {

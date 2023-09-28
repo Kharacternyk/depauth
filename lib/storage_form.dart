@@ -43,10 +43,6 @@ class StorageForm extends StatelessWidget {
         ),
       ).card,
       storageDirectoryDropdown,
-      ListTile(
-        leading: const Icon(Icons.style),
-        title: Text(messages.entityCount(insight.entityCount)),
-      ).card,
       if (insight.hasLostEntities)
         ListTile(
           leading: const Icon(Icons.where_to_vote),
