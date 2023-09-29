@@ -43,6 +43,7 @@ class BottomBar extends StatelessWidget {
                   );
               },
               tooltip: messages.deleteButtonTooltip,
+              heroTag: null,
               child: const Icon(Icons.delete),
             );
           },
@@ -64,6 +65,7 @@ class BottomBar extends StatelessWidget {
             },
             tooltip: messages.addButtonTooltip,
             mouseCursor: SystemMouseCursors.grab,
+            heroTag: null,
             child: const Icon(Icons.add),
           ),
         ),
