@@ -17,11 +17,11 @@ class AboutDropdown extends StatelessWidget {
       children: [
         ListTile(
           leading: const Icon(Icons.public),
-          title: Text(messages.website),
+          title: SelectableText(messages.website),
         ),
         ListTile(
           leading: const Icon(Icons.email),
-          title: Text(messages.email),
+          title: SelectableText(messages.email),
         ),
         ListTile(
           leading: const Icon(Icons.balance),
