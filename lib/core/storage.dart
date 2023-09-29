@@ -87,7 +87,7 @@ class Storage {
 
     return switch (row) {
       null => null,
-      Row row => Identity._(row.values.first as int),
+      Row row => _parseIdentity(row),
     };
   }
 
@@ -266,7 +266,7 @@ class Storage {
     required Identity<Entity> entity,
     required Identity<Entity> dependency,
   }) {
-    addFactor(position, entity);
+    _addFactorStatement.execute([entity._value]);
     _addDependencyAsFactorStatement.execute([dependency._value]);
   }
 
@@ -276,34 +276,20 @@ class Storage {
     where entity = ?
   ''');
   Iterable<Identity<Factor>> getFactors(Identity<Entity> entity) {
-    return _factorIdentitiesQuery.select([entity._value]).map(
-        (row) => Identity<Factor>._(row.values.first as int));
+    return _factorIdentitiesQuery.select([entity._value]).map(_parseIdentity);
   }
 
   late final _dependencyEntitiesQuery = Query(_database, '''
-    select entity, lost, compromised
+    select entity
     from dependencies
     join entities
     on entity = entities.identity
     where factor = ?
   ''');
-  Iterable<
-      ({
-        Identity<Entity> identity,
-        bool lost,
-        bool compromised,
-      })> getDependencies(
+  Iterable<Identity<Entity>> getDependencies(
     Identity<Factor> factor,
   ) {
-    return _dependencyEntitiesQuery.select([factor._value]).map((row) {
-      final [identity, lost, compromised] = row.values;
-
-      return (
-        identity: Identity._(identity as int),
-        lost: lost as int != 0,
-        compromised: compromised as int != 0,
-      );
-    });
+    return _dependencyEntitiesQuery.select([factor._value]).map(_parseIdentity);
   }
 
   late final _dependantsQuery = Query(_database, '''
@@ -314,9 +300,7 @@ class Storage {
     where dependencies.entity = ?
   ''');
   Iterable<Identity<Entity>> getDependants(Identity<Entity> entity) {
-    return _dependantsQuery.select([entity._value]).map((row) {
-      return Identity._(row.values.first as int);
-    });
+    return _dependantsQuery.select([entity._value]).map(_parseIdentity);
   }
 
   late final _positionOfFactorQuery = Query(_database, '''
@@ -375,6 +359,33 @@ class Storage {
   ''');
   void resetCompromise() => _resetCompromiseStatement.execute();
 
+  late final _normalEntitiesQuery = Query(_database, '''
+    select identity
+    from entities
+    where not lost and not compromised
+  ''');
+  Iterable<Identity<Entity>> getNormalEntities() {
+    return _normalEntitiesQuery.select().map(_parseIdentity);
+  }
+
+  late final _lostEntititesQuery = Query(_database, '''
+    select identity
+    from entities
+    where lost
+  ''');
+  Iterable<Identity<Entity>> getLostEntities() {
+    return _lostEntititesQuery.select().map(_parseIdentity);
+  }
+
+  late final _compromisedEntititesQuery = Query(_database, '''
+    select identity
+    from entities
+    where compromised
+  ''');
+  Iterable<Identity<Entity>> getCompromisedEntities() {
+    return _compromisedEntititesQuery.select().map(_parseIdentity);
+  }
+
   late final _lostPositionsQuery = Query(_database, '''
     select x, y
     from entities
@@ -403,6 +414,10 @@ class Storage {
     final [x, y] = row.values;
 
     return Position(x as int, y as int);
+  }
+
+  Identity<T> _parseIdentity<T>(Row row) {
+    return Identity._(row.values.first as int);
   }
 
   late final _nameQuery = Query(_database, '''

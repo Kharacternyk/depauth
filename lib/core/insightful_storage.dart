@@ -14,8 +14,8 @@ class InsightfulStorage extends ListenableStorage {
   late final storageInsight = ValueNotifier(
     StorageInsight(
       entityCount: getEntityCount(),
-      hasLostEntities: _lostPositions.isNotEmpty,
-      hasCompromisedEntities: _compromisedPositions.isNotEmpty,
+      lostEntityCount: _lostEntities.length,
+      compromisedEntityCount: _compromisedEntities.length,
     ),
   );
 
@@ -26,23 +26,31 @@ class InsightfulStorage extends ListenableStorage {
   final _ancestors = <Identity<Entity>, Set<Identity<Entity>>>{};
   final _descendants = <Identity<Entity>, Set<Identity<Entity>>>{};
 
-  late final _lostPositions = super.getLostPositions().toSet();
-  late final _compromisedPositions = super.getCompromisedPositions().toSet();
+  late final _lostEntities = super.getLostEntities().toSet();
+  late final _compromisedEntities = super.getCompromisedEntities().toSet();
 
   InsightfulStorage({
     required super.name,
     required super.path,
     required super.entityDuplicatePrefix,
     required super.entityDuplicateSuffix,
-  });
+  }) {
+    for (final entity in _lostEntities
+        .followedBy(_compromisedEntities)
+        .followedBy(getNormalEntities())) {
+      _entityLoss[entity] = null;
+      _entityCompromise[entity] = null;
+    }
+    _update();
+  }
 
   EntityInsight getEntityInsight(Identity<Entity> entity) {
     final ancestors = _getAncestors(entity);
     final descendants = _getDescendants(entity);
 
     return EntityInsight(
-      hasLostFactor: _hasLostFactor(entity, const {}),
-      areAllFactorsCompromised: _areAllFactorsCompromised(entity, const {}),
+      hasLostFactor: _entityLoss[entity] ?? false,
+      areAllFactorsCompromised: _entityCompromise[entity] ?? false,
       ancestorCount: ancestors.length,
       descendantCount: descendants.length,
     );
@@ -57,7 +65,6 @@ class InsightfulStorage extends ListenableStorage {
 
     final ancestors = getFactors(entity)
         .expand(getDependencies)
-        .map((dependency) => dependency.identity)
         .expand((entity) => _getAncestors(entity).followedBy([entity]))
         .toSet();
 
@@ -125,6 +132,10 @@ class InsightfulStorage extends ListenableStorage {
 
     if (seen.isEmpty || isCacheable) {
       _entityLoss[entity] = hasLostFactor;
+
+      if (hasLostFactor && !_lostEntities.contains(entity)) {
+        storageInsight.value = storageInsight.value.add(lost: 1);
+      }
     }
 
     return hasLostFactor;
@@ -165,6 +176,10 @@ class InsightfulStorage extends ListenableStorage {
 
     if (seen.isEmpty || isCacheable) {
       _entityCompromise[entity] = areAllFactorsCompromised;
+
+      if (areAllFactorsCompromised && !_compromisedEntities.contains(entity)) {
+        storageInsight.value = storageInsight.value.add(compromised: 1);
+      }
     }
 
     return areAllFactorsCompromised;
@@ -186,10 +201,10 @@ class InsightfulStorage extends ListenableStorage {
     bool? result = true;
 
     for (final dependency in dependencies) {
-      if (seen.contains(dependency.identity)) {
+      if (seen.contains(dependency)) {
         result = null;
-      } else if (!dependency.lost &&
-          !_hasLostFactor(dependency.identity, seen)) {
+      } else if (!_lostEntities.contains(dependency) &&
+          !_hasLostFactor(dependency, seen)) {
         result = false;
         break;
       }
@@ -214,10 +229,10 @@ class InsightfulStorage extends ListenableStorage {
     bool? result = false;
 
     for (final dependency in dependencies) {
-      if (seen.contains(dependency.identity)) {
+      if (seen.contains(dependency)) {
         result = null;
-      } else if (dependency.compromised ||
-          _areAllFactorsCompromised(dependency.identity, seen)) {
+      } else if (_compromisedEntities.contains(dependency) ||
+          _areAllFactorsCompromised(dependency, seen)) {
         result = true;
       }
     }
@@ -232,54 +247,67 @@ class InsightfulStorage extends ListenableStorage {
   @override
   deleteEntity(position) {
     _getEntity(position, (entity) {
-      _clearCompromise(entity);
+      storageInsight.value = storageInsight.value.add(all: -1);
       _clearLoss(entity);
+      _clearCompromise(entity);
       _clearCoupling(upward: [entity], downward: [entity]);
+
+      if (_lostEntities.remove(entity)) {
+        storageInsight.value = storageInsight.value.add(lost: -1);
+      }
+
+      if (_compromisedEntities.remove(entity)) {
+        storageInsight.value = storageInsight.value.add(compromised: -1);
+      }
+
+      _entityLoss.forget(entity);
+      _entityCompromise.forget(entity);
     });
     super.deleteEntity(position);
-    storageInsight.value = storageInsight.value.decrement();
     _update();
   }
 
   @override
   toggleCompromised(position, value) {
-    _getEntity(position, _clearCompromise);
+    _getEntity(position, (entity) {
+      if (_entityCompromise[entity] == false &&
+          value != _compromisedEntities.contains(entity)) {
+        storageInsight.value = storageInsight.value.add(
+          compromised: value ? 1 : -1,
+        );
+      }
 
+      if (value) {
+        _compromisedEntities.add(entity);
+      } else {
+        _compromisedEntities.remove(entity);
+      }
+
+      _clearCompromise(entity);
+    });
     super.toggleCompromised(position, value);
-
-    if (value) {
-      _compromisedPositions.add(position);
-    } else {
-      _compromisedPositions.remove(position);
-    }
-
-    storageInsight.value = StorageInsight(
-      entityCount: storageInsight.value.entityCount,
-      hasLostEntities: storageInsight.value.hasLostEntities,
-      hasCompromisedEntities: _compromisedPositions.isNotEmpty,
-    );
-
     _update();
   }
 
   @override
   toggleLost(position, value) {
-    _getEntity(position, _clearLoss);
+    _getEntity(position, (entity) {
+      if (_entityLoss[entity] == false &&
+          value != _lostEntities.contains(entity)) {
+        storageInsight.value = storageInsight.value.add(
+          lost: value ? 1 : -1,
+        );
+      }
 
+      if (value) {
+        _lostEntities.add(entity);
+      } else {
+        _lostEntities.remove(entity);
+      }
+
+      _clearLoss(entity);
+    });
     super.toggleLost(position, value);
-
-    if (value) {
-      _lostPositions.add(position);
-    } else {
-      _lostPositions.remove(position);
-    }
-
-    storageInsight.value = StorageInsight(
-      entityCount: storageInsight.value.entityCount,
-      hasLostEntities: _lostPositions.isNotEmpty,
-      hasCompromisedEntities: storageInsight.value.hasCompromisedEntities,
-    );
-
     _update();
   }
 
@@ -293,6 +321,7 @@ class InsightfulStorage extends ListenableStorage {
       entity: entity,
       dependency: dependency,
     );
+    _update();
   }
 
   @override
@@ -333,7 +362,7 @@ class InsightfulStorage extends ListenableStorage {
       _clearLoss(entity);
       _clearCompromise(entity);
       _clearCoupling(
-        upward: getDependencies(factor).map((entity) => entity.identity),
+        upward: getDependencies(factor),
         downward: [entity],
       );
     });
@@ -344,14 +373,14 @@ class InsightfulStorage extends ListenableStorage {
   @override
   resetLoss() {
     super.resetLoss();
-    _entityLoss.makeAllFalse();
-    _factorLoss.makeAllFalse();
-    _lostPositions.clear();
+    _entityLoss.makeAll(false);
+    _factorLoss.makeAll(false);
+    _lostEntities.clear();
 
     storageInsight.value = StorageInsight(
       entityCount: storageInsight.value.entityCount,
-      hasLostEntities: false,
-      hasCompromisedEntities: storageInsight.value.hasCompromisedEntities,
+      lostEntityCount: 0,
+      compromisedEntityCount: storageInsight.value.compromisedEntityCount,
     );
 
     _update();
@@ -360,14 +389,14 @@ class InsightfulStorage extends ListenableStorage {
   @override
   resetCompromise() {
     super.resetCompromise();
-    _entityCompromise.makeAllFalse();
-    _factorCompromise.makeAllFalse();
-    _compromisedPositions.clear();
+    _entityCompromise.makeAll(false);
+    _factorCompromise.makeAll(false);
+    _compromisedEntities.clear();
 
     storageInsight.value = StorageInsight(
       entityCount: storageInsight.value.entityCount,
-      hasLostEntities: storageInsight.value.hasLostEntities,
-      hasCompromisedEntities: false,
+      lostEntityCount: storageInsight.value.lostEntityCount,
+      compromisedEntityCount: 0,
     );
 
     _update();
@@ -376,19 +405,19 @@ class InsightfulStorage extends ListenableStorage {
   @override
   createEntity(position, name) {
     super.createEntity(position, name);
-    storageInsight.value = storageInsight.value.increment();
+    _getEntity(position, (entity) {
+      _entityLoss[entity] = null;
+      _entityCompromise[entity] = null;
+    });
+    storageInsight.value = storageInsight.value.add(all: 1);
     _update();
   }
 
   @override
-  getLostPositions() {
-    return _lostPositions;
-  }
+  getLostEntities() => _lostEntities;
 
   @override
-  getCompromisedPositions() {
-    return _compromisedPositions;
-  }
+  getCompromisedEntities() => _compromisedEntities;
 
   void _getEntity(Position position, void Function(Identity<Entity>) callback) {
     if (getEntityIdentity(position) case Identity<Entity> entity) {
@@ -411,6 +440,9 @@ class InsightfulStorage extends ListenableStorage {
 
   void _clearLoss(Identity<Entity> entity) {
     for (final entity in _getDescendants(entity).followedBy([entity])) {
+      if (_entityLoss[entity] == true && !_lostEntities.contains(entity)) {
+        storageInsight.value = storageInsight.value.add(lost: -1);
+      }
       _entityLoss[entity] = null;
     }
     _factorLoss.clear();
@@ -418,12 +450,26 @@ class InsightfulStorage extends ListenableStorage {
 
   void _clearCompromise(Identity<Entity> entity) {
     for (final entity in _getDescendants(entity).followedBy([entity])) {
+      if (_entityCompromise[entity] == true &&
+          !_compromisedEntities.contains(entity)) {
+        storageInsight.value = storageInsight.value.add(compromised: -1);
+      }
       _entityCompromise[entity] = null;
     }
     _factorCompromise.clear();
   }
 
   void _update() {
+    for (var entity = _entityLoss.getRandom(null);
+        entity != null;
+        entity = _entityLoss.getRandom(null)) {
+      _entityLoss[entity] = _hasLostFactor(entity, const {});
+    }
+    for (var entity = _entityCompromise.getRandom(null);
+        entity != null;
+        entity = _entityCompromise.getRandom(null)) {
+      _entityCompromise[entity] = _areAllFactorsCompromised(entity, const {});
+    }
     entityInsightNotifier._update();
   }
 

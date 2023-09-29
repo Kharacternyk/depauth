@@ -1,33 +1,34 @@
 class StorageInsight {
   final int entityCount;
-  final bool hasLostEntities;
-  final bool hasCompromisedEntities;
+  final int lostEntityCount;
+  final int compromisedEntityCount;
 
   const StorageInsight({
     required this.entityCount,
-    required this.hasLostEntities,
-    required this.hasCompromisedEntities,
+    required this.lostEntityCount,
+    required this.compromisedEntityCount,
   });
 
-  StorageInsight increment() => StorageInsight(
-        entityCount: entityCount + 1,
-        hasLostEntities: hasLostEntities,
-        hasCompromisedEntities: hasCompromisedEntities,
-      );
-  StorageInsight decrement() => StorageInsight(
-        entityCount: entityCount - 1,
-        hasLostEntities: hasLostEntities,
-        hasCompromisedEntities: hasCompromisedEntities,
-      );
+  StorageInsight add({
+    int all = 0,
+    int lost = 0,
+    int compromised = 0,
+  }) {
+    return StorageInsight(
+      entityCount: entityCount + all,
+      lostEntityCount: lostEntityCount + lost,
+      compromisedEntityCount: compromisedEntityCount + compromised,
+    );
+  }
 
   @override
   operator ==(other) =>
       other is StorageInsight &&
       entityCount == other.entityCount &&
-      hasLostEntities == other.hasLostEntities &&
-      hasCompromisedEntities == other.hasCompromisedEntities;
+      lostEntityCount == other.lostEntityCount &&
+      compromisedEntityCount == other.compromisedEntityCount;
 
   @override
   int get hashCode =>
-      Object.hash(entityCount, hasLostEntities, hasCompromisedEntities);
+      Object.hash(entityCount, lostEntityCount, compromisedEntityCount);
 }
