@@ -11,51 +11,39 @@ class StorageInsightRow extends StatelessWidget {
   @override
   build(context) {
     final colors = Theme.of(context).colorScheme;
-    print(insight.lostEntityCount);
+    const padding = EdgeInsets.all(4);
 
-    return [
-      if (insight.entityCount > 0)
-        Ink(
-          color: colors.surfaceVariant,
-          padding: const EdgeInsets.all(4),
-          child: [
-            Icon(
-              Icons.style,
-              color: colors.onSurfaceVariant,
-            ).fit.expand(),
-            Text(
-              insight.entityCount.toString(),
-              style: TextStyle(color: colors.onSurfaceVariant),
-            ).fit.expand(),
-          ].column,
-        ),
-      Ink(
-        color: colors.errorContainer,
+    return IconTheme(
+      data: IconThemeData(color: colors.onSurfaceVariant),
+      child: Ink(
+        color: colors.surfaceVariant,
         child: [
+          if (insight.entityCount > 0)
+            [
+              const Icon(Icons.style).fit.expand(),
+              Text(
+                insight.entityCount.toString(),
+                style: TextStyle(color: colors.onSurfaceVariant),
+              ).fit.expand(),
+            ].column.pad(padding),
           if (insight.lostEntityCount > 0)
             [
-              Icon(
-                Icons.not_listed_location,
-                color: colors.onErrorContainer,
-              ).fit.expand(),
+              const Icon(Icons.not_listed_location).fit.expand(),
               Text(
                 insight.lostEntityCount.toString(),
-                style: TextStyle(color: colors.onErrorContainer),
+                style: TextStyle(color: colors.onSurfaceVariant),
               ).fit.expand(),
-            ].column.pad(const EdgeInsets.all(4)),
+            ].column.pad(padding),
           if (insight.compromisedEntityCount > 0)
             [
-              Icon(
-                Icons.report,
-                color: colors.onErrorContainer,
-              ).fit.expand(),
+              const Icon(Icons.report).fit.expand(),
               Text(
                 insight.compromisedEntityCount.toString(),
-                style: TextStyle(color: colors.onErrorContainer),
+                style: TextStyle(color: colors.onSurfaceVariant),
               ).fit.expand(),
-            ].column.pad(const EdgeInsets.all(4)),
+            ].column.pad(padding),
         ].row,
       ),
-    ].row;
+    );
   }
 }
