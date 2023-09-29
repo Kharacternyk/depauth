@@ -26,14 +26,22 @@ class ViewRegionIndicator extends StatelessWidget {
               FractionalSpacer(region.relativeOffset.dy),
               FractionalSpacer(
                 invertedScale,
-                child: const Logotype(),
+                child: [
+                  const Spacer(),
+                  [
+                    const Spacer(),
+                    const Logotype().expand(6),
+                    const Spacer(),
+                  ].column.expand(6),
+                  const Spacer(),
+                ].row,
               ),
               FractionalSpacer(1 - region.relativeOffset.dy - invertedScale),
             ].column,
           ),
           FractionalSpacer(1 - region.relativeOffset.dx - invertedScale),
         ].row,
-      ).pad(const EdgeInsets.all(8)),
+      ),
     );
   }
 }
