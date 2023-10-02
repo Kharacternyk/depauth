@@ -68,10 +68,10 @@ class EntityGraph extends StatelessWidget {
             };
           }.listen(listenableEntity);
 
-          cells.add(cell);
+          cells.add(cell.keyed(ValueKey(x)));
         }
 
-        rows.add(cells.row.expand());
+        rows.add(cells.row.expand().keyed(ValueKey(y)));
       }
 
       return ArrowContainer(child: rows.column);
