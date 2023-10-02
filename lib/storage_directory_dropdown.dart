@@ -4,6 +4,7 @@ import 'package:flutter_gen/gen_l10n/messages.dart';
 import 'card_dropdown.dart';
 import 'core/traveler.dart';
 import 'scaled_draggable.dart';
+import 'tip.dart';
 
 class StorageDirectoryDropdown extends StatelessWidget {
   final Iterable<String> siblingNames;
@@ -48,7 +49,11 @@ class StorageDirectoryDropdown extends StatelessWidget {
               ],
             ),
           ),
-        ListTile(title: Text(messages.storageDirectoryFormTip)),
+        ...[
+          messages.newStorageTip,
+          messages.selectStorageTip,
+          messages.deleteStorageTip,
+        ].map(Tip.onCard),
       ],
     );
 

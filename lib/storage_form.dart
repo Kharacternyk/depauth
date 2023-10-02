@@ -5,6 +5,7 @@ import 'about_dropdown.dart';
 import 'card_form.dart';
 import 'core/storage_insight.dart';
 import 'debounced_text_field.dart';
+import 'tip.dart';
 import 'widget_extension.dart';
 
 class StorageForm extends StatelessWidget {
@@ -58,15 +59,12 @@ class StorageForm extends StatelessWidget {
         ).card.keyed(const ValueKey(1)),
       const AboutDropdown(),
       if (insight.entityCount > 0)
-        ListTile(
-          key: const ValueKey(2),
-          title: Text(
-            messages.storageFormTip,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
+        ...[
+          messages.newEntityTip,
+          messages.editEntityTip,
+          messages.moveEntityTip,
+          messages.deleteEntityTip,
+        ].map(Tip.onSurfaceVariant),
     ]);
   }
 }
