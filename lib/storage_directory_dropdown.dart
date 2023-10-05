@@ -24,7 +24,7 @@ class StorageDirectoryDropdown extends StatelessWidget {
 
     final dropdown = CardDropdown(
       leading: const Icon(Icons.file_copy),
-      title: Text(messages.otherDocuments),
+      title: Text(messages.otherStorages),
       children: [
         if (siblingNames.isNotEmpty)
           ListTile(
