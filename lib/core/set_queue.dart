@@ -26,4 +26,12 @@ class SetQueue<T> {
     }
     _queue.addFirst(element);
   }
+
+  void addSecond(T element) {
+    final first = this.first;
+
+    remove(first);
+    addFirst(element);
+    addFirst(first);
+  }
 }

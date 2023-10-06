@@ -1,53 +1,97 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sanitize_filename/sanitize_filename.dart';
 
 import 'insightful_storage.dart';
 import 'set_queue.dart';
+import 'storage_directory_configuration.dart';
 
 class StorageDirectory {
   final String storagesPath;
-  final String applicationFileExtension;
-  final String entityDuplicatePrefix;
-  final String entityDuplicateSuffix;
-  final String newStorageName;
-  final String Function(String, int) deduplicateStorageName;
-
   final SetQueue<String> _storageNames;
+  final StorageDirectoryConfiguration configuration;
+
+  final pendingOperationProgress = ValueNotifier<double?>(null);
+  late final siblingNames = ValueNotifier<Iterable<String>>(_storageNames.tail);
+
   late var _currentStorage = _getStorage();
 
-  Iterable<String> get siblingNames => _storageNames.tail;
   InsightfulStorage get currentStorage => _currentStorage;
 
-  StorageDirectory._(
-    this._storageNames, {
-    required this.storagesPath,
-    required this.applicationFileExtension,
-    required this.entityDuplicatePrefix,
-    required this.entityDuplicateSuffix,
-    required this.newStorageName,
-    required this.deduplicateStorageName,
-  });
+  StorageDirectory(
+    this.storagesPath,
+    Iterable<String> storageNames,
+    this.configuration,
+  ) : _storageNames = SetQueue(storageNames);
 
-  void deleteStorage(String name) {
+  void dispose() {
+    pendingOperationProgress.dispose();
+    siblingNames.dispose();
+    currentStorage.dispose();
+  }
+
+  void copyCurrentStorage() async {
+    if (pendingOperationProgress.value != null) {
+      return;
+    }
+
+    final name = _deduplicateName(
+      _sanitize(
+        configuration.getNameOfStorageCopy(
+          _currentStorage.name.value,
+        ),
+      ),
+    );
+
+    pendingOperationProgress.value = 0;
+
+    await for (final progress in _currentStorage.copy(_getPath(name))) {
+      pendingOperationProgress.value = progress;
+    }
+
+    pendingOperationProgress.value = null;
+
+    _storageNames.addSecond(name);
+    siblingNames.value = _storageNames.tail;
+  }
+
+  void deleteStorage(String name) async {
+    if (pendingOperationProgress.value != null) {
+      return;
+    }
+
     if (_storageNames.contains(name) && name != _storageNames.first) {
+      pendingOperationProgress.value = 0;
+      await File(_getPath(name)).delete();
+      pendingOperationProgress.value = null;
+
       _storageNames.remove(name);
-      File(_getPath(name)).deleteSync();
+      siblingNames.value = _storageNames.tail;
     }
   }
 
-  void createStorage() {
-    final current = _storageNames.first;
-    final name = _deduplicateName(newStorageName);
+  void createStorage() async {
+    if (pendingOperationProgress.value != null) {
+      return;
+    }
 
-    _storageNames.addFirst(name);
-    _storageNames.addFirst(current);
-    File(_getPath(name)).createSync();
+    final name = _deduplicateName(configuration.newStorageName);
+
+    pendingOperationProgress.value = 0;
+    await File(_getPath(name)).create();
+    pendingOperationProgress.value = null;
+
+    _storageNames.addSecond(name);
+    siblingNames.value = _storageNames.tail;
   }
 
   void switchStorage(String name) {
+    if (pendingOperationProgress.value != null) {
+      return;
+    }
+
     _disposeCurrentStorage();
     _storageNames.addFirst(_sanitize(name));
     _currentStorage = _getStorage();
@@ -79,7 +123,7 @@ class StorageDirectory {
     final sanitized = sanitizeFilename(name);
 
     if (sanitized.isEmpty) {
-      return newStorageName;
+      return configuration.newStorageName;
     }
 
     return sanitized;
@@ -91,7 +135,7 @@ class StorageDirectory {
 
     while (_storageNames.contains(deduplicatedName)) {
       ++i;
-      deduplicatedName = deduplicateStorageName(name, i);
+      deduplicatedName = configuration.deduplicateStorageName(name, i);
     }
 
     return deduplicatedName;
@@ -101,76 +145,12 @@ class StorageDirectory {
     return InsightfulStorage(
       name: _storageNames.first,
       path: _getPath(_storageNames.first),
-      entityDuplicatePrefix: entityDuplicatePrefix,
-      entityDuplicateSuffix: entityDuplicateSuffix,
+      entityDuplicatePrefix: configuration.entityDuplicatePrefix,
+      entityDuplicateSuffix: configuration.entityDuplicateSuffix,
     );
   }
 
   String _getPath(String name) {
-    return join(storagesPath, name + applicationFileExtension);
+    return join(storagesPath, name + configuration.applicationFileExtension);
   }
-
-  static Future<StorageDirectory> get({
-    required String fallbackDocumentsPath,
-    required String entityDuplicatePrefix,
-    required String entityDuplicateSuffix,
-    required String applicationName,
-    required String applicationFileExtension,
-    required String newStorageName,
-    required String Function(String, int) deduplicateStorageName,
-  }) async {
-    var documentsDirectory = Directory(fallbackDocumentsPath);
-
-    try {
-      documentsDirectory = await getApplicationDocumentsDirectory();
-    } on MissingPlatformDirectoryException {}
-
-    final storagesDirectory = Directory(
-      join(documentsDirectory.path, applicationName),
-    );
-
-    await storagesDirectory.create(recursive: true);
-
-    final storages = <_Storage>[];
-
-    await for (final file in storagesDirectory.list()) {
-      if (file is File && extension(file.path) == applicationFileExtension) {
-        final stat = await file.stat();
-
-        storages.add(
-          _Storage(
-            basenameWithoutExtension(file.path),
-            stat.accessed.microsecondsSinceEpoch,
-          ),
-        );
-      }
-    }
-
-    storages.sort((first, second) {
-      return second.timestamp.compareTo(first.timestamp);
-    });
-
-    var storageNames = storages.map((storage) => storage.name);
-
-    if (storageNames.isEmpty) {
-      storageNames = [newStorageName];
-    }
-
-    return StorageDirectory._(
-      storagesPath: storagesDirectory.path,
-      applicationFileExtension: applicationFileExtension,
-      entityDuplicateSuffix: entityDuplicateSuffix,
-      entityDuplicatePrefix: entityDuplicatePrefix,
-      deduplicateStorageName: deduplicateStorageName,
-      newStorageName: newStorageName,
-      SetQueue(storageNames),
-    );
-  }
-}
-
-class _Storage {
-  final String name;
-  final int timestamp;
-
-  const _Storage(this.name, this.timestamp);
 }

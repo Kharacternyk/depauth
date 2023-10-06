@@ -5,16 +5,21 @@ import 'card_dropdown.dart';
 import 'core/traveler.dart';
 import 'scaled_draggable.dart';
 import 'tip.dart';
+import 'widget_extension.dart';
 
 class StorageDirectoryDropdown extends StatelessWidget {
   final Iterable<String> siblingNames;
   final void Function(String) selectStorage;
   final void Function() createStorage;
+  final void Function() copyCurrentStorage;
+  final ValueNotifier<double?> pendingOperationProgress;
 
   const StorageDirectoryDropdown({
     required this.siblingNames,
     required this.selectStorage,
     required this.createStorage,
+    required this.copyCurrentStorage,
+    required this.pendingOperationProgress,
     super.key,
   });
 
@@ -49,6 +54,16 @@ class StorageDirectoryDropdown extends StatelessWidget {
               ],
             ),
           ),
+        (double? progress) {
+          return ListTile(
+            leading: const Icon(Icons.copy),
+            title: switch (progress) {
+              null => Text(messages.copyStorage),
+              double progress => LinearProgressIndicator(value: progress),
+            },
+            onTap: progress == null ? copyCurrentStorage : null,
+          );
+        }.listen(pendingOperationProgress),
         ...[
           messages.newStorageTip,
           messages.selectStorageTip,

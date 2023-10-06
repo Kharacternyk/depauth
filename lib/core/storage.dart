@@ -434,6 +434,17 @@ class Storage {
     _setNameStatement.execute([name]);
   }
 
+  Stream<double> copy(String path) async* {
+    final copy = sqlite3.open(path);
+
+    yield* _database.backup(copy);
+
+    copy.execute('''
+      delete from meta
+    ''');
+    copy.dispose();
+  }
+
   Storage({
     required String path,
     required String name,

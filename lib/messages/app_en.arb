@@ -18,6 +18,14 @@
       }
     }
   },
+  "storageCopy": "{storageName} Copy",
+  "@storageCopy": {
+    "placeholders": {
+      "storageName": {
+        "type": "String"
+      }
+    }
+  },
   "back": "Back",
   "otherStorages": "Other documents",
   "about": "About DepAuth",
@@ -72,6 +80,7 @@
       }
     }
   },
+  "copyStorage": "Make a copy of the current document",
   "resetLoss": "Mark all cards as not lost",
   "resetCompromise": "Mark all cards as not compromised",
   "newEntity": "New Card",
