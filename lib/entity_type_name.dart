@@ -8,7 +8,6 @@ extension EntityTypeName on EntityType {
     final messages = AppLocalizations.of(context)!;
     return switch (this) {
       EntityType.generic => messages.genericEntity,
-      EntityType.hardwareKey => messages.hardwareKey,
       EntityType.webService => messages.webService,
       EntityType.knowledge => messages.secretKnowledge,
       EntityType.biometrics => messages.biometrics,

@@ -10,7 +10,6 @@ extension EntityTheme on EntityType {
   IconData get icon {
     return switch (this) {
       EntityType.generic => Icons.category,
-      EntityType.hardwareKey => Icons.key,
       EntityType.webService => Icons.cloud,
       EntityType.knowledge => Icons.password,
       EntityType.biometrics => Icons.fingerprint,
@@ -25,15 +24,14 @@ extension EntityTheme on EntityType {
   ColorScheme get _scheme {
     return switch (this) {
       EntityType.generic => _seedScheme(Colors.yellow),
-      EntityType.hardwareKey => _seedScheme(Colors.green),
       EntityType.webService => _seedScheme(Colors.blue),
       EntityType.knowledge => _seedScheme(Colors.red),
-      EntityType.biometrics => _seedScheme(Colors.pink),
+      EntityType.biometrics => _seedScheme(Colors.green),
       EntityType.phoneNumber => _seedScheme(Colors.purple),
       EntityType.device => _seedScheme(Colors.teal),
       EntityType.application => _seedScheme(Colors.grey),
       EntityType.paymentInformation => _seedScheme(Colors.orange),
-      EntityType.operatingSystem => _seedScheme(Colors.yellow),
+      EntityType.operatingSystem => _seedScheme(Colors.black),
     };
   }
 
