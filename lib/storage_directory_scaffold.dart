@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/messages.dart';
 
 import 'bottom_bar.dart';
+import 'context_messanger.dart';
 import 'core/edit_subject.dart';
 import 'core/storage_directory.dart';
 import 'core/storage_directory_configuration.dart';
@@ -64,6 +66,7 @@ class _State extends State<StorageDirectoryScaffold> {
   build(context) {
     if (storageDirectory case StorageDirectory storageDirectory) {
       final storage = storageDirectory.currentStorage;
+      final messages = AppLocalizations.of(context)!;
 
       return (Iterable<String> siblingNames) {
         return StorageScaffold(
@@ -71,17 +74,38 @@ class _State extends State<StorageDirectoryScaffold> {
           editSubject: editSubject,
           formHasTraveler: formHasTraveler,
           viewRegion: viewRegion,
-          storageDirectoryDropdown: StorageDirectoryDropdown(
-            siblingNames: siblingNames,
-            selectStorage: (name) {
-              setState(() {
-                storageDirectory.switchStorage(name);
-              });
-            },
-            createStorage: storageDirectory.createStorage,
-            copyCurrentStorage: storageDirectory.copyCurrentStorage,
-            pendingOperationProgress: storageDirectory.pendingOperationProgress,
-          ),
+          formLeading: [
+            (double? progress) {
+              return ListTile(
+                leading: const Icon(Icons.file_copy),
+                title: switch (progress) {
+                  null => Text(messages.copyStorage),
+                  double progress => LinearProgressIndicator(value: progress),
+                },
+                onTap: progress == null
+                    ? () async {
+                        final copyName =
+                            await storageDirectory.copyCurrentStorage();
+
+                        if (copyName != null && context.mounted) {
+                          context.pushMessage(messages.storageCopied(copyName));
+                        }
+                      }
+                    : null,
+              );
+            }.listen(storageDirectory.pendingOperationProgress).card,
+          ],
+          formTrailing: [
+            StorageDirectoryDropdown(
+              siblingNames: siblingNames,
+              selectStorage: (name) {
+                setState(() {
+                  storageDirectory.switchStorage(name);
+                });
+              },
+              createStorage: storageDirectory.createStorage,
+            )
+          ],
           bottomBar: BottomBar(
             children: [
               ViewRegionIndicator.new.listen(viewRegion),

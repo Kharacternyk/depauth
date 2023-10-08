@@ -15,7 +15,8 @@ class StorageForm extends StatelessWidget {
   final VoidCallback resetCompromise;
   final void Function(String) rename;
   final bool Function() isRenameCanceled;
-  final Widget storageDirectoryDropdown;
+  final List<Widget> leading;
+  final List<Widget> trailing;
 
   const StorageForm({
     required this.storageName,
@@ -24,7 +25,8 @@ class StorageForm extends StatelessWidget {
     required this.resetCompromise,
     required this.rename,
     required this.isRenameCanceled,
-    required this.storageDirectoryDropdown,
+    required this.leading,
+    required this.trailing,
     super.key,
   });
 
@@ -44,7 +46,7 @@ class StorageForm extends StatelessWidget {
           isCanceled: isRenameCanceled,
         ),
       ).card,
-      storageDirectoryDropdown,
+      ...leading,
       if (insight.lostEntityCount > 0)
         ListTile(
           leading: const Icon(Icons.where_to_vote),
@@ -57,6 +59,7 @@ class StorageForm extends StatelessWidget {
           title: Text(messages.resetCompromise),
           onTap: resetCompromise,
         ).card.keyed(const ValueKey(1)),
+      ...trailing,
       const AboutDropdown(),
       if (insight.entityCount > 0)
         ...[

@@ -32,9 +32,9 @@ class StorageDirectory {
     currentStorage.dispose();
   }
 
-  void copyCurrentStorage() async {
+  Future<String?> copyCurrentStorage() async {
     if (pendingOperationProgress.value != null) {
-      return;
+      return null;
     }
 
     final name = _deduplicateName(
@@ -55,9 +55,11 @@ class StorageDirectory {
 
     _storageNames.addSecond(name);
     siblingNames.value = _storageNames.tail;
+
+    return name;
   }
 
-  void deleteStorage(String name) async {
+  Future<void> deleteStorage(String name) async {
     if (pendingOperationProgress.value != null) {
       return;
     }
@@ -72,9 +74,9 @@ class StorageDirectory {
     }
   }
 
-  void createStorage() async {
+  Future<String?> createStorage() async {
     if (pendingOperationProgress.value != null) {
-      return;
+      return null;
     }
 
     final name = _deduplicateName(configuration.newStorageName);
@@ -85,6 +87,8 @@ class StorageDirectory {
 
     _storageNames.addSecond(name);
     siblingNames.value = _storageNames.tail;
+
+    return name;
   }
 
   void switchStorage(String name) {
