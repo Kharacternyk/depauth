@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 
+import 'context_messanger.dart';
 import 'core/traveler.dart';
 import 'scaled_draggable.dart';
 import 'widget_extension.dart';
@@ -32,16 +33,8 @@ class BottomBar extends StatelessWidget {
               foregroundColor: candidate.isNotEmpty
                   ? colors.onError
                   : colors.onErrorContainer,
-              onPressed: () {
-                ScaffoldMessenger.of(context)
-                  ..hideCurrentSnackBar()
-                  ..showSnackBar(
-                    SnackBar(
-                      content: Text(messages.deleteButtonTooltip),
-                      showCloseIcon: true,
-                    ),
-                  );
-              },
+              onPressed: () =>
+                  context.pushMessage(messages.deleteButtonTooltip),
               tooltip: messages.deleteButtonTooltip,
               heroTag: null,
               child: const Icon(Icons.delete),
@@ -53,16 +46,7 @@ class BottomBar extends StatelessWidget {
         ScaledDraggable(
           dragData: const CreationTraveler(),
           child: FloatingActionButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context)
-                ..hideCurrentSnackBar()
-                ..showSnackBar(
-                  SnackBar(
-                    content: Text(messages.addButtonTooltip),
-                    showCloseIcon: true,
-                  ),
-                );
-            },
+            onPressed: () => context.pushMessage(messages.addButtonTooltip),
             tooltip: messages.addButtonTooltip,
             mouseCursor: SystemMouseCursors.grab,
             heroTag: null,
