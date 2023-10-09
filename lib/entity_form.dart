@@ -91,7 +91,7 @@ class EntityForm extends StatelessWidget {
                       avatar: Ink(
                         child: Icon(
                           value.icon,
-                          color: value.theme.colorScheme.primary,
+                          color: value.colors.primary,
                         ),
                       ),
                       label: Text(
@@ -208,8 +208,7 @@ class EntityForm extends StatelessWidget {
                                       label: Text(entity.name),
                                       avatar: Icon(
                                         entity.type.icon,
-                                        color: entity
-                                            .type.theme.colorScheme.primary,
+                                        color: entity.type.colors.primary,
                                       ),
                                     ),
                                   ),

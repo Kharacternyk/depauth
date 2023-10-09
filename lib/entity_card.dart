@@ -43,7 +43,7 @@ class EntityCard extends StatelessWidget {
               factor.identity,
               dependency.identity,
             ].join(messages.arrowIdentitySeparator),
-            color: dependency.type.theme.colorScheme.primary.withOpacity(.5),
+            color: dependency.type.colors.primary.withOpacity(.5),
             targetName: dependency.identity.toString(),
             child: EntityIcon(
               dependency.type,

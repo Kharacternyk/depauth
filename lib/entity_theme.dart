@@ -17,37 +17,34 @@ extension EntityTheme on EntityType {
     };
   }
 
-  ThemeData get theme {
+  ColorScheme get colors {
     return switch (this) {
-      EntityType.generic => _seedTheme(Colors.yellow),
-      EntityType.webService => _seedTheme(Colors.blue),
-      EntityType.knowledge => _seedTheme(Colors.red),
-      EntityType.biometrics => _seedTheme(Colors.green),
-      EntityType.phoneNumber => _seedTheme(Colors.purple),
-      EntityType.device => _seedTheme(Colors.teal),
-      EntityType.application => _seedTheme(Colors.grey),
-      EntityType.paymentInformation => _seedTheme(Colors.orange),
-      EntityType.operatingSystem => _seedTheme(Colors.black),
+      EntityType.generic => _seedScheme(Colors.yellow),
+      EntityType.webService => _seedScheme(Colors.blue),
+      EntityType.knowledge => _seedScheme(Colors.red),
+      EntityType.biometrics => _seedScheme(Colors.green),
+      EntityType.phoneNumber => _seedScheme(Colors.purple),
+      EntityType.device => _seedScheme(Colors.teal),
+      EntityType.application => _seedScheme(Colors.grey),
+      EntityType.paymentInformation => _seedScheme(Colors.orange),
+      EntityType.operatingSystem => _seedScheme(Colors.black),
     };
   }
 
-  static ThemeData _seedTheme(Color seed) {
-    if (_themes[seed] case ThemeData theme) {
-      return theme;
+  static ColorScheme _seedScheme(Color seed) {
+    if (_schemes[seed] case ColorScheme scheme) {
+      return scheme;
     }
 
-    final theme = ThemeData.from(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: seed,
-        brightness: Brightness.dark,
-      ),
-      useMaterial3: true,
+    final scheme = ColorScheme.fromSeed(
+      seedColor: seed,
+      brightness: Brightness.dark,
     );
 
-    _themes[seed] = theme;
+    _schemes[seed] = scheme;
 
-    return theme;
+    return scheme;
   }
 
-  static final _themes = <Color, ThemeData>{};
+  static final _schemes = <Color, ColorScheme>{};
 }
