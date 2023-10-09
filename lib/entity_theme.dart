@@ -3,10 +3,6 @@ import 'package:flutter/material.dart';
 import 'core/entity_type.dart';
 
 extension EntityTheme on EntityType {
-  Color get background => _scheme.primaryContainer;
-  Color get foreground => _scheme.onPrimaryContainer;
-  Color get primaryColor => _scheme.primary;
-
   IconData get icon {
     return switch (this) {
       EntityType.generic => Icons.category,
@@ -21,34 +17,37 @@ extension EntityTheme on EntityType {
     };
   }
 
-  ColorScheme get _scheme {
+  ThemeData get theme {
     return switch (this) {
-      EntityType.generic => _seedScheme(Colors.yellow),
-      EntityType.webService => _seedScheme(Colors.blue),
-      EntityType.knowledge => _seedScheme(Colors.red),
-      EntityType.biometrics => _seedScheme(Colors.green),
-      EntityType.phoneNumber => _seedScheme(Colors.purple),
-      EntityType.device => _seedScheme(Colors.teal),
-      EntityType.application => _seedScheme(Colors.grey),
-      EntityType.paymentInformation => _seedScheme(Colors.orange),
-      EntityType.operatingSystem => _seedScheme(Colors.black),
+      EntityType.generic => _seedTheme(Colors.yellow),
+      EntityType.webService => _seedTheme(Colors.blue),
+      EntityType.knowledge => _seedTheme(Colors.red),
+      EntityType.biometrics => _seedTheme(Colors.green),
+      EntityType.phoneNumber => _seedTheme(Colors.purple),
+      EntityType.device => _seedTheme(Colors.teal),
+      EntityType.application => _seedTheme(Colors.grey),
+      EntityType.paymentInformation => _seedTheme(Colors.orange),
+      EntityType.operatingSystem => _seedTheme(Colors.black),
     };
   }
 
-  static ColorScheme _seedScheme(Color seed) {
-    if (_schemes[seed] case ColorScheme scheme) {
-      return scheme;
+  static ThemeData _seedTheme(Color seed) {
+    if (_themes[seed] case ThemeData theme) {
+      return theme;
     }
 
-    final scheme = ColorScheme.fromSeed(
-      seedColor: seed,
-      brightness: Brightness.dark,
+    final theme = ThemeData.from(
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: seed,
+        brightness: Brightness.dark,
+      ),
+      useMaterial3: true,
     );
 
-    _schemes[seed] = scheme;
+    _themes[seed] = theme;
 
-    return scheme;
+    return theme;
   }
 
-  static final _schemes = <Color, ColorScheme>{};
+  static final _themes = <Color, ThemeData>{};
 }
