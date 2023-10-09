@@ -27,6 +27,7 @@ class EntityForm extends StatelessWidget {
   final void Function() goBack;
   final void Function(String) changeName;
   final void Function(EntityType) changeType;
+  final void Function(int) changeImportance;
   final void Function(bool) toggleLost;
   final void Function(bool) toggleCompromised;
   final void Function() addFactor;
@@ -43,6 +44,7 @@ class EntityForm extends StatelessWidget {
     required this.position,
     required this.changeName,
     required this.changeType,
+    required this.changeImportance,
     required this.toggleLost,
     required this.toggleCompromised,
     required this.addFactor,
@@ -104,6 +106,16 @@ class EntityForm extends StatelessWidget {
             },
             value: entity.type,
           ),
+        ),
+      ).card,
+      ListTile(
+        leading: const Icon(Icons.star),
+        title: Slider(
+          min: 0,
+          max: 5,
+          divisions: 5,
+          value: entity.importance.toDouble(),
+          onChanged: (value) => changeImportance(value.round()),
         ),
       ).card,
       SwitchListTile(

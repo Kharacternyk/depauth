@@ -83,25 +83,31 @@ class ListenableStorage extends TrackedDisposalStorage {
   @override
   changeName(position, name) {
     super.changeName(position, name);
-    _updateEntities([position].followedBy(getDependantPositions(position)));
+    _updateEntityWithDependants(position);
   }
 
   @override
   changeType(position, type) {
     super.changeType(position, type);
-    _updateEntities([position].followedBy(getDependantPositions(position)));
+    _updateEntityWithDependants(position);
+  }
+
+  @override
+  changeImportance(position, value) {
+    super.changeImportance(position, value);
+    _updateEntityWithDependants(position);
   }
 
   @override
   toggleCompromised(position, value) {
     super.toggleCompromised(position, value);
-    _updateEntities([position]);
+    _updateEntityWithDependants(position);
   }
 
   @override
   toggleLost(position, value) {
     super.toggleLost(position, value);
-    _updateEntities([position]);
+    _updateEntityWithDependants(position);
   }
 
   @override
@@ -173,6 +179,10 @@ class ListenableStorage extends TrackedDisposalStorage {
 
   void _updateBoundaries() {
     boundaries.value = super.getBoundaries();
+  }
+
+  void _updateEntityWithDependants(Position position) {
+    _updateEntities([position].followedBy(getDependantPositions(position)));
   }
 
   void _updateEntities(Iterable<Position> positions) {

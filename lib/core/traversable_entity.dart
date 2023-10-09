@@ -11,5 +11,6 @@ class TraversableEntity extends Entity {
     required this.factors,
     required super.lost,
     required super.compromised,
+    required super.importance,
   });
 }

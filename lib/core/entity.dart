@@ -7,6 +7,7 @@ class Entity {
   final EntityType type;
   final bool lost;
   final bool compromised;
+  final int importance;
 
   const Entity(
     this.identity,
@@ -14,5 +15,6 @@ class Entity {
     this.type, {
     required this.lost,
     required this.compromised,
+    required this.importance,
   });
 }

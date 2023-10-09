@@ -15,12 +15,12 @@ class Storage {
   final String entityDuplicateSuffix;
 
   late final _entityQuery = Query(_database, '''
-    select identity, name, type, lost, compromised
+    select identity, name, type, lost, compromised, importance
     from entities
     where x = ? and y = ?
   ''');
   late final _dependenciesQuery = Query(_database, '''
-    select entities.identity, name, type, lost, compromised
+    select entities.identity, name, type, lost, compromised, importance
     from entities
     join dependencies
     on entities.identity = entity
@@ -46,7 +46,8 @@ class Storage {
         return null;
 
       case Row row:
-        final [identity, name, type, lost, compromised] = row.values;
+        final [identity, name, type, lost, compromised, importance] =
+            row.values;
 
         return TraversableEntity(
           Identity._(identity as int),
@@ -54,13 +55,15 @@ class Storage {
           EntityType.values[type as int],
           lost: lost as int != 0,
           compromised: compromised as int != 0,
+          importance: importance as int,
           factors: _factorsQuery.select([identity]).map((row) {
             final [identity] = row.values;
 
             return Factor(
               Identity._(identity as int),
               _dependenciesQuery.select([identity]).map((row) {
-                final [identity, name, type, lost, compromised] = row.values;
+                final [identity, name, type, lost, compromised, importance] =
+                    row.values;
 
                 return Entity(
                   Identity._(identity as int),
@@ -68,6 +71,7 @@ class Storage {
                   EntityType.values[type as int],
                   lost: lost as int != 0,
                   compromised: compromised as int != 0,
+                  importance: importance as int,
                 );
               }),
             );
@@ -109,8 +113,8 @@ class Storage {
   }
 
   late final _createEntityStatement = Statement(_database, '''
-    insert into entities(name, type, x, y, lost, compromised)
-    values(?, 0, ?, ?, false, false)
+    insert into entities(name, type, x, y, lost, compromised, importance)
+    values(?, 0, ?, ?, false, false, 0)
   ''');
   void createEntity(Position position, String name) {
     _createEntityStatement.execute([
@@ -144,6 +148,15 @@ class Storage {
       position.x,
       position.y,
     ]);
+  }
+
+  late final _changeImportanceStatement = Statement(_database, '''
+    update entities
+    set importance = ?
+    where x = ? and y = ?
+  ''');
+  void changeImportance(Position position, int value) {
+    _changeImportanceStatement.execute([value, position.x, position.y]);
   }
 
   late final _toggleCompromisedStatement = Statement(_database, '''
@@ -472,7 +485,8 @@ class Storage {
         x integer not null,
         y integer not null,
         lost integer not null,
-        compromised integer not null
+        compromised integer not null,
+        importance integer not null
       ) strict;
       create table if not exists factors(
         identity integer primary key,

@@ -94,6 +94,9 @@ class StorageScaffold extends StatelessWidget {
                             changeType: (type) {
                               storage.changeType(position, type);
                             },
+                            changeImportance: (value) {
+                              storage.changeImportance(position, value);
+                            },
                             toggleLost: (value) {
                               storage.toggleLost(position, value);
                             },
