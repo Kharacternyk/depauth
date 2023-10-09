@@ -319,7 +319,9 @@ class InsightfulStorage extends ListenableStorage {
 
       _clearLoss(entity);
     });
+
     super.toggleLost(position, value);
+
     _update();
   }
 
