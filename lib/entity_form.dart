@@ -228,8 +228,7 @@ class EntityForm extends StatelessWidget {
             when traveler.entity == entity.identity) {
           return false;
         }
-        hasTraveler.value = true;
-        return true;
+        return hasTraveler.value = true;
       },
       onLeave: (_) => hasTraveler.value = false,
       onAccept: (traveler) {
