@@ -100,12 +100,19 @@ class EntityForm extends StatelessWidget {
       ).card,
       ListTile(
         leading: const Icon(Icons.star),
-        title: Slider(
-          min: 0,
-          max: 5,
-          divisions: 5,
-          value: entity.importance.toDouble(),
-          onChanged: (value) => changeImportance(value.round()),
+        title: SegmentedButton<int>(
+          selected: {entity.importance},
+          segments: [
+            for (var importance = 0; importance <= 5; ++importance)
+              ButtonSegment(
+                value: importance,
+                label: Text(importance.toString()),
+              )
+          ],
+          onSelectionChanged: (selection) {
+            changeImportance(selection.first);
+          },
+          showSelectedIcon: false,
         ),
       ).card,
       SwitchListTile(
