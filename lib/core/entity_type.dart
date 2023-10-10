@@ -6,6 +6,5 @@ enum EntityType {
   phoneNumber,
   device,
   application,
-  paymentInformation,
   operatingSystem,
 }

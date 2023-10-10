@@ -14,7 +14,6 @@ extension EntityTypeName on EntityType {
       EntityType.phoneNumber => messages.phoneNumber,
       EntityType.device => messages.device,
       EntityType.application => messages.application,
-      EntityType.paymentInformation => messages.paymentInformation,
       EntityType.operatingSystem => messages.operatingSystem,
     };
   }

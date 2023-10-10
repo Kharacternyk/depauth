@@ -44,7 +44,6 @@ extension EntityTheme on EntityType {
       EntityType.phoneNumber => Icons.phone,
       EntityType.device => Icons.devices,
       EntityType.application => Icons.widgets,
-      EntityType.paymentInformation => Icons.credit_card,
       EntityType.operatingSystem => Icons.settings_applications,
     };
   }
@@ -58,7 +57,6 @@ extension EntityTheme on EntityType {
       EntityType.phoneNumber => _seedScheme(Colors.purple),
       EntityType.device => _seedScheme(Colors.teal),
       EntityType.application => _seedScheme(Colors.grey),
-      EntityType.paymentInformation => _seedScheme(Colors.orange),
       EntityType.operatingSystem => _seedScheme(Colors.black),
     };
   }

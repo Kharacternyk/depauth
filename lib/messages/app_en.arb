@@ -99,6 +99,5 @@
   "phoneNumber": "phone number",
   "device": "device",
   "application": "application",
-  "paymentInformation": "payment information",
   "operatingSystem": "operating system"
 }
