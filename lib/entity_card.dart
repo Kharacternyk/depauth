@@ -76,13 +76,9 @@ class EntityCard extends StatelessWidget {
           if (entity.importance > 0)
             [
               Spacer(flex: 6 - entity.importance),
-              Material(
-                color: colors.primary,
-                child: [
-                  for (var i = 0; i < entity.importance; ++i)
-                    Icon(Icons.star, color: colors.onPrimary).fit.grow.expand(),
-                ].column,
-              ).expand(2 * entity.importance),
+              entity.type
+                  .starRibbon(entity.importance)
+                  .expand(2 * entity.importance),
               Spacer(flex: 6 - entity.importance),
             ].column.expand(),
         ].row.expand(),

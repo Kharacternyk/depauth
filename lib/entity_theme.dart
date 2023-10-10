@@ -35,6 +35,16 @@ extension EntityTheme on EntityType {
     );
   }
 
+  Widget starRibbon(int starCount) {
+    return Material(
+      color: _colors.primary,
+      child: [
+        for (var i = 0; i < starCount; ++i)
+          Icon(Icons.star, color: _colors.onPrimary).fit.grow.expand(),
+      ].column,
+    );
+  }
+
   IconData get _icon {
     return switch (this) {
       EntityType.generic => Icons.category,
