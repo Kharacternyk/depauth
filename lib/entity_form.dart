@@ -86,18 +86,8 @@ class EntityForm extends StatelessWidget {
               for (final value in EntityType.values)
                 DropdownMenuItem(
                   value: value,
-                  child: AbsorbPointer(
-                    child: Chip(
-                      avatar: Ink(
-                        child: Icon(
-                          value.icon,
-                          color: value.colors.primary,
-                        ),
-                      ),
-                      label: Text(
-                        value.getName(context).title(messages.wordSeparator),
-                      ),
-                    ),
+                  child: value.chip(
+                    value.getName(context).title(messages.wordSeparator),
                   ),
                 ),
             ],
@@ -203,15 +193,7 @@ class EntityForm extends StatelessWidget {
                                     factor.identity,
                                     entity.identity,
                                   ),
-                                  child: AbsorbPointer(
-                                    child: Chip(
-                                      label: Text(entity.name),
-                                      avatar: Icon(
-                                        entity.type.icon,
-                                        color: entity.type.colors.primary,
-                                      ),
-                                    ),
-                                  ),
+                                  child: entity.type.chip(entity.name),
                                 ),
                             ].interleave(Text(messages.or)).toList(),
                           )

@@ -6,9 +6,7 @@ import 'core/edit_subject.dart';
 import 'core/entity_insight.dart';
 import 'core/position.dart';
 import 'core/traversable_entity.dart';
-import 'entity_icon.dart';
 import 'entity_theme.dart';
-import 'scaled_line.dart';
 import 'widget_extension.dart';
 
 class EntityCard extends StatelessWidget {
@@ -38,18 +36,16 @@ class EntityCard extends StatelessWidget {
     for (final factor in entity.factors) {
       for (final dependency in factor.dependencies) {
         dependencyIcons.add(
-          ScaledLine(
-            name: [
-              factor.identity,
-              dependency.identity,
-            ].join(messages.arrowIdentitySeparator),
-            color: dependency.type.colors.primary.withOpacity(.5),
-            targetName: dependency.identity.toString(),
-            child: EntityIcon(
-              dependency.type,
-              padding: padding,
-            ),
-          ).expand().keyed(ValueKey((factor.identity, dependency.identity))),
+          dependency.type
+              .pointingBanner(
+                name: [
+                  factor.identity,
+                  dependency.identity,
+                ].join(messages.arrowIdentitySeparator),
+                target: dependency.identity.toString(),
+              )
+              .expand()
+              .keyed(ValueKey((factor.identity, dependency.identity))),
         );
       }
       dependencyIcons.add(
@@ -89,10 +85,7 @@ class EntityCard extends StatelessWidget {
               child: [
                 if (entity.factors.isNotEmpty) dependencyIcons.row.expand(),
                 Text(entity.name).pad(padding).fit.expand(),
-                EntityIcon(
-                  entity.type,
-                  padding: padding,
-                ).expand(),
+                entity.type.banner.expand(),
               ].column,
             ),
           ),

@@ -1,9 +1,41 @@
 import 'package:flutter/material.dart';
 
 import 'core/entity_type.dart';
+import 'scaled_line.dart';
+import 'widget_extension.dart';
 
 extension EntityTheme on EntityType {
-  IconData get icon {
+  Widget get banner {
+    return Ink(
+      color: _colors.primaryContainer,
+      child: Icon(
+        _icon,
+        color: _colors.onPrimaryContainer,
+      ).pad(const EdgeInsets.all(8)).fit.grow,
+    );
+  }
+
+  Widget pointingBanner({required String name, required String target}) {
+    return ScaledLine(
+      name: name,
+      color: _colors.primary.withOpacity(.5),
+      targetName: target,
+      child: banner,
+    );
+  }
+
+  Widget chip(String name) {
+    return AbsorbPointer(
+      child: Chip(
+        avatar: Ink(
+          child: Icon(_icon, color: _colors.primary),
+        ),
+        label: Text(name),
+      ),
+    );
+  }
+
+  IconData get _icon {
     return switch (this) {
       EntityType.generic => Icons.category,
       EntityType.webService => Icons.cloud,
@@ -17,7 +49,7 @@ extension EntityTheme on EntityType {
     };
   }
 
-  ColorScheme get colors {
+  ColorScheme get _colors {
     return switch (this) {
       EntityType.generic => _seedScheme(Colors.yellow),
       EntityType.webService => _seedScheme(Colors.blue),
