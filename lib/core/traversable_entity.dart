@@ -1,7 +1,7 @@
-import 'entity.dart';
+import 'embellished_entity.dart';
 import 'factor.dart';
 
-class TraversableEntity extends Entity {
+class TraversableEntity extends EmbellishedEntity {
   final Iterable<Factor> factors;
 
   const TraversableEntity(

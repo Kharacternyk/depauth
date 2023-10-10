@@ -37,13 +37,9 @@ class StorageDirectory {
       return null;
     }
 
-    final name = _deduplicateName(
-      _sanitize(
-        configuration.getNameOfStorageCopy(
-          _currentStorage.name.value,
-        ),
-      ),
-    );
+    final name = _deduplicateName(_sanitize(
+      configuration.getNameOfStorageCopy(_currentStorage.name),
+    ));
 
     pendingOperationProgress.value = 0;
 
@@ -107,10 +103,10 @@ class StorageDirectory {
     _storageNames.remove(initialCurrentStorageName);
 
     final actualCurrentStorageName =
-        _deduplicateName(_sanitize(_currentStorage.name.value));
+        _deduplicateName(_sanitize(_currentStorage.name));
 
-    if (actualCurrentStorageName != _currentStorage.name.value) {
-      _currentStorage.setName(actualCurrentStorageName);
+    if (actualCurrentStorageName != _currentStorage.name) {
+      _currentStorage.name = actualCurrentStorageName;
     }
 
     _currentStorage.dispose();

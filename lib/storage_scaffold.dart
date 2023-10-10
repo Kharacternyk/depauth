@@ -37,13 +37,13 @@ class StorageScaffold extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final storageForm = (StorageInsight insight) {
       return StorageForm(
-        storageName: storage.name.value,
+        storageName: storage.name,
         insight: insight,
         resetLoss: storage.resetLoss,
         resetCompromise: storage.resetCompromise,
         leading: formLeading,
         trailing: formTrailing,
-        rename: storage.setName,
+        rename: (name) => storage.name = name,
         isRenameCanceled: () => storage.disposed,
       );
     }.listen(storage.storageInsight);

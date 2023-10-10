@@ -19,7 +19,7 @@ class InsightfulStorage extends ListenableStorage {
     ),
   );
 
-  late var _entityCount = getEntityCount();
+  late var _entityCount = entityCount;
   late var _lostEntityCount = _lostEntities.length;
   late var _compromisedEntityCount = _compromisedEntities.length;
 
@@ -30,8 +30,8 @@ class InsightfulStorage extends ListenableStorage {
   final _ancestors = <Identity<Entity>, Set<Identity<Entity>>>{};
   final _descendants = <Identity<Entity>, Set<Identity<Entity>>>{};
 
-  late final _lostEntities = super.getLostEntities().toSet();
-  late final _compromisedEntities = super.getCompromisedEntities().toSet();
+  late final _lostEntities = super.lostEntities.toSet();
+  late final _compromisedEntities = super.compromisedEntities.toSet();
 
   InsightfulStorage({
     required super.name,
@@ -41,7 +41,7 @@ class InsightfulStorage extends ListenableStorage {
   }) {
     for (final entity in _lostEntities
         .followedBy(_compromisedEntities)
-        .followedBy(getNormalEntities())) {
+        .followedBy(normalEntities)) {
       _entityLoss[entity] = null;
       _entityCompromise[entity] = null;
     }
@@ -416,10 +416,10 @@ class InsightfulStorage extends ListenableStorage {
   }
 
   @override
-  getLostEntities() => _lostEntities;
+  Iterable<Identity<Entity>> get lostEntities => _lostEntities;
 
   @override
-  getCompromisedEntities() => _compromisedEntities;
+  Iterable<Identity<Entity>> get compromisedEntities => _compromisedEntities;
 
   void _getEntity(Position position, void Function(Identity<Entity>) callback) {
     if (getEntityIdentity(position) case Identity<Entity> entity) {

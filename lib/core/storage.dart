@@ -20,7 +20,7 @@ class Storage {
     where x = ? and y = ?
   ''');
   late final _dependenciesQuery = Query(_database, '''
-    select entities.identity, name, type, lost, compromised, importance
+    select entities.identity, name, type
     from entities
     join dependencies
     on entities.identity = entity
@@ -62,16 +62,12 @@ class Storage {
             return Factor(
               Identity._(identity as int),
               _dependenciesQuery.select([identity]).map((row) {
-                final [identity, name, type, lost, compromised, importance] =
-                    row.values;
+                final [identity, name, type] = row.values;
 
                 return Entity(
                   Identity._(identity as int),
                   name as String,
                   EntityType.values[type as int],
-                  lost: lost as int != 0,
-                  compromised: compromised as int != 0,
-                  importance: importance as int,
                 );
               }),
             );
@@ -335,7 +331,7 @@ class Storage {
     select min(x) - 1, min(y) - 1, max(x) + 1, max(y) + 1
     from entities
   ''');
-  Boundaries getBoundaries() {
+  Boundaries get boundaries {
     final [minX, minY, maxX, maxY] = _boundariesQuery.select().first.values;
 
     return Boundaries(
@@ -377,7 +373,7 @@ class Storage {
     from entities
     where not lost and not compromised
   ''');
-  Iterable<Identity<Entity>> getNormalEntities() {
+  Iterable<Identity<Entity>> get normalEntities {
     return _normalEntitiesQuery.select().map(_parseIdentity);
   }
 
@@ -386,7 +382,7 @@ class Storage {
     from entities
     where lost
   ''');
-  Iterable<Identity<Entity>> getLostEntities() {
+  Iterable<Identity<Entity>> get lostEntities {
     return _lostEntititesQuery.select().map(_parseIdentity);
   }
 
@@ -395,7 +391,7 @@ class Storage {
     from entities
     where compromised
   ''');
-  Iterable<Identity<Entity>> getCompromisedEntities() {
+  Iterable<Identity<Entity>> get compromisedEntities {
     return _compromisedEntititesQuery.select().map(_parseIdentity);
   }
 
@@ -404,7 +400,7 @@ class Storage {
     from entities
     where lost
   ''');
-  Iterable<Position> getLostPositions() {
+  Iterable<Position> get lostPositions {
     return _lostPositionsQuery.select().map(_parsePosition);
   }
 
@@ -413,7 +409,7 @@ class Storage {
     from entities
     where compromised
   ''');
-  Iterable<Position> getCompromisedPositions() {
+  Iterable<Position> get compromisedPositions {
     return _compromisedPositionsQuery.select().map(_parsePosition);
   }
 
@@ -421,7 +417,7 @@ class Storage {
     select count(true)
     from entities
   ''');
-  int getEntityCount() => _entityCountQuery.select().first.values.first as int;
+  int get entityCount => _entityCountQuery.select().first.values.first as int;
 
   Position _parsePosition(Row row) {
     final [x, y] = row.values;
@@ -436,15 +432,15 @@ class Storage {
   late final _nameQuery = Query(_database, '''
     select name from meta
   ''');
-  String getName() {
+  String get name {
     return _nameQuery.select().first.values.first as String;
   }
 
   late final _setNameStatement = Statement(_database, '''
     update meta set name = ?
   ''');
-  void setName(String name) {
-    _setNameStatement.execute([name]);
+  set name(String value) {
+    _setNameStatement.execute([value]);
   }
 
   Stream<double> copy(String path) async* {

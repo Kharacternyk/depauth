@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'boundaries.dart';
 import 'position.dart';
 import 'tracked_disposal_storage.dart';
 import 'traversable_entity.dart';
@@ -15,8 +16,7 @@ class ListenableStorage extends TrackedDisposalStorage {
   final _entities =
       <Position, WeakReference<ValueNotifier<TraversableEntity?>>>{};
 
-  late final boundaries = ValueNotifier(super.getBoundaries());
-  late final name = ValueNotifier(super.getName());
+  late final listenableBoundaries = ValueNotifier(super.boundaries);
 
   ValueNotifier<TraversableEntity?> getListenableEntity(Position position) {
     return switch (_entities[position]) {
@@ -54,14 +54,14 @@ class ListenableStorage extends TrackedDisposalStorage {
   }
 
   @override
-  getBoundaries() {
-    return boundaries.value;
+  Boundaries get boundaries {
+    return listenableBoundaries.value;
   }
 
   @override
   moveEntity({required from, required to}) {
     super.moveEntity(from: from, to: to);
-    _updateEntities([from, to].followedBy(getDependantPositions(to)));
+    _updateEntities([from, to]);
     _updateBoundaries();
   }
 
@@ -95,19 +95,19 @@ class ListenableStorage extends TrackedDisposalStorage {
   @override
   changeImportance(position, value) {
     super.changeImportance(position, value);
-    _updateEntityWithDependants(position);
+    _updateEntities([position]);
   }
 
   @override
   toggleCompromised(position, value) {
     super.toggleCompromised(position, value);
-    _updateEntityWithDependants(position);
+    _updateEntities([position]);
   }
 
   @override
   toggleLost(position, value) {
     super.toggleLost(position, value);
-    _updateEntityWithDependants(position);
+    _updateEntities([position]);
   }
 
   @override
@@ -146,39 +146,29 @@ class ListenableStorage extends TrackedDisposalStorage {
 
   @override
   resetLoss() {
-    final positions = getLostPositions();
+    final positions = lostPositions;
     super.resetLoss();
     _updateEntities(positions);
   }
 
   @override
   resetCompromise() {
-    final positions = getCompromisedPositions();
+    final positions = compromisedPositions;
     super.resetCompromise();
     _updateEntities(positions);
   }
 
   @override
   dispose() {
-    boundaries.dispose();
-    name.dispose();
+    listenableBoundaries.dispose();
     for (final entity in _entities.values) {
       entity.target?.dispose();
     }
     super.dispose();
   }
 
-  @override
-  getName() => name.value;
-
-  @override
-  setName(name) {
-    super.setName(name);
-    this.name.value = name;
-  }
-
   void _updateBoundaries() {
-    boundaries.value = super.getBoundaries();
+    listenableBoundaries.value = super.boundaries;
   }
 
   void _updateEntityWithDependants(Position position) {

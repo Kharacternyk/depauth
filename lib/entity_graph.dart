@@ -75,6 +75,6 @@ class EntityGraph extends StatelessWidget {
       }
 
       return ArrowContainer(child: rows.column);
-    }.listen(storage.boundaries).group;
+    }.listen(storage.listenableBoundaries).group;
   }
 }
