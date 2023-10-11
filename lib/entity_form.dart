@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 
@@ -5,7 +7,6 @@ import 'card_form.dart';
 import 'core/entity.dart';
 import 'core/entity_insight.dart';
 import 'core/entity_type.dart';
-import 'core/enumerate.dart';
 import 'core/factor.dart';
 import 'core/interleave.dart';
 import 'core/position.dart';
@@ -150,7 +151,7 @@ class EntityForm extends StatelessWidget {
         ),
       ),
       ...<Widget>[
-        for (final (index, factor) in entity.factors.enumerate)
+        for (final (index, factor) in entity.factors.indexed)
           DragTarget<DependableTraveler>(
             key: ValueKey(factor.identity),
             onWillAccept: (traveler) {
