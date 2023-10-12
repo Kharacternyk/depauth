@@ -62,12 +62,12 @@ extension EntityTheme on EntityType {
     return switch (this) {
       EntityType.generic => _seedScheme(Colors.yellow),
       EntityType.webService => _seedScheme(Colors.blue),
-      EntityType.knowledge => _seedScheme(Colors.red),
+      EntityType.knowledge => _seedScheme(Colors.black),
       EntityType.biometrics => _seedScheme(Colors.green),
-      EntityType.phoneNumber => _seedScheme(Colors.purple),
+      EntityType.phoneNumber => _seedScheme(Colors.deepPurple),
       EntityType.device => _seedScheme(Colors.teal),
       EntityType.application => _seedScheme(Colors.grey),
-      EntityType.operatingSystem => _seedScheme(Colors.black),
+      EntityType.operatingSystem => _seedScheme(Colors.lightGreen),
     };
   }
 
