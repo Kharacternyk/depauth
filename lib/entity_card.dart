@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 import 'package:widget_arrows/widget_arrows.dart';
@@ -59,6 +61,7 @@ class EntityCard extends StatelessWidget {
 
     final lost = insight.hasLostFactor || entity.lost;
     final compromised = insight.areAllFactorsCompromised || entity.compromised;
+    final importance = max(insight.bubbledImportance, entity.importance);
     final lostIcon = Icon(
       Icons.not_listed_location,
       color: colors.onError,
@@ -73,13 +76,11 @@ class EntityCard extends StatelessWidget {
       [
         [
           spacer,
-          if (entity.importance > 0)
+          if (importance > 0)
             [
-              Spacer(flex: 6 - entity.importance),
-              entity.type
-                  .starRibbon(entity.importance)
-                  .expand(2 * entity.importance),
-              Spacer(flex: 6 - entity.importance),
+              Spacer(flex: 6 - importance),
+              entity.type.starRibbon(importance).expand(2 * importance),
+              Spacer(flex: 6 - importance),
             ].column.expand(),
         ].row.expand(),
         ArrowElement(

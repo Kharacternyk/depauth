@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 
 import 'entity.dart';
@@ -7,6 +9,7 @@ import 'flattened_storage.dart';
 import 'storage.dart';
 import 'storage_insight.dart';
 import 'tertiary_set.dart';
+import 'traversable_entity.dart';
 
 class InsightfulStorage extends FlattenedStorage {
   final entityInsightNotifier = _ChangeNotifier();
@@ -18,7 +21,7 @@ class InsightfulStorage extends FlattenedStorage {
     ),
   );
 
-  late var _entityCount = entityCount;
+  late var _entityCount = super.entityCount;
   late var _lostEntityCount = _lostEntities.length;
   late var _compromisedEntityCount = _compromisedEntities.length;
 
@@ -29,6 +32,8 @@ class InsightfulStorage extends FlattenedStorage {
 
   late final _lostEntities = super.lostEntities.toSet();
   late final _compromisedEntities = super.compromisedEntities.toSet();
+
+  final _bubbledImportance = <Identity<Entity>, int>{};
 
   InsightfulStorage({
     required super.name,
@@ -46,15 +51,56 @@ class InsightfulStorage extends FlattenedStorage {
   }
 
   EntityInsight getEntityInsight(Identity<Entity> entity) {
-    final ancestors = getAncestors(entity);
-    final descendants = getDescendants(entity);
-
     return EntityInsight(
       hasLostFactor: _entityLoss[entity] ?? false,
       areAllFactorsCompromised: _entityCompromise[entity] ?? false,
-      ancestorCount: ancestors.length,
-      descendantCount: descendants.length,
+      ancestorCount: getAncestors(entity).length,
+      descendantCount: getDescendants(entity).length,
+      bubbledImportance: _getBubbledImportance(entity),
     );
+  }
+
+  int _getBubbledImportance(Identity<Entity> entity) {
+    if (_bubbledImportance[entity] case int result) {
+      return result;
+    }
+
+    var result = 0;
+
+    // TODO: optimize
+    for (final position in getDependantPositions(entity)) {
+      if (getEntity(position) case TraversableEntity dependant) {
+        var factorCount = 0;
+        var dependantFactorCount = 0;
+
+        for (final factor in dependant.factors) {
+          if (factor.dependencies.isNotEmpty) {
+            ++factorCount;
+
+            if (factor.dependencies
+                .map((entity) => entity.identity)
+                .contains(entity)) {
+              ++dependantFactorCount;
+            }
+          }
+        }
+
+        assert(factorCount > 0);
+        assert(dependantFactorCount > 0);
+
+        result = max(
+          result,
+          max(
+                dependant.importance,
+                _getBubbledImportance(dependant.identity),
+              ) *
+              dependantFactorCount ~/
+              factorCount,
+        );
+      }
+    }
+
+    return _bubbledImportance[entity] = result;
   }
 
   bool _hasLostFactor(Identity<Entity> entity, Set<Identity<Entity>> seen) {
@@ -197,6 +243,7 @@ class InsightfulStorage extends FlattenedStorage {
     --_entityCount;
     _clearLoss(entity.identity);
     _clearCompromise(entity.identity);
+    _clearImportance(entity.identity);
 
     if (_lostEntities.remove(entity.identity)) {
       ++_lostEntityCount;
@@ -209,8 +256,19 @@ class InsightfulStorage extends FlattenedStorage {
     _entityLoss.forget(entity.identity);
     _entityCompromise.forget(entity.identity);
 
+    final dependants = getDependants(entity.identity);
+
     super.deleteEntity(entity);
 
+    dependants.forEach(_clearImportance);
+
+    _update();
+  }
+
+  @override
+  changeImportance(entity, value) {
+    _clearImportance(entity.identity);
+    super.changeImportance(entity, value);
     _update();
   }
 
@@ -267,6 +325,7 @@ class InsightfulStorage extends FlattenedStorage {
     _clearLoss(entity.identity);
     _clearCompromise(entity.identity);
     super.addDependencyAsFactor(entity, dependency);
+    _clearImportance(entity.identity);
     _update();
   }
 
@@ -275,6 +334,7 @@ class InsightfulStorage extends FlattenedStorage {
     _clearLoss(factor.entity.identity);
     _clearCompromise(factor.entity.identity);
     super.addDependency(factor, entity);
+    _clearImportance(factor.entity.identity);
     _update();
   }
 
@@ -282,6 +342,7 @@ class InsightfulStorage extends FlattenedStorage {
   removeDependency(factor, entity) {
     _clearLoss(factor.entity.identity);
     _clearCompromise(factor.entity.identity);
+    _clearImportance(factor.entity.identity);
     super.removeDependency(factor, entity);
     _update();
   }
@@ -298,6 +359,7 @@ class InsightfulStorage extends FlattenedStorage {
   removeFactor(factor) {
     _clearLoss(factor.entity.identity);
     _clearCompromise(factor.entity.identity);
+    _clearImportance(factor.entity.identity);
     super.removeFactor(factor);
     _update();
   }
@@ -357,6 +419,11 @@ class InsightfulStorage extends FlattenedStorage {
       _entityCompromise[entity] = null;
     }
     _factorCompromise.clear();
+  }
+
+  void _clearImportance(Identity<Entity> entity) {
+    getAncestors(entity)
+        .followedBy([entity]).forEach(_bubbledImportance.remove);
   }
 
   void _update() {
