@@ -335,6 +335,9 @@ class InsightfulStorage extends FlattenedStorage {
   @override
   Iterable<Identity<Entity>> get compromisedEntities => _compromisedEntities;
 
+  @override
+  int get entityCount => _entityCount;
+
   void _clearLoss(Identity<Entity> entity) {
     for (final entity in getDescendants(entity).followedBy([entity])) {
       if (_entityLoss[entity] == true && !_lostEntities.contains(entity)) {
