@@ -41,15 +41,14 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     order by min(entities.x), min(entities.y)
   ''');
   TraversableEntity? getEntity(Position position) {
-    final row = _entityQuery.select([position.x, position.y]).firstOrNull;
+    final values = _entityQuery.selectOne([position.x, position.y]);
 
-    switch (row) {
+    switch (values) {
       case null:
         return null;
 
-      case Row row:
-        final [identity, name, type, lost, compromised, importance] =
-            row.values;
+      case List<Object?> values:
+        final [identity, name, type, lost, compromised, importance] = values;
 
         return TraversableEntity(
           Passport._(
@@ -61,7 +60,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
           lost: lost as int != 0,
           compromised: compromised as int != 0,
           importance: importance as int,
-          factors: _factorsQuery.select([identity]).map((row) {
+          factors: _factorsQuery.select([identity], (row) {
             final [factorIdentity] = row.values;
 
             return Factor(
@@ -72,7 +71,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
                   position,
                 ),
               ),
-              _dependenciesQuery.select([factorIdentity]).map((row) {
+              _dependenciesQuery.select([factorIdentity], (row) {
                 final [identity, name, type] = row.values;
 
                 return Entity(
@@ -222,18 +221,14 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     from duplicateIndices
   ''');
   int _getEntityDuplicateIndex(Position position, String name) {
-    return _entityDuplicateIndexQuery
-        .select([
-          name,
-          entityDuplicatePrefix,
-          entityDuplicateSuffix,
-          name,
-          position.x,
-          position.y,
-        ])
-        .first
-        .values
-        .first as int;
+    return _entityDuplicateIndexQuery.selectOne([
+      name,
+      entityDuplicatePrefix,
+      entityDuplicateSuffix,
+      name,
+      position.x,
+      position.y,
+    ])?.first as int;
   }
 
   late final _addDependencyStatement = Statement(_database, '''
@@ -289,7 +284,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     where entity = ?
   ''');
   Iterable<Identity<Factor>> getFactors(Identity<Entity> entity) {
-    return _factorIdentitiesQuery.select([entity._value]).map(_parseIdentity);
+    return _factorIdentitiesQuery.select([entity._value], _parseIdentity);
   }
 
   late final _dependencyEntitiesQuery = Query(_database, '''
@@ -300,7 +295,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     where factor = ?
   ''');
   Iterable<Identity<Entity>> getDependencies(Identity<Factor> factor) {
-    return _dependencyEntitiesQuery.select([factor._value]).map(_parseIdentity);
+    return _dependencyEntitiesQuery.select([factor._value], _parseIdentity);
   }
 
   late final _dependantsQuery = Query(_database, '''
@@ -311,7 +306,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     where dependencies.entity = ?
   ''');
   Iterable<Identity<Entity>> getDependants(Identity<Entity> entity) {
-    return _dependantsQuery.select([entity._value]).map(_parseIdentity);
+    return _dependantsQuery.select([entity._value], _parseIdentity);
   }
 
   late final _boundariesQuery = Query(_database, '''
@@ -319,7 +314,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     from entities
   ''');
   Boundaries get boundaries {
-    final [minX, minY, maxX, maxY] = _boundariesQuery.select().first.values;
+    final [minX, minY, maxX, maxY] = _boundariesQuery.selectOne()!;
 
     return Boundaries(
       Position(minX as int? ?? 0, minY as int? ?? 0),
@@ -337,7 +332,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     where dependencies.entity = ?
   ''');
   Iterable<Position> getDependantPositions(Identity<Entity> entity) {
-    return _dependantPositionsQuery.select([entity._value]).map(_parsePosition);
+    return _dependantPositionsQuery.select([entity._value], _parsePosition);
   }
 
   late final _resetLossStatement = Statement(_database, '''
@@ -358,7 +353,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     where not lost and not compromised
   ''');
   Iterable<Identity<Entity>> get normalEntities {
-    return _normalEntitiesQuery.select().map(_parseIdentity);
+    return _normalEntitiesQuery.select(null, _parseIdentity);
   }
 
   late final _lostEntititesQuery = Query(_database, '''
@@ -367,7 +362,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     where lost
   ''');
   Iterable<Identity<Entity>> get lostEntities {
-    return _lostEntititesQuery.select().map(_parseIdentity);
+    return _lostEntititesQuery.select(null, _parseIdentity);
   }
 
   late final _compromisedEntititesQuery = Query(_database, '''
@@ -376,7 +371,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     where compromised
   ''');
   Iterable<Identity<Entity>> get compromisedEntities {
-    return _compromisedEntititesQuery.select().map(_parseIdentity);
+    return _compromisedEntititesQuery.select(null, _parseIdentity);
   }
 
   late final _lostPositionsQuery = Query(_database, '''
@@ -385,7 +380,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     where lost
   ''');
   Iterable<Position> get lostPositions {
-    return _lostPositionsQuery.select().map(_parsePosition);
+    return _lostPositionsQuery.select(null, _parsePosition);
   }
 
   late final _compromisedPositionsQuery = Query(_database, '''
@@ -394,14 +389,14 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     where compromised
   ''');
   Iterable<Position> get compromisedPositions {
-    return _compromisedPositionsQuery.select().map(_parsePosition);
+    return _compromisedPositionsQuery.select(null, _parsePosition);
   }
 
   late final _entityCountQuery = Query(_database, '''
     select count(true)
     from entities
   ''');
-  int get entityCount => _entityCountQuery.select().first.values.first as int;
+  int get entityCount => _entityCountQuery.selectOne()?.first as int;
 
   Position _parsePosition(Row row) {
     final [x, y] = row.values;
@@ -417,7 +412,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     select name from meta
   ''');
   String get name {
-    return _nameQuery.select().first.values.first as String;
+    return _nameQuery.selectOne()?.first as String;
   }
 
   late final _setNameStatement = Statement(_database, '''

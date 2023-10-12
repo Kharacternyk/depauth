@@ -5,7 +5,21 @@ class Query {
 
   Query(Database database, String sql) : _statement = database.prepare(sql);
 
-  ResultSet select([List<Object?> parameters = const []]) {
-    return _statement.select(parameters);
+  List<T> select<T>(
+    List<Object?>? parameters,
+    T Function(Row) factory,
+  ) {
+    final result = <T>[];
+    final cursor = _statement.selectCursor(parameters ?? const []);
+
+    while (cursor.moveNext()) {
+      result.add(factory(cursor.current));
+    }
+
+    return result;
+  }
+
+  List<Object?>? selectOne([List<Object?>? parameters]) {
+    return _statement.select(parameters ?? const []).firstOrNull?.values;
   }
 }
