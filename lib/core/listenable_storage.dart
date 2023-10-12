@@ -52,8 +52,10 @@ class ListenableStorage extends Storage {
 
   @override
   moveEntity(entity, position) {
+    final dependants = getDependantPositions(entity.position);
     super.moveEntity(entity, position);
-    _updateEntities([entity.position, position]);
+    // Moving an entity can impact the order of dependencies in dependants.
+    _updateEntities([entity.position, position].followedBy(dependants));
     _updateBoundaries();
   }
 
