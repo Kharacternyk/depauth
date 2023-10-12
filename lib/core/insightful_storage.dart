@@ -4,7 +4,6 @@ import 'entity.dart';
 import 'entity_insight.dart';
 import 'factor.dart';
 import 'flattened_storage.dart';
-import 'maybe.dart';
 import 'storage.dart';
 import 'storage_insight.dart';
 import 'tertiary_set.dart';
@@ -194,130 +193,112 @@ class InsightfulStorage extends FlattenedStorage {
   }
 
   @override
-  deleteEntity(position) {
-    maybe(getEntityIdentity(position), (entity) {
-      --_entityCount;
-      _clearLoss(entity);
-      _clearCompromise(entity);
+  deleteEntity(entity) {
+    --_entityCount;
+    _clearLoss(entity.identity);
+    _clearCompromise(entity.identity);
 
-      if (_lostEntities.remove(entity)) {
-        ++_lostEntityCount;
-      }
+    if (_lostEntities.remove(entity.identity)) {
+      ++_lostEntityCount;
+    }
 
-      if (_compromisedEntities.remove(entity)) {
+    if (_compromisedEntities.remove(entity.identity)) {
+      ++_compromisedEntityCount;
+    }
+
+    _entityLoss.forget(entity.identity);
+    _entityCompromise.forget(entity.identity);
+
+    super.deleteEntity(entity);
+
+    _update();
+  }
+
+  @override
+  toggleCompromised(entity, value) {
+    if (_entityCompromise[entity.identity] == false &&
+        value != _compromisedEntities.contains(entity.identity)) {
+      if (value) {
         ++_compromisedEntityCount;
-      }
-
-      _entityLoss.forget(entity);
-      _entityCompromise.forget(entity);
-    });
-
-    super.deleteEntity(position);
-
-    _update();
-  }
-
-  @override
-  toggleCompromised(position, value) {
-    maybe(getEntityIdentity(position), (entity) {
-      if (_entityCompromise[entity] == false &&
-          value != _compromisedEntities.contains(entity)) {
-        if (value) {
-          ++_compromisedEntityCount;
-        } else {
-          --_compromisedEntityCount;
-        }
-      }
-
-      if (value) {
-        _compromisedEntities.add(entity);
       } else {
-        _compromisedEntities.remove(entity);
+        --_compromisedEntityCount;
       }
+    }
 
-      _clearCompromise(entity);
-    });
+    if (value) {
+      _compromisedEntities.add(entity.identity);
+    } else {
+      _compromisedEntities.remove(entity.identity);
+    }
 
-    super.toggleCompromised(position, value);
+    _clearCompromise(entity.identity);
+
+    super.toggleCompromised(entity, value);
 
     _update();
   }
 
   @override
-  toggleLost(position, value) {
-    maybe(getEntityIdentity(position), (entity) {
-      if (_entityLoss[entity] == false &&
-          value != _lostEntities.contains(entity)) {
-        if (value) {
-          ++_lostEntityCount;
-        } else {
-          --_lostEntityCount;
-        }
-      }
-
+  toggleLost(entity, value) {
+    if (_entityLoss[entity.identity] == false &&
+        value != _lostEntities.contains(entity.identity)) {
       if (value) {
-        _lostEntities.add(entity);
+        ++_lostEntityCount;
       } else {
-        _lostEntities.remove(entity);
+        --_lostEntityCount;
       }
+    }
 
-      _clearLoss(entity);
-    });
+    if (value) {
+      _lostEntities.add(entity.identity);
+    } else {
+      _lostEntities.remove(entity.identity);
+    }
 
-    super.toggleLost(position, value);
+    _clearLoss(entity.identity);
+
+    super.toggleLost(entity, value);
 
     _update();
   }
 
   @override
-  addDependencyAsFactor(position, {required entity, required dependency}) {
-    _clearLoss(entity);
-    _clearCompromise(entity);
-    super.addDependencyAsFactor(
-      position,
-      entity: entity,
-      dependency: dependency,
-    );
+  addDependencyAsFactor(entity, dependency) {
+    _clearLoss(entity.identity);
+    _clearCompromise(entity.identity);
+    super.addDependencyAsFactor(entity, dependency);
     _update();
   }
 
   @override
-  addDependency(position, factor, entity) {
-    maybe(getEntityIdentity(position), (changedEntity) {
-      _clearLoss(changedEntity);
-      _clearCompromise(changedEntity);
-    });
-    super.addDependency(position, factor, entity);
+  addDependency(factor, entity) {
+    _clearLoss(factor.entity.identity);
+    _clearCompromise(factor.entity.identity);
+    super.addDependency(factor, entity);
     _update();
   }
 
   @override
-  removeDependency(position, factor, entity) {
-    maybe(getEntityIdentity(position), (changedEntity) {
-      _clearLoss(changedEntity);
-      _clearCompromise(changedEntity);
-    });
-    super.removeDependency(position, factor, entity);
+  removeDependency(factor, entity) {
+    _clearLoss(factor.entity.identity);
+    _clearCompromise(factor.entity.identity);
+    super.removeDependency(factor, entity);
     _update();
   }
 
   @override
-  addFactor(position, entity) {
-    maybe(getEntityIdentity(position), (changedEntity) {
-      _clearLoss(entity);
-      _clearCompromise(entity);
-    });
-    super.addFactor(position, entity);
+  addFactor(entity) {
+    _clearLoss(entity.identity);
+    _clearCompromise(entity.identity);
+    super.addFactor(entity);
     _update();
   }
 
   @override
-  removeFactor(position, factor) {
-    maybe(getEntityIdentity(position), (entity) {
-      _clearLoss(entity);
-      _clearCompromise(entity);
-    });
-    super.removeFactor(position, factor);
+  removeFactor(factor) {
+    _clearLoss(factor.entity.identity);
+    _clearCompromise(factor.entity.identity);
+    super.removeFactor(factor);
     _update();
   }
 
@@ -344,10 +325,6 @@ class InsightfulStorage extends FlattenedStorage {
   @override
   createEntity(position, name) {
     super.createEntity(position, name);
-    maybe(getEntityIdentity(position), (entity) {
-      _entityLoss[entity] = null;
-      _entityCompromise[entity] = null;
-    });
     ++_entityCount;
     _update();
   }

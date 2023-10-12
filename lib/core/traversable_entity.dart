@@ -1,16 +1,22 @@
-import 'embellished_entity.dart';
+import 'entity.dart';
+import 'entity_type.dart';
 import 'factor.dart';
+import 'storage.dart';
 
-class TraversableEntity extends EmbellishedEntity {
+class TraversableEntity extends Entity {
+  final Passport passport;
   final Iterable<Factor> factors;
+  final bool lost;
+  final bool compromised;
+  final int importance;
 
-  const TraversableEntity(
-    super.identity,
-    super.name,
-    super.type, {
+  TraversableEntity(
+    this.passport,
+    String name,
+    EntityType type, {
     required this.factors,
-    required super.lost,
-    required super.compromised,
-    required super.importance,
-  });
+    required this.lost,
+    required this.compromised,
+    required this.importance,
+  }) : super(passport.identity, name, type);
 }

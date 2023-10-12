@@ -39,7 +39,7 @@ class EntityGraph extends StatelessWidget {
               TraversableEntity entity => () {
                   return ScaledDraggable(
                     keepsSpace: false,
-                    dragData: EntityTraveler(position, entity.identity),
+                    dragData: EntityTraveler(entity.passport),
                     child: EntityCard(
                       entity,
                       insight: storage.getEntityInsight(entity.identity),
@@ -51,8 +51,8 @@ class EntityGraph extends StatelessWidget {
               null => EntityPlaceholder<GrabbableTraveler>(
                   onDragAccepted: (source) {
                     switch (source) {
-                      case EntityTraveler source:
-                        storage.moveEntity(from: source.position, to: position);
+                      case EntityTraveler traveler:
+                        storage.moveEntity(traveler.passport, position);
                         editSubject.value = EntitySubject(position);
                       case CreationTraveler _:
                         storage.createEntity(

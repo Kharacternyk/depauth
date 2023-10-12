@@ -116,15 +116,11 @@ class _State extends State<StorageDirectoryScaffold> {
             delete: (traveler) {
               switch (traveler) {
                 case EntityTraveler traveler:
-                  storage.deleteEntity(traveler.position);
+                  storage.deleteEntity(traveler.passport);
                 case FactorTraveler traveler:
-                  storage.removeFactor(traveler.position, traveler.factor);
+                  storage.removeFactor(traveler.passport);
                 case DependencyTraveler traveler:
-                  storage.removeDependency(
-                    traveler.position,
-                    traveler.factor,
-                    traveler.entity,
-                  );
+                  storage.removeDependency(traveler.factor, traveler.entity);
                 case StorageTraveler traveler:
                   storageDirectory.deleteStorage(traveler.storageName);
               }

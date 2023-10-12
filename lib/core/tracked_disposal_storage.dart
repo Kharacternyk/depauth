@@ -1,20 +1,5 @@
-import 'storage.dart';
-
-class TrackedDisposalStorage extends Storage {
-  TrackedDisposalStorage({
-    required super.name,
-    required super.path,
-    required super.entityDuplicatePrefix,
-    required super.entityDuplicateSuffix,
-  });
-
+class TrackedDisposalStorage {
   var _disposed = false;
-
-  @override
-  dispose() {
-    _disposed = true;
-    super.dispose();
-  }
-
+  void dispose() => _disposed = true;
   bool get disposed => _disposed;
 }

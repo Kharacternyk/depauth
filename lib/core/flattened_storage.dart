@@ -1,6 +1,5 @@
 import 'entity.dart';
 import 'listenable_storage.dart';
-import 'maybe.dart';
 import 'storage.dart';
 
 class FlattenedStorage extends ListenableStorage {
@@ -68,48 +67,36 @@ class FlattenedStorage extends ListenableStorage {
   }
 
   @override
-  deleteEntity(position) {
-    maybe(getEntityIdentity(position), (entity) {
-      _clearCoupling(upward: [entity], downward: [entity]);
-    });
-    super.deleteEntity(position);
+  deleteEntity(entity) {
+    _clearCoupling(upward: [entity.identity], downward: [entity.identity]);
+    super.deleteEntity(entity);
   }
 
   @override
-  addDependencyAsFactor(position, {required entity, required dependency}) {
-    _clearCoupling(upward: [dependency], downward: [entity]);
-    super.addDependencyAsFactor(
-      position,
-      entity: entity,
-      dependency: dependency,
+  addDependencyAsFactor(entity, dependency) {
+    _clearCoupling(upward: [dependency], downward: [entity.identity]);
+    super.addDependencyAsFactor(entity, dependency);
+  }
+
+  @override
+  addDependency(factor, entity) {
+    _clearCoupling(upward: [entity], downward: [factor.entity.identity]);
+    super.addDependency(factor, entity);
+  }
+
+  @override
+  removeDependency(factor, entity) {
+    _clearCoupling(upward: [entity], downward: [factor.entity.identity]);
+    super.removeDependency(factor, entity);
+  }
+
+  @override
+  removeFactor(factor) {
+    _clearCoupling(
+      upward: getDependencies(factor.identity),
+      downward: [factor.entity.identity],
     );
-  }
-
-  @override
-  addDependency(position, factor, entity) {
-    maybe(getEntityIdentity(position), (changedEntity) {
-      _clearCoupling(upward: [entity], downward: [changedEntity]);
-    });
-    super.addDependency(position, factor, entity);
-  }
-
-  @override
-  removeDependency(position, factor, entity) {
-    maybe(getEntityIdentity(position), (changedEntity) {
-      _clearCoupling(upward: [entity], downward: [changedEntity]);
-    });
-    super.removeDependency(position, factor, entity);
-  }
-
-  @override
-  removeFactor(position, factor) {
-    maybe(getEntityIdentity(position), (entity) {
-      _clearCoupling(
-        upward: getDependencies(factor),
-        downward: [entity],
-      );
-    });
-    super.removeFactor(position, factor);
+    super.removeFactor(factor);
   }
 
   void _clearCoupling({

@@ -2,8 +2,10 @@ import 'entity.dart';
 import 'storage.dart';
 
 class Factor {
-  final Identity<Factor> identity;
+  final FactorPassport passport;
   final Iterable<Entity> dependencies;
 
-  const Factor(this.identity, this.dependencies);
+  const Factor(this.passport, this.dependencies);
+
+  Identity<Factor> get identity => passport.identity;
 }

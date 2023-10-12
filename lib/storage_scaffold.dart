@@ -81,51 +81,11 @@ class StorageScaffold extends StatelessWidget {
                       TraversableEntity entity => () {
                           return EntityForm(
                             entity,
-                            position: position,
+                            storage: storage,
+                            insight: storage.getEntityInsight(entity.identity),
                             hasTraveler: formHasTraveler,
-                            isRenameCanceled: () => storage.disposed,
                             goBack: () {
                               editSubject.value = const StorageSubject();
-                            },
-                            insight: storage.getEntityInsight(entity.identity),
-                            changeName: (name) {
-                              storage.changeName(position, name);
-                            },
-                            changeType: (type) {
-                              storage.changeType(position, type);
-                            },
-                            changeImportance: (value) {
-                              storage.changeImportance(position, value);
-                            },
-                            toggleLost: (value) {
-                              storage.toggleLost(position, value);
-                            },
-                            toggleCompromised: (value) {
-                              storage.toggleCompromised(position, value);
-                            },
-                            addDependency: (factor, entity) {
-                              storage.addDependency(
-                                position,
-                                factor,
-                                entity,
-                              );
-                            },
-                            addDependencyAsFactor: (dependency) {
-                              storage.addDependencyAsFactor(
-                                position,
-                                entity: entity.identity,
-                                dependency: dependency,
-                              );
-                            },
-                            removeDependency: (factor, entity) {
-                              storage.removeDependency(
-                                position,
-                                factor,
-                                entity,
-                              );
-                            },
-                            addFactor: () {
-                              storage.addFactor(position, entity.identity);
                             },
                           );
                         }.listen(storage.entityInsightNotifier),

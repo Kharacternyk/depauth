@@ -1,5 +1,6 @@
 import 'package:sqlite3/sqlite3.dart';
 
+import 'active_record_storage.dart';
 import 'boundaries.dart';
 import 'entity.dart';
 import 'entity_type.dart';
@@ -7,9 +8,10 @@ import 'factor.dart';
 import 'position.dart';
 import 'query.dart';
 import 'statement.dart';
+import 'tracked_disposal_storage.dart';
 import 'traversable_entity.dart';
 
-class Storage {
+class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
   final Database _database;
   final String entityDuplicatePrefix;
   final String entityDuplicateSuffix;
@@ -50,18 +52,27 @@ class Storage {
             row.values;
 
         return TraversableEntity(
-          Identity._(identity as int),
+          Passport._(
+            Identity._(identity as int),
+            position,
+          ),
           name as String,
           EntityType.values[type as int],
           lost: lost as int != 0,
           compromised: compromised as int != 0,
           importance: importance as int,
           factors: _factorsQuery.select([identity]).map((row) {
-            final [identity] = row.values;
+            final [factorIdentity] = row.values;
 
             return Factor(
-              Identity._(identity as int),
-              _dependenciesQuery.select([identity]).map((row) {
+              FactorPassport._(
+                Identity._(factorIdentity as int),
+                Passport._(
+                  Identity._(identity),
+                  position,
+                ),
+              ),
+              _dependenciesQuery.select([factorIdentity]).map((row) {
                 final [identity, name, type] = row.values;
 
                 return Entity(
@@ -76,36 +87,26 @@ class Storage {
     }
   }
 
-  late final _entityIdentityQuery = Query(_database, '''
-    select identity
-    from entities
-    where x = ? and y = ?
-  ''');
-  Identity<Entity>? getEntityIdentity(Position position) {
-    final row =
-        _entityIdentityQuery.select([position.x, position.y]).firstOrNull;
-
-    return switch (row) {
-      null => null,
-      Row row => _parseIdentity(row),
-    };
-  }
-
   late final _moveEntityStatement = Statement(_database, '''
     update entities
     set x = ?, y = ?
     where x = ? and y = ?
   ''');
-  void moveEntity({required Position from, required Position to}) {
-    _moveEntityStatement.execute([to.x, to.y, from.x, from.y]);
+  void moveEntity(Passport entity, Position position) {
+    _moveEntityStatement.execute([
+      position.x,
+      position.y,
+      entity.position.x,
+      entity.position.y,
+    ]);
   }
 
   late final _deleteEntityStatement = Statement(_database, '''
     delete from entities
     where x = ? and y = ?
   ''');
-  void deleteEntity(Position position) {
-    _deleteEntityStatement.execute([position.x, position.y]);
+  void deleteEntity(Passport entity) {
+    _deleteEntityStatement.execute([entity.position.x, entity.position.y]);
   }
 
   late final _createEntityStatement = Statement(_database, '''
@@ -125,11 +126,12 @@ class Storage {
     set name = ?
     where x = ? and y = ?
   ''');
-  void changeName(Position position, String name) {
+  @override
+  changeName(entity, name) {
     _changeNameStatement.execute([
-      _getValidName(position, name),
-      position.x,
-      position.y,
+      _getValidName(entity.position, name),
+      entity.position.x,
+      entity.position.y,
     ]);
   }
 
@@ -138,11 +140,12 @@ class Storage {
     set type = ?
     where x = ? and y = ?
   ''');
-  void changeType(Position position, EntityType type) {
+  @override
+  changeType(entity, type) {
     _changeTypeStatement.execute([
       type.index,
-      position.x,
-      position.y,
+      entity.position.x,
+      entity.position.y,
     ]);
   }
 
@@ -151,8 +154,13 @@ class Storage {
     set importance = ?
     where x = ? and y = ?
   ''');
-  void changeImportance(Position position, int value) {
-    _changeImportanceStatement.execute([value, position.x, position.y]);
+  @override
+  changeImportance(entity, value) {
+    _changeImportanceStatement.execute([
+      value,
+      entity.position.x,
+      entity.position.y,
+    ]);
   }
 
   late final _toggleCompromisedStatement = Statement(_database, '''
@@ -160,11 +168,12 @@ class Storage {
     set compromised = ?
     where x = ? and y = ?
   ''');
-  void toggleCompromised(Position position, bool value) {
+  @override
+  toggleCompromised(entity, value) {
     _toggleCompromisedStatement.execute([
       value ? 1 : 0,
-      position.x,
-      position.y,
+      entity.position.x,
+      entity.position.y,
     ]);
   }
 
@@ -173,11 +182,12 @@ class Storage {
     set lost = ?
     where x = ? and y = ?
   ''');
-  void toggleLost(Position position, bool value) {
+  @override
+  toggleLost(entity, value) {
     _toggleLostStatement.execute([
       value ? 1 : 0,
-      position.x,
-      position.y,
+      entity.position.x,
+      entity.position.y,
     ]);
   }
 
@@ -229,53 +239,47 @@ class Storage {
   late final _addDependencyStatement = Statement(_database, '''
     insert or ignore into dependencies(entity, factor) values(?, ?)
   ''');
-  void addDependency(
-    Position position,
-    Identity<Factor> factor,
-    Identity<Entity> entity,
-  ) {
-    assert(_getPositionOfFactor(factor) == position);
-    _addDependencyStatement.execute([entity._value, factor._value]);
+  @override
+  addDependency(factor, entity) {
+    _addDependencyStatement.execute([
+      entity._value,
+      factor.identity._value,
+    ]);
   }
 
   late final _removeDependencyStatement = Statement(_database, '''
     delete from dependencies
     where entity = ? and factor = ?
   ''');
-  void removeDependency(
-    Position position,
-    Identity<Factor> factor,
-    Identity<Entity> entity,
-  ) {
-    assert(_getPositionOfFactor(factor) == position);
-    _removeDependencyStatement.execute([entity._value, factor._value]);
+  @override
+  removeDependency(factor, entity) {
+    _removeDependencyStatement.execute([
+      entity._value,
+      factor.identity._value,
+    ]);
   }
 
   late final _addFactorStatement = Statement(_database, '''
     insert into factors(entity) values(?)
   ''');
-  void addFactor(Position position, Identity<Entity> entity) {
-    assert(getEntity(position)?.identity == entity);
-    _addFactorStatement.execute([entity._value]);
+  @override
+  addFactor(entity) {
+    _addFactorStatement.execute([entity.identity._value]);
   }
 
   late final _removeFactorStatement = Statement(_database, '''
     delete from factors where identity = ?
   ''');
-  void removeFactor(Position position, Identity<Factor> factor) {
-    assert(_getPositionOfFactor(factor) == position);
-    _removeFactorStatement.execute([factor._value]);
+  void removeFactor(FactorPassport factor) {
+    _removeFactorStatement.execute([factor.identity._value]);
   }
 
   late final _addDependencyAsFactorStatement = Statement(_database, '''
     insert into dependencies(entity, factor) values(?, last_insert_rowid())
   ''');
-  void addDependencyAsFactor(
-    Position position, {
-    required Identity<Entity> entity,
-    required Identity<Entity> dependency,
-  }) {
-    _addFactorStatement.execute([entity._value]);
+  @override
+  addDependencyAsFactor(entity, dependency) {
+    _addFactorStatement.execute([entity.identity._value]);
     _addDependencyAsFactorStatement.execute([dependency._value]);
   }
 
@@ -295,9 +299,7 @@ class Storage {
     on entity = entities.identity
     where factor = ?
   ''');
-  Iterable<Identity<Entity>> getDependencies(
-    Identity<Factor> factor,
-  ) {
+  Iterable<Identity<Entity>> getDependencies(Identity<Factor> factor) {
     return _dependencyEntitiesQuery.select([factor._value]).map(_parseIdentity);
   }
 
@@ -310,21 +312,6 @@ class Storage {
   ''');
   Iterable<Identity<Entity>> getDependants(Identity<Entity> entity) {
     return _dependantsQuery.select([entity._value]).map(_parseIdentity);
-  }
-
-  late final _positionOfFactorQuery = Query(_database, '''
-    select x, y
-    from entities
-    join factors
-    on entities.identity = entity
-    where factors.identity = ?
-  ''');
-  Position? _getPositionOfFactor(Identity<Factor> identity) {
-    return switch (
-        _positionOfFactorQuery.select([identity._value]).firstOrNull) {
-      null => null,
-      Row row => _parsePosition(row),
-    };
   }
 
   late final _boundariesQuery = Query(_database, '''
@@ -519,11 +506,30 @@ class Storage {
     ''', [name]);
   }
 
-  void dispose() => _database.dispose();
+  @override
+  dispose() {
+    _database.dispose();
+    super.dispose();
+  }
+}
+
+class FactorPassport {
+  final Identity<Factor> identity;
+  final Passport entity;
+
+  const FactorPassport._(this.identity, this.entity);
+}
+
+class Passport {
+  final Identity<Entity> identity;
+  final Position position;
+
+  const Passport._(this.identity, this.position);
 }
 
 class Identity<T> {
   final int _value;
+
   const Identity._(this._value);
 
   @override

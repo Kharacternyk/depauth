@@ -2,10 +2,10 @@ import 'package:flutter/foundation.dart';
 
 import 'boundaries.dart';
 import 'position.dart';
-import 'tracked_disposal_storage.dart';
+import 'storage.dart';
 import 'traversable_entity.dart';
 
-class ListenableStorage extends TrackedDisposalStorage {
+class ListenableStorage extends Storage {
   ListenableStorage({
     required super.name,
     required super.path,
@@ -39,17 +39,9 @@ class ListenableStorage extends TrackedDisposalStorage {
 
   @override
   getEntity(position) {
-    return switch (_entities[position]?.target?.value) {
+    return switch (_entities[position]?.target) {
       null => super.getEntity(position),
-      TraversableEntity entity => entity,
-    };
-  }
-
-  @override
-  getEntityIdentity(position) {
-    return switch (_entities[position]?.target?.value) {
-      null => super.getEntityIdentity(position),
-      TraversableEntity entity => entity.identity,
+      ValueNotifier<TraversableEntity?> entity => entity.value,
     };
   }
 
@@ -59,17 +51,17 @@ class ListenableStorage extends TrackedDisposalStorage {
   }
 
   @override
-  moveEntity({required from, required to}) {
-    super.moveEntity(from: from, to: to);
-    _updateEntities([from, to]);
+  moveEntity(entity, position) {
+    super.moveEntity(entity, position);
+    _updateEntities([entity.position, position]);
     _updateBoundaries();
   }
 
   @override
-  deleteEntity(position) {
-    final dependants = getDependantPositions(position);
-    super.deleteEntity(position);
-    _updateEntities([position].followedBy(dependants));
+  deleteEntity(entity) {
+    final dependants = getDependantPositions(entity.position);
+    super.deleteEntity(entity);
+    _updateEntities([entity.position].followedBy(dependants));
     _updateBoundaries();
   }
 
@@ -81,67 +73,63 @@ class ListenableStorage extends TrackedDisposalStorage {
   }
 
   @override
-  changeName(position, name) {
-    super.changeName(position, name);
-    _updateEntityWithDependants(position);
+  changeName(entity, name) {
+    super.changeName(entity, name);
+    _updateEntityWithDependants(entity.position);
   }
 
   @override
-  changeType(position, type) {
-    super.changeType(position, type);
-    _updateEntityWithDependants(position);
+  changeType(entity, type) {
+    super.changeType(entity, type);
+    _updateEntityWithDependants(entity.position);
   }
 
   @override
-  changeImportance(position, value) {
-    super.changeImportance(position, value);
-    _updateEntities([position]);
+  changeImportance(entity, value) {
+    super.changeImportance(entity, value);
+    _updateEntities([entity.position]);
   }
 
   @override
-  toggleCompromised(position, value) {
-    super.toggleCompromised(position, value);
-    _updateEntities([position]);
+  toggleCompromised(entity, value) {
+    super.toggleCompromised(entity, value);
+    _updateEntities([entity.position]);
   }
 
   @override
-  toggleLost(position, value) {
-    super.toggleLost(position, value);
-    _updateEntities([position]);
+  toggleLost(entity, value) {
+    super.toggleLost(entity, value);
+    _updateEntities([entity.position]);
   }
 
   @override
-  addDependencyAsFactor(position, {required entity, required dependency}) {
-    super.addDependencyAsFactor(
-      position,
-      entity: entity,
-      dependency: dependency,
-    );
-    _updateEntities([position]);
+  addDependencyAsFactor(entity, dependency) {
+    super.addDependencyAsFactor(entity, dependency);
+    _updateEntities([entity.position]);
   }
 
   @override
-  addDependency(position, factor, entity) {
-    super.addDependency(position, factor, entity);
-    _updateEntities([position]);
+  addDependency(factor, entity) {
+    super.addDependency(factor, entity);
+    _updateEntities([factor.entity.position]);
   }
 
   @override
-  removeDependency(position, factor, entity) {
-    super.removeDependency(position, factor, entity);
-    _updateEntities([position]);
+  removeDependency(factor, entity) {
+    super.removeDependency(factor, entity);
+    _updateEntities([factor.entity.position]);
   }
 
   @override
-  addFactor(position, entity) {
-    super.addFactor(position, entity);
-    _updateEntities([position]);
+  addFactor(entity) {
+    super.addFactor(entity);
+    _updateEntities([entity.position]);
   }
 
   @override
-  removeFactor(position, factor) {
-    super.removeFactor(position, factor);
-    _updateEntities([position]);
+  removeFactor(factor) {
+    super.removeFactor(factor);
+    _updateEntities([factor.entity.position]);
   }
 
   @override

@@ -1,6 +1,4 @@
 import 'entity.dart';
-import 'factor.dart';
-import 'position.dart';
 import 'storage.dart';
 
 sealed class GrabbableTraveler {}
@@ -17,10 +15,9 @@ class EntityTraveler
         DeletableTraveler,
         DependableTraveler,
         FactorableTraveler {
-  final Position position;
-  final Identity<Entity> entity;
+  final Passport passport;
 
-  const EntityTraveler(this.position, this.entity);
+  const EntityTraveler(this.passport);
 }
 
 class CreationTraveler implements GrabbableTraveler, FactorableTraveler {
@@ -28,19 +25,17 @@ class CreationTraveler implements GrabbableTraveler, FactorableTraveler {
 }
 
 class FactorTraveler implements DeletableTraveler {
-  final Position position;
-  final Identity<Factor> factor;
+  final FactorPassport passport;
 
-  const FactorTraveler(this.position, this.factor);
+  const FactorTraveler(this.passport);
 }
 
 class DependencyTraveler
     implements DeletableTraveler, DependableTraveler, FactorableTraveler {
-  final Position position;
-  final Identity<Factor> factor;
+  final FactorPassport factor;
   final Identity<Entity> entity;
 
-  const DependencyTraveler(this.position, this.factor, this.entity);
+  const DependencyTraveler(this.factor, this.entity);
 }
 
 class StorageTraveler implements DeletableTraveler {

@@ -4,13 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 
 import 'card_form.dart';
-import 'core/entity.dart';
+import 'core/active_record_storage.dart';
 import 'core/entity_insight.dart';
 import 'core/entity_type.dart';
-import 'core/factor.dart';
 import 'core/interleave.dart';
-import 'core/position.dart';
-import 'core/storage.dart';
 import 'core/title_case.dart';
 import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
@@ -22,37 +19,17 @@ import 'widget_extension.dart';
 
 class EntityForm extends StatelessWidget {
   final TraversableEntity entity;
-  final Position position;
+  final ActiveRecordStorage storage;
   final EntityInsight insight;
   final ValueNotifier<bool> hasTraveler;
   final void Function() goBack;
-  final void Function(String) changeName;
-  final void Function(EntityType) changeType;
-  final void Function(int) changeImportance;
-  final void Function(bool) toggleLost;
-  final void Function(bool) toggleCompromised;
-  final void Function() addFactor;
-  final void Function(Identity<Entity>) addDependencyAsFactor;
-  final void Function(Identity<Factor>, Identity<Entity>) addDependency;
-  final void Function(Identity<Factor>, Identity<Entity>) removeDependency;
-  final bool Function() isRenameCanceled;
 
   const EntityForm(
     this.entity, {
+    required this.storage,
     required this.hasTraveler,
     required this.goBack,
     required this.insight,
-    required this.position,
-    required this.changeName,
-    required this.changeType,
-    required this.changeImportance,
-    required this.toggleLost,
-    required this.toggleCompromised,
-    required this.addFactor,
-    required this.addDependencyAsFactor,
-    required this.addDependency,
-    required this.removeDependency,
-    required this.isRenameCanceled,
     super.key,
   });
 
@@ -73,9 +50,11 @@ class EntityForm extends StatelessWidget {
           key: ValueKey(entity.identity),
           value: entity.name,
           delay: const Duration(milliseconds: 200),
-          commitValue: changeName,
+          commitValue: (name) {
+            storage.changeName(entity.passport, name);
+          },
           hint: messages.name,
-          isCanceled: isRenameCanceled,
+          isCanceled: () => storage.disposed,
         ),
       ).card,
       ListTile(
@@ -84,16 +63,18 @@ class EntityForm extends StatelessWidget {
           child: DropdownButton(
             isExpanded: true,
             items: [
-              for (final value in EntityType.values)
+              for (final type in EntityType.values)
                 DropdownMenuItem(
-                  value: value,
-                  child: value.chip(
-                    value.getName(context).title(messages.wordSeparator),
+                  value: type,
+                  child: type.chip(
+                    type.getName(context).title(messages.wordSeparator),
                   ),
                 ),
             ],
-            onChanged: (value) {
-              changeType(value ?? entity.type);
+            onChanged: (type) {
+              if (type case EntityType type) {
+                storage.changeType(entity.passport, type);
+              }
             },
             value: entity.type,
           ),
@@ -111,7 +92,7 @@ class EntityForm extends StatelessWidget {
               )
           ],
           onSelectionChanged: (selection) {
-            changeImportance(selection.first);
+            storage.changeImportance(entity.passport, selection.first);
           },
           showSelectedIcon: false,
         ),
@@ -126,7 +107,9 @@ class EntityForm extends StatelessWidget {
         value: entity.lost,
         selected: insight.hasLostFactor || entity.lost,
         secondary: const Icon(Icons.not_listed_location),
-        onChanged: toggleLost,
+        onChanged: (value) {
+          storage.toggleLost(entity.passport, value);
+        },
       ).card,
       SwitchListTile(
         title: Text(
@@ -138,7 +121,9 @@ class EntityForm extends StatelessWidget {
         value: entity.compromised,
         selected: entity.compromised || insight.areAllFactorsCompromised,
         secondary: const Icon(Icons.report),
-        onChanged: toggleCompromised,
+        onChanged: (value) {
+          storage.toggleCompromised(entity.passport, value);
+        },
       ).card,
       ListTile(
         title: Text(
@@ -156,7 +141,7 @@ class EntityForm extends StatelessWidget {
             key: ValueKey(factor.identity),
             onWillAccept: (traveler) {
               if (traveler case EntityTraveler traveler
-                  when traveler.entity == entity.identity) {
+                  when traveler.passport.identity == entity.passport.identity) {
                 return false;
               }
               return true;
@@ -164,15 +149,16 @@ class EntityForm extends StatelessWidget {
             onAccept: (traveler) {
               switch (traveler) {
                 case EntityTraveler traveler:
-                  addDependency(factor.identity, traveler.entity);
+                  storage.addDependency(
+                      factor.passport, traveler.passport.identity);
                 case DependencyTraveler traveler:
-                  removeDependency(traveler.factor, traveler.entity);
-                  addDependency(factor.identity, traveler.entity);
+                  storage.removeDependency(traveler.factor, traveler.entity);
+                  storage.addDependency(factor.passport, traveler.entity);
               }
             },
             builder: (context, candidate, rejected) {
               return ScaledDraggable(
-                dragData: FactorTraveler(position, factor.identity),
+                dragData: FactorTraveler(factor.passport),
                 child: Card(
                   color: candidate.isNotEmpty ? colors.primaryContainer : null,
                   child: ListTile(
@@ -197,8 +183,7 @@ class EntityForm extends StatelessWidget {
                                   key: ValueKey(entity.identity),
                                   needsMaterial: true,
                                   dragData: DependencyTraveler(
-                                    position,
-                                    factor.identity,
+                                    factor.passport,
                                     entity.identity,
                                   ),
                                   child: entity.type.chip(entity.name),
@@ -227,7 +212,7 @@ class EntityForm extends StatelessWidget {
       builder: (context, candidate, rejected) => form,
       onWillAccept: (traveler) {
         if (traveler case EntityTraveler traveler
-            when traveler.entity == entity.identity) {
+            when traveler.passport.identity == entity.identity) {
           return false;
         }
         return hasTraveler.value = true;
@@ -237,12 +222,15 @@ class EntityForm extends StatelessWidget {
         hasTraveler.value = false;
         switch (traveler) {
           case CreationTraveler _:
-            addFactor();
+            storage.addFactor(entity.passport);
           case EntityTraveler traveler:
-            addDependencyAsFactor(traveler.entity);
+            storage.addDependencyAsFactor(
+              entity.passport,
+              traveler.passport.identity,
+            );
           case DependencyTraveler traveler:
-            removeDependency(traveler.factor, traveler.entity);
-            addDependencyAsFactor(traveler.entity);
+            storage.removeDependency(traveler.factor, traveler.entity);
+            storage.addDependencyAsFactor(entity.passport, traveler.entity);
         }
       },
     );
