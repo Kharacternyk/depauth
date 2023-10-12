@@ -56,20 +56,39 @@ class InsightfulStorage extends FlattenedStorage {
       areAllFactorsCompromised: _entityCompromise[entity] ?? false,
       ancestorCount: getAncestors(entity).length,
       descendantCount: getDescendants(entity).length,
-      bubbledImportance: _getBubbledImportance(entity),
+      bubbledImportance: _getBubbledImportance(entity, const {}).value,
     );
   }
 
-  int _getBubbledImportance(Identity<Entity> entity) {
-    if (_bubbledImportance[entity] case int result) {
-      return result;
+  ({int value, bool isCacheable}) _getBubbledImportance(
+    Identity<Entity> entity,
+    Set<Identity<Entity>> seen,
+  ) {
+    if (_bubbledImportance[entity] case int value) {
+      return (value: value, isCacheable: true);
     }
 
-    var result = 0;
+    final seenWithThis = seen.union({entity});
+    var value = 0;
+    var isCacheable = true;
 
     // TODO: optimize
     for (final position in getDependantPositions(entity)) {
       if (getEntity(position) case TraversableEntity dependant) {
+        if (seenWithThis.contains(dependant.identity)) {
+          isCacheable = false;
+          continue;
+        }
+
+        final dependantImportance = _getBubbledImportance(
+          dependant.identity,
+          seenWithThis,
+        );
+
+        if (!dependantImportance.isCacheable) {
+          isCacheable = false;
+        }
+
         var factorCount = 0;
         var dependantFactorCount = 0;
 
@@ -88,19 +107,20 @@ class InsightfulStorage extends FlattenedStorage {
         assert(factorCount > 0);
         assert(dependantFactorCount > 0);
 
-        result = max(
-          result,
-          max(
-                dependant.importance,
-                _getBubbledImportance(dependant.identity),
-              ) *
+        value = max(
+          value,
+          max(dependant.importance, dependantImportance.value) *
               dependantFactorCount ~/
               factorCount,
         );
       }
     }
 
-    return _bubbledImportance[entity] = result;
+    if (isCacheable || seen.isEmpty) {
+      _bubbledImportance[entity] = value;
+    }
+
+    return (value: value, isCacheable: isCacheable);
   }
 
   bool _hasLostFactor(Identity<Entity> entity, Set<Identity<Entity>> seen) {
