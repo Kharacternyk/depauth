@@ -52,7 +52,7 @@ class ListenableStorage extends Storage {
 
   @override
   moveEntity(entity, position) {
-    final dependants = getDependantPositions(entity.position);
+    final dependants = getDependantPositions(entity.identity);
     super.moveEntity(entity, position);
     // Moving an entity can impact the order of dependencies in dependants.
     _updateEntities([entity.position, position].followedBy(dependants));
@@ -61,7 +61,7 @@ class ListenableStorage extends Storage {
 
   @override
   deleteEntity(entity) {
-    final dependants = getDependantPositions(entity.position);
+    final dependants = getDependantPositions(entity.identity);
     super.deleteEntity(entity);
     _updateEntities([entity.position].followedBy(dependants));
     _updateBoundaries();
@@ -77,13 +77,17 @@ class ListenableStorage extends Storage {
   @override
   changeName(entity, name) {
     super.changeName(entity, name);
-    _updateEntityWithDependants(entity.position);
+    _updateEntities(
+      [entity.position].followedBy(getDependantPositions(entity.identity)),
+    );
   }
 
   @override
   changeType(entity, type) {
     super.changeType(entity, type);
-    _updateEntityWithDependants(entity.position);
+    _updateEntities(
+      [entity.position].followedBy(getDependantPositions(entity.identity)),
+    );
   }
 
   @override
@@ -159,10 +163,6 @@ class ListenableStorage extends Storage {
 
   void _updateBoundaries() {
     listenableBoundaries.value = super.boundaries;
-  }
-
-  void _updateEntityWithDependants(Position position) {
-    _updateEntities([position].followedBy(getDependantPositions(position)));
   }
 
   void _updateEntities(Iterable<Position> positions) {

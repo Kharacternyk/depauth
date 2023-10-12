@@ -328,19 +328,16 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
   }
 
   late final _dependantPositionsQuery = Query(_database, '''
-    select distinct sources.x, sources.y
-    from entities as sources
+    select distinct x, y
+    from entities
     join factors
-    on sources.identity = factors.entity
+    on entities.identity = factors.entity
     join dependencies
     on factor = factors.identity
-    join entities as targets
-    on targets.identity = dependencies.entity
-    where targets.x = ? and targets.y = ?
+    where dependencies.entity = ?
   ''');
-  Iterable<Position> getDependantPositions(Position position) {
-    return _dependantPositionsQuery
-        .select([position.x, position.y]).map(_parsePosition);
+  Iterable<Position> getDependantPositions(Identity<Entity> entity) {
+    return _dependantPositionsQuery.select([entity._value]).map(_parsePosition);
   }
 
   late final _resetLossStatement = Statement(_database, '''
