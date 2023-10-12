@@ -88,7 +88,12 @@ class EntityForm extends StatelessWidget {
             for (var importance = 0; importance <= 5; ++importance)
               ButtonSegment(
                 value: importance,
-                label: Text(importance.toString()),
+                label: importance >= insight.bubbledImportance
+                    ? Text(importance.toString())
+                    : null,
+                icon: importance < insight.bubbledImportance
+                    ? const Icon(Icons.close).fit
+                    : null,
               )
           ],
           onSelectionChanged: (selection) {
