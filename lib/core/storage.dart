@@ -47,7 +47,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
       case null:
         return null;
 
-      case List<Object?> values:
+      case Values values:
         final [identity, name, type, lost, compromised, importance] = values;
 
         return TraversableEntity(
@@ -60,8 +60,8 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
           lost: lost as int != 0,
           compromised: compromised as int != 0,
           importance: importance as int,
-          factors: _factorsQuery.select([identity], (row) {
-            final [factorIdentity] = row.values;
+          factors: _factorsQuery.select([identity], (values) {
+            final [factorIdentity] = values;
 
             return Factor(
               FactorPassport._(
@@ -71,8 +71,8 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
                   position,
                 ),
               ),
-              _dependenciesQuery.select([factorIdentity], (row) {
-                final [identity, name, type] = row.values;
+              _dependenciesQuery.select([factorIdentity], (values) {
+                final [identity, name, type] = values;
 
                 return Entity(
                   Identity._(identity as int),
@@ -398,14 +398,14 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
   ''');
   int get entityCount => _entityCountQuery.selectOne()?.first as int;
 
-  Position _parsePosition(Row row) {
-    final [x, y] = row.values;
+  Position _parsePosition(Values values) {
+    final [x, y] = values;
 
     return Position(x as int, y as int);
   }
 
-  Identity<T> _parseIdentity<T>(Row row) {
-    return Identity._(row.values.first as int);
+  Identity<T> _parseIdentity<T>(Values values) {
+    return Identity._(values.first as int);
   }
 
   late final _nameQuery = Query(_database, '''
