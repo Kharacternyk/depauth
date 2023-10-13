@@ -54,9 +54,9 @@
   "and": "and",
   "or": "or",
   "name": "Name",
-  "lost": "Lost",
+  "lost": "Unreachable",
   "compromised": "Compromised",
-  "automaticallyLost": "This {entityType} is lost because all dependencies in at least one group are lost.",
+  "automaticallyLost": "This {entityType} is unreachable because all dependencies in at least one group are unreachable.",
   "@automaticallyLost": {
     "placeholders": {
       "entityType": {
@@ -89,7 +89,7 @@
     }
   },
   "copyStorage": "Make a copy of this document",
-  "resetLoss": "Mark all cards as not lost",
+  "resetLoss": "Mark all cards as reachable",
   "resetCompromise": "Mark all cards as not compromised",
   "newEntity": "New Card",
   "genericEntity": "generic entity",
