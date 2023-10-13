@@ -309,6 +309,25 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     return _dependantsQuery.select([entity._value], _parseIdentity);
   }
 
+  late final _dependantsWithImportanceQuery = Query(_database, '''
+    select distinct entities.identity, importance
+    from factors
+    join dependencies
+    on factors.identity = factor
+    join entities
+    on factors.entity = entities.identity
+    where dependencies.entity = ?
+  ''');
+  Iterable<(Identity<Entity>, int)> getDependantsWithImportance(
+    Identity<Entity> entity,
+  ) {
+    return _dependantsWithImportanceQuery.select([entity._value], (values) {
+      final [identity, importance] = values;
+
+      return (Identity._(identity as int), importance as int);
+    });
+  }
+
   late final _boundariesQuery = Query(_database, '''
     select min(x) - 1, min(y) - 1, max(x) + 1, max(y) + 1
     from entities

@@ -9,7 +9,6 @@ import 'flattened_storage.dart';
 import 'storage.dart';
 import 'storage_insight.dart';
 import 'tertiary_set.dart';
-import 'traversable_entity.dart';
 
 class InsightfulStorage extends FlattenedStorage {
   final entityInsightNotifier = _ChangeNotifier();
@@ -72,48 +71,68 @@ class InsightfulStorage extends FlattenedStorage {
     var value = 0;
     var isCacheable = true;
 
-    // TODO: optimize
-    for (final position in getDependantPositions(entity)) {
-      if (getEntity(position) case TraversableEntity dependant) {
-        if (seenWithThis.contains(dependant.identity)) {
-          isCacheable = false;
+    for (final (dependant, importance) in getDependantsWithImportance(entity)) {
+      if (seenWithThis.contains(dependant)) {
+        isCacheable = false;
+        continue;
+      }
+
+      final dependantImportance =
+          _getBubbledImportance(dependant, seenWithThis);
+
+      if (!dependantImportance.isCacheable) {
+        isCacheable = false;
+      }
+      if (max(dependantImportance.value, importance) == 0) {
+        continue;
+      }
+
+      final factors = getFactors(dependant);
+      final dependencies = factors.expand((factor) {
+        return getDependencies(factor).map((dependency) {
+          return (factor, dependency);
+        });
+      });
+      final otherDependencies = <Identity<Entity>, List<Identity<Factor>>>{};
+      final dependantFactors = <Identity<Factor>>[];
+
+      for (final (factor, dependency) in dependencies) {
+        if (seenWithThis.contains(dependency)) {
+          dependantFactors.add(factor);
           continue;
         }
 
-        final dependantImportance = _getBubbledImportance(
-          dependant.identity,
-          seenWithThis,
-        );
+        final factors = otherDependencies[dependency];
 
-        if (!dependantImportance.isCacheable) {
-          isCacheable = false;
+        if (factors != null) {
+          factors.add(factor);
+        } else {
+          otherDependencies[dependency] = [factor];
         }
-
-        var factorCount = 0;
-        var dependantFactorCount = 0;
-
-        for (final factor in dependant.factors) {
-          if (factor.dependencies.isNotEmpty) {
-            ++factorCount;
-
-            if (factor.dependencies
-                .map((entity) => entity.identity)
-                .contains(entity)) {
-              ++dependantFactorCount;
-            }
-          }
-        }
-
-        assert(factorCount > 0);
-        assert(dependantFactorCount > 0);
-
-        value = max(
-          value,
-          max(dependant.importance, dependantImportance.value) *
-              dependantFactorCount ~/
-              factorCount,
-        );
       }
+
+      final sortedDependencies = otherDependencies.entries.toList();
+
+      sortedDependencies.sort((first, second) {
+        return second.value.length.compareTo(first.value.length);
+      });
+
+      final unlockedFactors = dependantFactors.toSet();
+      var requiredOtherDependencyCount = 0;
+
+      while (unlockedFactors.length < factors.length &&
+          requiredOtherDependencyCount < sortedDependencies.length) {
+        final entry = sortedDependencies[requiredOtherDependencyCount];
+
+        unlockedFactors.addAll(entry.value);
+        ++requiredOtherDependencyCount;
+      }
+
+      value = max(
+        value,
+        max(importance, dependantImportance.value) ~/
+            (requiredOtherDependencyCount + 1),
+      );
     }
 
     if (isCacheable || seen.isEmpty) {
