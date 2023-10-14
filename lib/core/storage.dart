@@ -56,7 +56,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
             position,
           ),
           name as String,
-          EntityType.values[type as int],
+          EntityType(type as int),
           lost: lost as int != 0,
           compromised: compromised as int != 0,
           importance: importance as int,
@@ -77,7 +77,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
                 return Entity(
                   Identity._(identity as int),
                   name as String,
-                  EntityType.values[type as int],
+                  EntityType(type as int),
                 );
               }),
             );
@@ -142,7 +142,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
   @override
   changeType(entity, type) {
     _changeTypeStatement.execute([
-      type.index,
+      type.value,
       entity.position.x,
       entity.position.y,
     ]);

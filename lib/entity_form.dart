@@ -63,7 +63,7 @@ class EntityForm extends StatelessWidget {
           child: DropdownButton(
             isExpanded: true,
             items: [
-              for (final type in EntityType.values)
+              for (final type in EntityType.knownTypes)
                 DropdownMenuItem(
                   value: type,
                   child: type.chip(

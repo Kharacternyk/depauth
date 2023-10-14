@@ -45,45 +45,47 @@ extension EntityTheme on EntityType {
     );
   }
 
-  IconData get _icon {
-    return switch (this) {
-      EntityType.generic => Icons.category,
-      EntityType.webService => Icons.cloud,
-      EntityType.knowledge => Icons.password,
-      EntityType.biometrics => Icons.fingerprint,
-      EntityType.phoneNumber => Icons.phone,
-      EntityType.device => Icons.devices,
-      EntityType.application => Icons.widgets,
-      EntityType.operatingSystem => Icons.settings_applications,
-    };
-  }
-
   ColorScheme get _colors {
-    return switch (this) {
-      EntityType.generic => _seedScheme(Colors.yellow),
-      EntityType.webService => _seedScheme(Colors.blue),
-      EntityType.knowledge => _seedScheme(Colors.black),
-      EntityType.biometrics => _seedScheme(Colors.green),
-      EntityType.phoneNumber => _seedScheme(Colors.deepPurple),
-      EntityType.device => _seedScheme(Colors.teal),
-      EntityType.application => _seedScheme(Colors.grey),
-      EntityType.operatingSystem => _seedScheme(Colors.lightGreen),
-    };
-  }
+    final color = _color;
 
-  static ColorScheme _seedScheme(Color seed) {
-    if (_schemes[seed] case ColorScheme scheme) {
+    if (_schemes[color] case ColorScheme scheme) {
       return scheme;
     }
 
     final scheme = ColorScheme.fromSeed(
-      seedColor: seed,
+      seedColor: color,
       brightness: Brightness.dark,
     );
 
-    _schemes[seed] = scheme;
+    _schemes[color] = scheme;
 
     return scheme;
+  }
+
+  IconData get _icon {
+    return switch (value) {
+      1 => Icons.cloud,
+      2 => Icons.password,
+      3 => Icons.fingerprint,
+      4 => Icons.phone,
+      5 => Icons.devices,
+      6 => Icons.widgets,
+      7 => Icons.settings_applications,
+      _ => Icons.category,
+    };
+  }
+
+  Color get _color {
+    return switch (value) {
+      1 => Colors.blue,
+      2 => Colors.black,
+      3 => Colors.green,
+      4 => Colors.deepPurple,
+      5 => Colors.teal,
+      6 => Colors.grey,
+      7 => Colors.lightGreen,
+      _ => Colors.yellow,
+    };
   }
 
   static final _schemes = <Color, ColorScheme>{};

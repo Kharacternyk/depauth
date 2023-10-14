@@ -93,12 +93,12 @@
   "resetLoss": "Mark all cards as reachable",
   "resetCompromise": "Mark all cards as not compromised",
   "newEntity": "New Card",
-  "genericEntity": "generic entity",
-  "webService": "online account",
-  "secretKnowledge": "secret knowledge",
-  "biometrics": "biometrics",
-  "phoneNumber": "phone number",
-  "device": "device",
-  "application": "application",
-  "operatingSystem": "operating system"
+  "genericType": "generic entity",
+  "type1": "online account",
+  "type2": "secret knowledge",
+  "type3": "biometrics",
+  "type4": "phone number",
+  "type5": "device",
+  "type6": "application",
+  "type7": "operating system"
 }
