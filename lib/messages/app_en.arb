@@ -100,5 +100,6 @@
   "type4": "phone number",
   "type5": "device",
   "type6": "application",
-  "type7": "operating system"
+  "type7": "operating system",
+  "type8": "location"
 }

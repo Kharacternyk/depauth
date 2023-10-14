@@ -75,10 +75,11 @@ extension EntityTheme on EntityType {
     (0, Icons.category, Colors.yellow, (_M m) => m.genericType),
     (1, Icons.cloud, Colors.blue, (_M m) => m.type1),
     (2, Icons.password, Colors.black, (_M m) => m.type2),
-    (3, Icons.fingerprint, Colors.green, (_M m) => m.type3),
-    (4, Icons.phone, Colors.deepPurple, (_M m) => m.type4),
-    (5, Icons.devices, Colors.teal, (_M m) => m.type5),
+    (5, Icons.devices, Colors.green, (_M m) => m.type5),
     (6, Icons.widgets, Colors.grey, (_M m) => m.type6),
+    (4, Icons.phone, Colors.indigo, (_M m) => m.type4),
+    (8, Icons.explore, Colors.deepPurple, (_M m) => m.type8),
+    (3, Icons.fingerprint, Colors.teal, (_M m) => m.type3),
     (7, Icons.settings_applications, Colors.lightGreen, (_M m) => m.type7),
   ];
 }
