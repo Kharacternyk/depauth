@@ -74,7 +74,7 @@ extension EntityTheme on EntityType {
   static final _known = [
     (0, Icons.category, Colors.yellow, (_M m) => m.genericType),
     (1, Icons.cloud, Colors.blue, (_M m) => m.type1),
-    (2, Icons.password, Colors.black, (_M m) => m.type1),
+    (2, Icons.password, Colors.black, (_M m) => m.type2),
     (3, Icons.fingerprint, Colors.green, (_M m) => m.type3),
     (4, Icons.phone, Colors.deepPurple, (_M m) => m.type4),
     (5, Icons.devices, Colors.teal, (_M m) => m.type5),
