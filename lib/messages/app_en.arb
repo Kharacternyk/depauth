@@ -51,6 +51,7 @@
   "newStorageTip": "Drag the + button here to create a new document.",
   "selectStorageTip": "Click or tap on a document to view and edit it.",
   "deleteStorageTip": "Drag a document onto the delete button to delete it.",
+  "autoSaveTip": "All changes are saved automatically.",
   "and": "and",
   "or": "or",
   "name": "Name",
