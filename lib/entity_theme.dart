@@ -1,34 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/messages.dart';
 
 import 'core/entity_type.dart';
 import 'scaled_line.dart';
 import 'widget_extension.dart';
 
 extension EntityTheme on EntityType {
+  static Iterable<EntityType> knownTypes = [
+    for (final (value, _, _, _) in _known) EntityType(value)
+  ];
+
+  String name(AppLocalizations messages) => _data.get(value).name(messages);
+
   Widget get banner {
+    final data = _data.get(value);
+
     return Ink(
-      color: _colors.primaryContainer,
+      color: data.colors.primaryContainer,
       child: Icon(
-        _icon,
-        color: _colors.onPrimaryContainer,
+        data.icon,
+        color: data.colors.onPrimaryContainer,
       ).pad(const EdgeInsets.all(8)).fit.grow,
     );
   }
 
   Widget pointingBanner({required String name, required String target}) {
+    final data = _data.get(value);
+
     return ScaledLine(
       name: name,
-      color: _colors.primary.withOpacity(.5),
+      color: data.colors.primary.withOpacity(.5),
       targetName: target,
       child: banner,
     );
   }
 
   Widget chip(String name) {
+    final data = _data.get(value);
+
     return AbsorbPointer(
       child: Chip(
         avatar: Ink(
-          child: Icon(_icon, color: _colors.primary),
+          child: Icon(data.icon, color: data.colors.primary),
         ),
         label: Text(name),
       ),
@@ -36,57 +49,42 @@ extension EntityTheme on EntityType {
   }
 
   Widget starRibbon(int starCount) {
+    final data = _data.get(value);
+
     return Material(
-      color: _colors.primary,
+      color: data.colors.primary,
       child: [
         for (var i = 0; i < starCount; ++i)
-          Icon(Icons.star, color: _colors.onPrimary).fit.grow.expand(),
+          Icon(Icons.star, color: data.colors.onPrimary).fit.grow.expand(),
       ].column,
     );
   }
 
-  ColorScheme get _colors {
-    final color = _color;
-
-    if (_schemes[color] case ColorScheme scheme) {
-      return scheme;
-    }
-
-    final scheme = ColorScheme.fromSeed(
-      seedColor: color,
-      brightness: Brightness.dark,
-    );
-
-    _schemes[color] = scheme;
-
-    return scheme;
-  }
-
-  IconData get _icon {
-    return switch (value) {
-      1 => Icons.cloud,
-      2 => Icons.password,
-      3 => Icons.fingerprint,
-      4 => Icons.phone,
-      5 => Icons.devices,
-      6 => Icons.widgets,
-      7 => Icons.settings_applications,
-      _ => Icons.category,
-    };
-  }
-
-  Color get _color {
-    return switch (value) {
-      1 => Colors.blue,
-      2 => Colors.black,
-      3 => Colors.green,
-      4 => Colors.deepPurple,
-      5 => Colors.teal,
-      6 => Colors.grey,
-      7 => Colors.lightGreen,
-      _ => Colors.yellow,
-    };
-  }
-
-  static final _schemes = <Color, ColorScheme>{};
+  static final _data = {
+    for (final (value, icon, color, name) in _known)
+      value: (
+        icon: icon,
+        colors: ColorScheme.fromSeed(
+          seedColor: color,
+          brightness: Brightness.dark,
+        ),
+        name: name,
+      )
+  };
+  static final _known = [
+    (0, Icons.category, Colors.yellow, (_M m) => m.genericType),
+    (1, Icons.cloud, Colors.blue, (_M m) => m.type1),
+    (2, Icons.password, Colors.black, (_M m) => m.type1),
+    (3, Icons.fingerprint, Colors.green, (_M m) => m.type3),
+    (4, Icons.phone, Colors.deepPurple, (_M m) => m.type4),
+    (5, Icons.devices, Colors.teal, (_M m) => m.type5),
+    (6, Icons.widgets, Colors.grey, (_M m) => m.type6),
+    (7, Icons.settings_applications, Colors.lightGreen, (_M m) => m.type7),
+  ];
 }
+
+extension _Map<K, V> on Map<K, V> {
+  V get(K key) => this[key] ?? values.first;
+}
+
+typedef _M = AppLocalizations;

@@ -13,7 +13,6 @@ import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
 import 'debounced_text_field.dart';
 import 'entity_theme.dart';
-import 'entity_type_name.dart';
 import 'scaled_draggable.dart';
 import 'widget_extension.dart';
 
@@ -37,6 +36,7 @@ class EntityForm extends StatelessWidget {
   build(context) {
     final colors = Theme.of(context).colorScheme;
     final messages = AppLocalizations.of(context)!;
+    final typeName = entity.type.name(messages);
 
     final form = CardForm([
       ListTile(
@@ -63,12 +63,11 @@ class EntityForm extends StatelessWidget {
           child: DropdownButton(
             isExpanded: true,
             items: [
-              for (final type in EntityType.knownTypes)
+              for (final type in EntityTheme.knownTypes)
                 DropdownMenuItem(
                   value: type,
-                  child: type.chip(
-                    type.getName(context).title(messages.wordSeparator),
-                  ),
+                  child: type
+                      .chip(type.name(messages).title(messages.wordSeparator)),
                 ),
             ],
             onChanged: (type) {
@@ -105,7 +104,7 @@ class EntityForm extends StatelessWidget {
       SwitchListTile(
         title: Text(
           insight.hasLostFactor
-              ? messages.automaticallyLost(entity.type.getName(context))
+              ? messages.automaticallyLost(typeName)
               : messages.lost,
         ),
         activeColor: colors.error,
@@ -119,7 +118,7 @@ class EntityForm extends StatelessWidget {
       SwitchListTile(
         title: Text(
           insight.areAllFactorsCompromised
-              ? messages.automaticallyCompromised(entity.type.getName(context))
+              ? messages.automaticallyCompromised(typeName)
               : messages.compromised,
         ),
         activeColor: colors.error,
@@ -133,10 +132,8 @@ class EntityForm extends StatelessWidget {
       ListTile(
         title: Text(
           entity.factors.isEmpty
-              ? messages.noFactorsTip(entity.type.getName(context))
-              : messages.accessTip(
-                  entity.type.getName(context),
-                ),
+              ? messages.noFactorsTip(typeName)
+              : messages.accessTip(typeName),
           style: TextStyle(color: colors.onSurfaceVariant),
         ),
       ),
