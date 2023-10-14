@@ -52,13 +52,13 @@ class StorageForm extends StatelessWidget {
           leading: const Icon(Icons.where_to_vote),
           title: Text(messages.resetLoss),
           onTap: resetLoss,
-        ).card.keyed(const ValueKey(0)),
+        ).card,
       if (insight.compromisedEntityCount > 0)
         ListTile(
           leading: const Icon(Icons.report_off),
           title: Text(messages.resetCompromise),
           onTap: resetCompromise,
-        ).card.keyed(const ValueKey(1)),
+        ).card,
       ...trailing,
       const AboutDropdown(),
       if (insight.entityCount > 0)

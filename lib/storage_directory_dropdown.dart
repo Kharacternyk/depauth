@@ -28,7 +28,6 @@ class StorageDirectoryDropdown extends StatelessWidget {
       children: [
         if (siblingNames.isNotEmpty)
           ListTile(
-            key: const ValueKey(0),
             title: Wrap(
               spacing: 4,
               runSpacing: 4,
