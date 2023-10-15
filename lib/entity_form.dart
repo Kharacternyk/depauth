@@ -167,13 +167,7 @@ class EntityForm extends StatelessWidget {
                     mouseCursor: candidate.isNotEmpty
                         ? SystemMouseCursors.copy
                         : SystemMouseCursors.grab,
-                    leading: Badge(
-                      isLabelVisible: entity.factors.length > 1,
-                      backgroundColor: colors.primaryContainer,
-                      textColor: colors.onPrimaryContainer,
-                      label: Text((index + 1).toString()),
-                      child: const Icon(Icons.link),
-                    ),
+                    leading: const Icon(Icons.link),
                     title: factor.dependencies.isNotEmpty
                         ? Wrap(
                             spacing: 4,
