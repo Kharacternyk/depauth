@@ -15,10 +15,6 @@ abstract interface class ActiveRecordStorage {
     Passport entity,
     Identity<Entity> dependency,
   );
-  void removeDependency(FactorPassport factor, Identity<Entity> entity);
-  void moveDependency(
-    Identity<Entity> entity, {
-    required FactorPassport from,
-    required FactorPassport to,
-  });
+  void removeDependency(DependencyPassport dependency);
+  void moveDependency(DependencyPassport dependency, FactorPassport factor);
 }

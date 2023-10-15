@@ -118,7 +118,7 @@ class _State extends State<StorageDirectoryScaffold> {
                 case FactorTraveler traveler:
                   storage.removeFactor(traveler.passport);
                 case DependencyTraveler traveler:
-                  storage.removeDependency(traveler.factor, traveler.entity);
+                  storage.removeDependency(traveler.passport);
                 case StorageTraveler traveler:
                   storageDirectory.deleteStorage(traveler.storageName);
               }

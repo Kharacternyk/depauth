@@ -11,6 +11,10 @@ sealed class DependableTraveler {
 
 sealed class FactorableTraveler {}
 
+class CreationTraveler implements GrabbableTraveler, FactorableTraveler {
+  const CreationTraveler();
+}
+
 class EntityTraveler
     implements
         GrabbableTraveler,
@@ -25,10 +29,6 @@ class EntityTraveler
   Identity<Entity> get entity => passport.identity;
 }
 
-class CreationTraveler implements GrabbableTraveler, FactorableTraveler {
-  const CreationTraveler();
-}
-
 class FactorTraveler implements DeletableTraveler {
   final FactorPassport passport;
 
@@ -37,11 +37,12 @@ class FactorTraveler implements DeletableTraveler {
 
 class DependencyTraveler
     implements DeletableTraveler, DependableTraveler, FactorableTraveler {
-  @override
-  final Identity<Entity> entity;
-  final FactorPassport factor;
+  final DependencyPassport passport;
 
-  const DependencyTraveler(this.factor, this.entity);
+  const DependencyTraveler(this.passport);
+
+  @override
+  Identity<Entity> get entity => passport.identity;
 }
 
 class StorageTraveler implements DeletableTraveler {

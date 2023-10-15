@@ -2,6 +2,7 @@ import 'package:sqlite3/sqlite3.dart';
 
 import 'active_record_storage.dart';
 import 'boundaries.dart';
+import 'dependency.dart';
 import 'entity.dart';
 import 'entity_type.dart';
 import 'factor.dart';
@@ -49,12 +50,13 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
 
       case Values values:
         final [identity, name, type, lost, compromised, importance] = values;
+        final passport = Passport._(
+          Identity._(identity as int),
+          position,
+        );
 
         return TraversableEntity(
-          Passport._(
-            Identity._(identity as int),
-            position,
-          ),
+          passport,
           name as String,
           EntityType(type as int),
           lost: lost as int != 0,
@@ -62,20 +64,21 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
           importance: importance as int,
           factors: _factorsQuery.select([identity], (values) {
             final [factorIdentity] = values;
+            final factorPassport = FactorPassport._(
+              Identity._(factorIdentity as int),
+              passport,
+            );
 
             return Factor(
-              FactorPassport._(
-                Identity._(factorIdentity as int),
-                Passport._(
-                  Identity._(identity),
-                  position,
-                ),
-              ),
+              factorPassport,
               _dependenciesQuery.select([factorIdentity], (values) {
                 final [identity, name, type] = values;
 
-                return Entity(
-                  Identity._(identity as int),
+                return Dependency(
+                  DependencyPassport._(
+                    Identity._(identity as int),
+                    factorPassport,
+                  ),
                   name as String,
                   EntityType(type as int),
                 );
@@ -247,10 +250,10 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     where entity = ? and factor = ?
   ''');
   @override
-  removeDependency(factor, entity) {
+  removeDependency(dependency) {
     _removeDependencyStatement.execute([
-      entity._value,
-      factor.identity._value,
+      dependency.identity._value,
+      dependency.factor.identity._value,
     ]);
   }
 
@@ -260,11 +263,11 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     where factor = ? and entity = ?
   ''');
   @override
-  moveDependency(entity, {required from, required to}) {
+  moveDependency(DependencyPassport dependency, FactorPassport factor) {
     _moveDependencyStatement.execute([
-      to.identity._value,
-      from.identity._value,
-      entity._value,
+      factor.identity._value,
+      dependency.factor.identity._value,
+      dependency.identity._value,
     ]);
   }
 
@@ -536,6 +539,13 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     _database.dispose();
     super.dispose();
   }
+}
+
+class DependencyPassport {
+  final Identity<Entity> identity;
+  final FactorPassport factor;
+
+  const DependencyPassport._(this.identity, this.factor);
 }
 
 class FactorPassport {

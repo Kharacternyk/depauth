@@ -154,11 +154,7 @@ class EntityForm extends StatelessWidget {
                     traveler.passport.identity,
                   );
                 case DependencyTraveler traveler:
-                  storage.moveDependency(
-                    from: traveler.factor,
-                    to: factor.passport,
-                    traveler.entity,
-                  );
+                  storage.moveDependency(traveler.passport, factor.passport);
               }
             },
             builder: (context, candidate, rejected) {
@@ -182,15 +178,13 @@ class EntityForm extends StatelessWidget {
                             runSpacing: 4,
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: <Widget>[
-                              for (final entity in factor.dependencies)
+                              for (final dependency in factor.dependencies)
                                 ScaledDraggable(
-                                  key: ValueKey(entity.identity),
+                                  key: ValueKey(dependency.identity),
                                   needsMaterial: true,
-                                  dragData: DependencyTraveler(
-                                    factor.passport,
-                                    entity.identity,
-                                  ),
-                                  child: entity.type.chip(entity.name),
+                                  dragData:
+                                      DependencyTraveler(dependency.passport),
+                                  child: dependency.type.chip(dependency.name),
                                 ),
                             ].interleave(Text(messages.or)).toList(),
                           )
@@ -233,7 +227,7 @@ class EntityForm extends StatelessWidget {
               traveler.passport.identity,
             );
           case DependencyTraveler traveler:
-            storage.removeDependency(traveler.factor, traveler.entity);
+            storage.removeDependency(traveler.passport);
             storage.addDependencyAsFactor(entity.passport, traveler.entity);
         }
       },

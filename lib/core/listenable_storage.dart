@@ -121,17 +121,18 @@ class ListenableStorage extends Storage {
   }
 
   @override
-  removeDependency(factor, entity) {
-    super.removeDependency(factor, entity);
-    _updateEntities([factor.entity.position]);
+  removeDependency(dependency) {
+    super.removeDependency(dependency);
+    _updateEntities([dependency.factor.entity.position]);
   }
 
   @override
-  moveDependency(entity, {required from, required to}) {
-    super.moveDependency(entity, from: from, to: to);
+  moveDependency(dependency, factor) {
+    super.moveDependency(dependency, factor);
     _updateEntities([
-      from.entity.position,
-      if (to.entity.identity != from.entity.identity) to.entity.position,
+      factor.entity.position,
+      if (dependency.factor.entity.identity != factor.entity.identity)
+        dependency.factor.entity.position,
     ]);
   }
 

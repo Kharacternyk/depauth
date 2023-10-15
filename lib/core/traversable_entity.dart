@@ -1,5 +1,4 @@
 import 'entity.dart';
-import 'entity_type.dart';
 import 'factor.dart';
 import 'storage.dart';
 
@@ -12,11 +11,14 @@ class TraversableEntity extends Entity {
 
   TraversableEntity(
     this.passport,
-    String name,
-    EntityType type, {
+    super.name,
+    super.type, {
     required this.factors,
     required this.lost,
     required this.compromised,
     required this.importance,
-  }) : super(passport.identity, name, type);
+  });
+
+  @override
+  Identity<Entity> get identity => passport.identity;
 }
