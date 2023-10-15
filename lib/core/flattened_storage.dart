@@ -122,6 +122,15 @@ class FlattenedStorage extends ListenableStorage {
   }
 
   @override
+  mergeFactors(into, from) {
+    if (into.entity.identity != from.entity.identity) {
+      final identities = [into, from].map((factor) => factor.entity.identity);
+      _clearCoupling(upward: identities, downward: identities);
+    }
+    super.mergeFactors(into, from);
+  }
+
+  @override
   removeFactor(factor) {
     _clearCoupling(
       upward: getDependencies(factor.identity),

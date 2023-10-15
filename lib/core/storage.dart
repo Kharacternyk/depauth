@@ -300,6 +300,20 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     _removeFactorStatement.execute([factor.identity._value]);
   }
 
+  late final _mergeFactorsStatement = Statement(_database, '''
+    update or ignore dependencies
+    set factor = ?
+    where factor = ?
+  ''');
+  @override
+  mergeFactors(into, from) {
+    _mergeFactorsStatement.execute([
+      into.identity._value,
+      from.identity._value,
+    ]);
+    _removeFactorStatement.execute([from.identity._value]);
+  }
+
   late final _addDependencyAsFactorStatement = Statement(_database, '''
     insert into dependencies(entity, factor) values(?, last_insert_rowid())
   ''');

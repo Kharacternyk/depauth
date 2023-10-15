@@ -11,6 +11,7 @@ abstract interface class ActiveRecordStorage {
   void toggleLost(Passport entity, bool value);
   void addDependency(FactorPassport factor, Identity<Entity> entity);
   void addFactor(Passport entity);
+  void mergeFactors(FactorPassport into, FactorPassport from);
   void addDependencyAsFactor(
     Passport entity,
     Identity<Entity> dependency,

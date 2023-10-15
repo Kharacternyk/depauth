@@ -6,7 +6,7 @@ sealed class GrabbableTraveler {}
 sealed class DeletableTraveler {}
 
 sealed class DependableTraveler {
-  Identity<Entity> get entity;
+  Identity<Entity>? get entity;
 }
 
 sealed class FactorableTraveler {}
@@ -29,10 +29,13 @@ class EntityTraveler
   Identity<Entity> get entity => passport.identity;
 }
 
-class FactorTraveler implements DeletableTraveler {
+class FactorTraveler implements DeletableTraveler, DependableTraveler {
   final FactorPassport passport;
 
   const FactorTraveler(this.passport);
+
+  @override
+  Identity<Entity>? get entity => null;
 }
 
 class DependencyTraveler

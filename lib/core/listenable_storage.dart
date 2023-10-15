@@ -138,16 +138,19 @@ class ListenableStorage extends Storage {
   @override
   moveDependencyAsFactor(dependency, entity) {
     super.moveDependencyAsFactor(dependency, entity);
-    _updateEntities({
-      entity.position,
-      dependency.factor.entity.position,
-    });
+    _updateEntities({entity.position, dependency.factor.entity.position});
   }
 
   @override
   addFactor(entity) {
     super.addFactor(entity);
     _updateEntities([entity.position]);
+  }
+
+  @override
+  mergeFactors(into, from) {
+    super.mergeFactors(into, from);
+    _updateEntities({into.entity.position, from.entity.position});
   }
 
   @override

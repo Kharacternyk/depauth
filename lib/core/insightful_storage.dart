@@ -424,6 +424,17 @@ class InsightfulStorage extends FlattenedStorage {
   }
 
   @override
+  mergeFactors(into, from) {
+    for (final identity in {into.entity.identity, from.entity.identity}) {
+      _clearLoss(identity);
+      _clearCompromise(identity);
+      _clearImportance(identity);
+    }
+    super.mergeFactors(into, from);
+    _update();
+  }
+
+  @override
   removeFactor(factor) {
     _clearLoss(factor.entity.identity);
     _clearCompromise(factor.entity.identity);

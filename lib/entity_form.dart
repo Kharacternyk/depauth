@@ -143,7 +143,9 @@ class EntityForm extends StatelessWidget {
               return factor.passport.entity.identity != traveler?.entity;
             },
             onAccept: (traveler) {
-              if (factor.contains(traveler.entity)) {
+              final travelingEntity = traveler.entity;
+
+              if (travelingEntity != null && factor.contains(travelingEntity)) {
                 return;
               }
 
@@ -155,6 +157,8 @@ class EntityForm extends StatelessWidget {
                   );
                 case DependencyTraveler traveler:
                   storage.moveDependency(traveler.passport, factor.passport);
+                case FactorTraveler traveler:
+                  storage.mergeFactors(factor.passport, traveler.passport);
               }
             },
             builder: (context, candidate, rejected) {
@@ -162,8 +166,17 @@ class EntityForm extends StatelessWidget {
                 dragData: FactorTraveler(factor.passport),
                 child: Card(
                   color: candidate.any((traveler) {
-                    return traveler != null &&
-                        !factor.contains(traveler.entity);
+                    if (traveler == null) {
+                      return false;
+                    }
+                    final travelingEntity = traveler.entity;
+
+                    if (travelingEntity != null &&
+                        factor.contains(travelingEntity)) {
+                      return false;
+                    }
+
+                    return true;
                   })
                       ? colors.primaryContainer
                       : null,
