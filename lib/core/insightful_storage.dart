@@ -285,11 +285,11 @@ class InsightfulStorage extends FlattenedStorage {
     _clearImportance(entity.identity);
 
     if (_lostEntities.remove(entity.identity)) {
-      ++_lostEntityCount;
+      --_lostEntityCount;
     }
 
     if (_compromisedEntities.remove(entity.identity)) {
-      ++_compromisedEntityCount;
+      --_compromisedEntityCount;
     }
 
     _entityLoss.forget(entity.identity);
