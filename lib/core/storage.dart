@@ -232,7 +232,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
   }
 
   late final _addDependencyStatement = Statement(_database, '''
-    insert or ignore into dependencies(entity, factor) values(?, ?)
+    insert into dependencies(entity, factor) values(?, ?)
   ''');
   @override
   addDependency(factor, entity) {
@@ -251,6 +251,20 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     _removeDependencyStatement.execute([
       entity._value,
       factor.identity._value,
+    ]);
+  }
+
+  late final _moveDependencyStatement = Statement(_database, '''
+    update dependencies
+    set factor = ?
+    where factor = ? and entity = ?
+  ''');
+  @override
+  moveDependency(entity, {required from, required to}) {
+    _moveDependencyStatement.execute([
+      to.identity._value,
+      from.identity._value,
+      entity._value,
     ]);
   }
 

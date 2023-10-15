@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 
@@ -138,31 +136,41 @@ class EntityForm extends StatelessWidget {
         ),
       ),
       ...<Widget>[
-        for (final (index, factor) in entity.factors.indexed)
+        for (final factor in entity.factors)
           DragTarget<DependableTraveler>(
             key: ValueKey(factor.identity),
             onWillAccept: (traveler) {
-              if (traveler case EntityTraveler traveler
-                  when traveler.passport.identity == entity.passport.identity) {
-                return false;
-              }
-              return true;
+              return factor.passport.entity.identity != traveler?.entity;
             },
             onAccept: (traveler) {
+              if (factor.contains(traveler.entity)) {
+                return;
+              }
+
               switch (traveler) {
                 case EntityTraveler traveler:
                   storage.addDependency(
-                      factor.passport, traveler.passport.identity);
+                    factor.passport,
+                    traveler.passport.identity,
+                  );
                 case DependencyTraveler traveler:
-                  storage.removeDependency(traveler.factor, traveler.entity);
-                  storage.addDependency(factor.passport, traveler.entity);
+                  storage.moveDependency(
+                    from: traveler.factor,
+                    to: factor.passport,
+                    traveler.entity,
+                  );
               }
             },
             builder: (context, candidate, rejected) {
               return ScaledDraggable(
                 dragData: FactorTraveler(factor.passport),
                 child: Card(
-                  color: candidate.isNotEmpty ? colors.primaryContainer : null,
+                  color: candidate.any((traveler) {
+                    return traveler != null &&
+                        !factor.contains(traveler.entity);
+                  })
+                      ? colors.primaryContainer
+                      : null,
                   child: ListTile(
                     mouseCursor: candidate.isNotEmpty
                         ? SystemMouseCursors.copy
