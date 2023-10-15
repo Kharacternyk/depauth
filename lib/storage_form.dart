@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 
 import 'about_dropdown.dart';
+import 'card_dropdown.dart';
 import 'card_form.dart';
 import 'core/storage_insight.dart';
 import 'debounced_text_field.dart';
@@ -15,8 +16,7 @@ class StorageForm extends StatelessWidget {
   final VoidCallback resetCompromise;
   final void Function(String) rename;
   final bool Function() isRenameCanceled;
-  final List<Widget> leading;
-  final List<Widget> trailing;
+  final List<Widget> children;
 
   const StorageForm({
     required this.storageName,
@@ -25,14 +25,18 @@ class StorageForm extends StatelessWidget {
     required this.resetCompromise,
     required this.rename,
     required this.isRenameCanceled,
-    required this.leading,
-    required this.trailing,
+    required this.children,
     super.key,
   });
 
   @override
   build(context) {
     final messages = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    final bulkActionCount = [
+      insight.lostEntityCount,
+      insight.compromisedEntityCount
+    ].where((count) => count > 0).length;
 
     return CardForm([
       ListTile(
@@ -46,20 +50,31 @@ class StorageForm extends StatelessWidget {
           isCanceled: isRenameCanceled,
         ),
       ).card,
-      ...leading,
-      if (insight.lostEntityCount > 0)
-        ListTile(
-          leading: const Icon(Icons.where_to_vote),
-          title: Text(messages.resetLoss),
-          onTap: resetLoss,
-        ).card,
-      if (insight.compromisedEntityCount > 0)
-        ListTile(
-          leading: const Icon(Icons.report_off),
-          title: Text(messages.resetCompromise),
-          onTap: resetCompromise,
-        ).card,
-      ...trailing,
+      ...children,
+      CardDropdown(
+        leading: Badge.count(
+          count: bulkActionCount,
+          backgroundColor: colors.primaryContainer,
+          textColor: colors.onPrimaryContainer,
+          isLabelVisible: bulkActionCount > 0,
+          child: const Icon(Icons.style),
+        ),
+        title: Text(messages.bulkCardActions),
+        children: [
+          ListTile(
+            leading: const Icon(Icons.where_to_vote),
+            title: Text(messages.resetLoss),
+            onTap: resetLoss,
+            enabled: insight.lostEntityCount > 0,
+          ),
+          ListTile(
+            leading: const Icon(Icons.report_off),
+            title: Text(messages.resetCompromise),
+            onTap: resetCompromise,
+            enabled: insight.compromisedEntityCount > 0,
+          ),
+        ],
+      ).card,
       const AboutDropdown(),
       if (insight.entityCount > 0)
         ...[

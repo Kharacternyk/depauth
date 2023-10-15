@@ -14,20 +14,18 @@ import 'widget_extension.dart';
 
 class StorageScaffold extends StatelessWidget {
   final InsightfulStorage storage;
-  final List<Widget> formLeading;
-  final List<Widget> formTrailing;
   final Widget bottomBar;
   final ValueNotifier<EditSubject> editSubject;
   final ValueNotifier<bool> formHasTraveler;
+  final List<Widget> formChildren;
   final ValueNotifier<ViewRegion> viewRegion;
 
   const StorageScaffold({
     required this.storage,
-    required this.formLeading,
-    required this.formTrailing,
     required this.bottomBar,
     required this.editSubject,
     required this.formHasTraveler,
+    required this.formChildren,
     required this.viewRegion,
     super.key,
   });
@@ -41,8 +39,7 @@ class StorageScaffold extends StatelessWidget {
         insight: insight,
         resetLoss: storage.resetLoss,
         resetCompromise: storage.resetCompromise,
-        leading: formLeading,
-        trailing: formTrailing,
+        children: formChildren,
         rename: (name) => storage.name = name,
         isRenameCanceled: () => storage.disposed,
       );

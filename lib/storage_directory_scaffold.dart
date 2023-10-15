@@ -74,7 +74,7 @@ class _State extends State<StorageDirectoryScaffold> {
           editSubject: editSubject,
           formHasTraveler: formHasTraveler,
           viewRegion: viewRegion,
-          formLeading: [
+          formChildren: [
             (double? progress) {
               return ListTile(
                 leading: const Icon(Icons.file_copy),
@@ -94,8 +94,6 @@ class _State extends State<StorageDirectoryScaffold> {
                     : null,
               );
             }.listen(storageDirectory.pendingOperationProgress).card,
-          ],
-          formTrailing: [
             StorageDirectoryDropdown(
               siblingNames: siblingNames,
               selectStorage: (name) {
