@@ -49,7 +49,7 @@ class EntityPlaceholder<DragDataType extends Object> extends StatelessWidget {
           _ => null,
         },
         color: colors.onPrimaryContainer,
-      ).fit;
+      ).fit.grow;
     }
 
     return DragTarget(
