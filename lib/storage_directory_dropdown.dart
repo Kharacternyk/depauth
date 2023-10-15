@@ -21,9 +21,16 @@ class StorageDirectoryDropdown extends StatelessWidget {
   @override
   build(context) {
     final messages = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
 
     final dropdown = CardDropdown(
-      leading: const Icon(Icons.folder),
+      leading: Badge.count(
+        isLabelVisible: siblingNames.isNotEmpty,
+        count: siblingNames.length,
+        backgroundColor: colors.primaryContainer,
+        textColor: colors.onPrimaryContainer,
+        child: const Icon(Icons.folder),
+      ),
       title: Text(messages.otherStorages),
       children: [
         if (siblingNames.isNotEmpty)
