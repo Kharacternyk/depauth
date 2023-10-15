@@ -389,12 +389,29 @@ class InsightfulStorage extends FlattenedStorage {
 
   @override
   moveDependency(dependency, factor) {
-    for (final factor in [dependency.factor, factor]) {
-      _clearLoss(factor.entity.identity);
-      _clearCompromise(factor.entity.identity);
-      _clearImportance(factor.entity.identity);
+    for (final identity in {
+      dependency.factor.entity.identity,
+      factor.entity.identity
+    }) {
+      _clearLoss(identity);
+      _clearCompromise(identity);
+      _clearImportance(identity);
     }
     super.moveDependency(dependency, factor);
+    _update();
+  }
+
+  @override
+  moveDependencyAsFactor(dependency, entity) {
+    for (final identity in {
+      dependency.factor.entity.identity,
+      entity.identity
+    }) {
+      _clearLoss(identity);
+      _clearCompromise(identity);
+      _clearImportance(identity);
+    }
+    super.moveDependencyAsFactor(dependency, entity);
     _update();
   }
 

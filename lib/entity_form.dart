@@ -227,8 +227,7 @@ class EntityForm extends StatelessWidget {
               traveler.passport.identity,
             );
           case DependencyTraveler traveler:
-            storage.removeDependency(traveler.passport);
-            storage.addDependencyAsFactor(entity.passport, traveler.entity);
+            storage.moveDependencyAsFactor(traveler.passport, entity.passport);
         }
       },
     );

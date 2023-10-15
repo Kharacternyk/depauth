@@ -108,6 +108,20 @@ class FlattenedStorage extends ListenableStorage {
   }
 
   @override
+  moveDependencyAsFactor(dependency, entity) {
+    if (dependency.factor.entity.identity != entity.identity) {
+      _clearCoupling(
+        upward: [dependency.identity],
+        downward: [
+          dependency.factor.entity.identity,
+          entity.identity,
+        ],
+      );
+    }
+    super.moveDependencyAsFactor(dependency, entity);
+  }
+
+  @override
   removeFactor(factor) {
     _clearCoupling(
       upward: getDependencies(factor.identity),

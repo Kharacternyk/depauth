@@ -17,4 +17,5 @@ abstract interface class ActiveRecordStorage {
   );
   void removeDependency(DependencyPassport dependency);
   void moveDependency(DependencyPassport dependency, FactorPassport factor);
+  void moveDependencyAsFactor(DependencyPassport dependency, Passport entity);
 }
