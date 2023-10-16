@@ -167,26 +167,26 @@ class EntityForm extends StatelessWidget {
               }
             },
             builder: (context, candidate, rejected) {
+              final willAccept = candidate.any((traveler) {
+                if (traveler == null) {
+                  return false;
+                }
+                final travelingEntity = traveler.entity;
+
+                if (travelingEntity != null &&
+                    factor.contains(travelingEntity)) {
+                  return false;
+                }
+
+                return true;
+              });
+
               return ScaledDraggable(
                 dragData: FactorTraveler(factor.passport),
                 child: Card(
-                  color: candidate.any((traveler) {
-                    if (traveler == null) {
-                      return false;
-                    }
-                    final travelingEntity = traveler.entity;
-
-                    if (travelingEntity != null &&
-                        factor.contains(travelingEntity)) {
-                      return false;
-                    }
-
-                    return true;
-                  })
-                      ? colors.primaryContainer
-                      : null,
+                  color: willAccept ? colors.primaryContainer : null,
                   child: ListTile(
-                    mouseCursor: candidate.isNotEmpty
+                    mouseCursor: willAccept
                         ? SystemMouseCursors.copy
                         : SystemMouseCursors.grab,
                     leading: const Icon(Icons.link),
