@@ -20,8 +20,7 @@ class FlattenedStorage extends ListenableStorage {
 
     _ancestors[entity] = const {};
 
-    final ancestors = getFactors(entity)
-        .expand(getDependencies)
+    final ancestors = getDistinctDependencies(entity)
         .expand((entity) => getAncestors(entity).followedBy([entity]))
         .toSet();
 
