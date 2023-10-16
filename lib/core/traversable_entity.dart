@@ -3,7 +3,7 @@ import 'factor.dart';
 import 'storage.dart';
 
 class TraversableEntity extends Entity {
-  final Passport passport;
+  final EntityPassport passport;
   final Iterable<Factor> factors;
   final bool lost;
   final bool compromised;

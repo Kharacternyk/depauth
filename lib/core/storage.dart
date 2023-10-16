@@ -50,7 +50,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
 
       case Values values:
         final [identity, name, type, lost, compromised, importance] = values;
-        final passport = Passport._(
+        final passport = EntityPassport._(
           Identity._(identity as int),
           position,
         );
@@ -94,7 +94,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     set x = ?, y = ?
     where x = ? and y = ?
   ''');
-  void moveEntity(Passport entity, Position position) {
+  void moveEntity(EntityPassport entity, Position position) {
     _moveEntityStatement.execute([
       position.x,
       position.y,
@@ -107,7 +107,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     delete from entities
     where x = ? and y = ?
   ''');
-  void deleteEntity(Passport entity) {
+  void deleteEntity(EntityPassport entity) {
     _deleteEntityStatement.execute([entity.position.x, entity.position.y]);
   }
 
@@ -578,16 +578,16 @@ class DependencyPassport {
 
 class FactorPassport {
   final Identity<Factor> identity;
-  final Passport entity;
+  final EntityPassport entity;
 
   const FactorPassport._(this.identity, this.entity);
 }
 
-class Passport {
+class EntityPassport {
   final Identity<Entity> identity;
   final Position position;
 
-  const Passport._(this.identity, this.position);
+  const EntityPassport._(this.identity, this.position);
 }
 
 class Identity<T> {

@@ -21,7 +21,7 @@ class EntityTraveler
         DeletableTraveler,
         DependableTraveler,
         FactorableTraveler {
-  final Passport passport;
+  final EntityPassport passport;
 
   const EntityTraveler(this.passport);
 
