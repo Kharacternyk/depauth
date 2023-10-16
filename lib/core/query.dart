@@ -7,18 +7,34 @@ class Query {
 
   Query(Database database, String sql) : _statement = database.prepare(sql);
 
-  List<T> select<T>(Values? parameters, T Function(Values) factory) {
-    final result = <T>[];
-    final cursor = _statement.selectCursor(parameters ?? const []);
+  Iterable<T> select<T>(Values? parameters, T Function(Values) create) {
+    return _select(parameters).map(create).toList();
+  }
 
-    while (cursor.moveNext()) {
-      result.add(factory(cursor.current.values));
+  Iterable<T> selectThrough<R, T>(
+    Values? parameters,
+    R Function(Values) create,
+    Iterable<T> Function(Iterable<R>) combine, [
+    Comparator<T>? compare,
+  ]) {
+    final result = combine(_select(parameters).map(create)).toList();
+
+    if (compare != null) {
+      result.sort(compare);
     }
 
     return result;
   }
 
   Values? selectOne([Values? parameters]) {
-    return _statement.select(parameters ?? const []).firstOrNull?.values;
+    return _select(parameters).firstOrNull;
+  }
+
+  Iterable<Values> _select(Values? parameters) sync* {
+    final cursor = _statement.selectCursor(parameters ?? const []);
+
+    while (cursor.moveNext()) {
+      yield cursor.current.values;
+    }
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -83,56 +84,34 @@ class InsightfulStorage extends FlattenedStorage {
       if (!dependantImportance.isCacheable) {
         isCacheable = false;
       }
-      if (max(dependantImportance.value, importance) == 0) {
+
+      final importancePotential = max(dependantImportance.value, importance);
+
+      if (importancePotential <= value) {
         continue;
       }
 
-      final factors = getFactors(dependant);
-      final dependencies = factors.expand((factor) {
-        return getDependencies(factor).map((dependency) {
-          return (factor, dependency);
-        });
-      });
-      final otherDependencies = <Identity<Entity>, List<Identity<Factor>>>{};
-      final dependantFactors = <Identity<Factor>>[];
-
-      for (final (factor, dependency) in dependencies) {
-        if (seenWithThis.contains(dependency)) {
-          dependantFactors.add(factor);
-          continue;
+      final dependencies = getGroupedDependencies(dependant, (first, second) {
+        if (first.entity == entity) {
+          return -1;
         }
 
-        final factors = otherDependencies[dependency];
+        return second.factors.length.compareTo(first.factors.length);
+      });
+      final factors = <Identity<Factor>>{};
+      final factorCount = getFactorCount(dependant);
 
-        if (factors != null) {
-          factors.add(factor);
-        } else {
-          otherDependencies[dependency] = [factor];
+      for (final (index, dependency) in dependencies.indexed) {
+        factors.addAll(dependency.factors);
+
+        if (factors.length == factorCount) {
+          value = max(value, importancePotential ~/ (index + 1));
+          break;
+        }
+        if ((index + 2) * value >= importancePotential) {
+          break;
         }
       }
-
-      final sortedDependencies = otherDependencies.entries.toList();
-
-      sortedDependencies.sort((first, second) {
-        return second.value.length.compareTo(first.value.length);
-      });
-
-      final unlockedFactors = dependantFactors.toSet();
-      var requiredOtherDependencyCount = 0;
-
-      while (unlockedFactors.length < factors.length &&
-          requiredOtherDependencyCount < sortedDependencies.length) {
-        final entry = sortedDependencies[requiredOtherDependencyCount];
-
-        unlockedFactors.addAll(entry.value);
-        ++requiredOtherDependencyCount;
-      }
-
-      value = max(
-        value,
-        max(importance, dependantImportance.value) ~/
-            (requiredOtherDependencyCount + 1),
-      );
     }
 
     if (isCacheable || seen.isEmpty) {
