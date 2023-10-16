@@ -140,6 +140,11 @@ class EntityForm extends StatelessWidget {
           DragTarget<DependableTraveler>(
             key: ValueKey(factor.identity),
             onWillAccept: (traveler) {
+              if (traveler case FactorTraveler traveler
+                  when traveler.passport.identity == factor.identity) {
+                return false;
+              }
+
               return factor.passport.entity.identity != traveler?.entity;
             },
             onAccept: (traveler) {
