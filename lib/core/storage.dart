@@ -6,10 +6,8 @@ import 'dependency.dart';
 import 'entity.dart';
 import 'entity_type.dart';
 import 'factor.dart';
-import 'grouped_dependency.dart';
 import 'position.dart';
 import 'query.dart';
-import 'squash.dart';
 import 'statement.dart';
 import 'tracked_disposal_storage.dart';
 import 'traversable_entity.dart';
@@ -334,15 +332,6 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     return _factorIdentitiesQuery.select([entity._value], _parseIdentity);
   }
 
-  late final _factorCountQuery = Query(_database, '''
-    select count(identity)
-    from factors
-    where entity = ?
-  ''');
-  int getFactorCount(Identity<Entity> entity) {
-    return _factorCountQuery.selectOne([entity._value])?.first as int;
-  }
-
   late final _dependencyEntitiesQuery = Query(_database, '''
     select entity
     from dependencies
@@ -352,37 +341,6 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
   ''');
   Iterable<Identity<Entity>> getDependencies(Identity<Factor> factor) {
     return _dependencyEntitiesQuery.select([factor._value], _parseIdentity);
-  }
-
-  late final _dependenciesWithFactorsQuery = Query(_database, '''
-    select dependencies.entity, factor
-    from dependencies
-    join factors
-    on factor = factors.identity
-    where factors.entity = ?
-    order by dependencies.entity
-  ''');
-  Iterable<GroupedDependency> getGroupedDependencies(
-    Identity<Entity> entity,
-    Comparator<GroupedDependency> compare,
-  ) {
-    return _dependenciesWithFactorsQuery.selectThrough(
-      [entity._value],
-      (values) {
-        final [dependency, factor] = values;
-
-        return (
-          Identity<Entity>._(dependency as int),
-          Identity<Factor>._(factor as int),
-        );
-      },
-      (result) => result.squash.map((dependency) {
-        final (entity, factors) = dependency;
-
-        return GroupedDependency(entity, factors);
-      }),
-      compare,
-    );
   }
 
   late final _distinctDependenciesQuery = Query(_database, '''

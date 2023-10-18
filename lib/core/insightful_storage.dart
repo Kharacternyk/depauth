@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -56,69 +55,60 @@ class InsightfulStorage extends FlattenedStorage {
       areAllFactorsCompromised: _entityCompromise[entity] ?? false,
       ancestorCount: getAncestors(entity).length,
       descendantCount: getDescendants(entity).length,
-      bubbledImportance: _getBubbledImportance(entity, const {}).value,
+      bubbledImportance: _getBubbledImportance(entity),
     );
   }
 
-  ({int value, bool isCacheable}) _getBubbledImportance(
-    Identity<Entity> entity,
-    Set<Identity<Entity>> seen,
-  ) {
+  int _getBubbledImportance(Identity<Entity> entity) {
     if (_bubbledImportance[entity] case int value) {
-      return (value: value, isCacheable: true);
+      return value;
     }
 
-    final seenWithThis = seen.union({entity});
-    var value = 0;
-    var isCacheable = true;
+    final closure = getClosure(entity);
+    var outerValue = 0;
+    var innerValue = 0;
+    var secondInnerValue = 0;
+    Identity<Entity>? innerLeader;
 
-    for (final (dependant, importance) in getDependantsWithImportance(entity)) {
-      if (seenWithThis.contains(dependant)) {
-        isCacheable = false;
-        continue;
-      }
-
-      final dependantImportance =
-          _getBubbledImportance(dependant, seenWithThis);
-
-      if (!dependantImportance.isCacheable) {
-        isCacheable = false;
-      }
-
-      final importancePotential = max(dependantImportance.value, importance);
-
-      if (importancePotential <= value) {
-        continue;
-      }
-
-      final dependencies = getGroupedDependencies(dependant, (first, second) {
-        if (first.entity == entity) {
-          return -1;
-        }
-
-        return second.factors.length.compareTo(first.factors.length);
-      });
-      final factors = <Identity<Factor>>{};
-      final factorCount = getFactorCount(dependant);
-
-      for (final (index, dependency) in dependencies.indexed) {
-        factors.addAll(dependency.factors);
-
-        if (factors.length == factorCount) {
-          value = max(value, importancePotential ~/ (index + 1));
-          break;
-        }
-        if ((index + 2) * value >= importancePotential) {
-          break;
+    for (final entity in closure) {
+      for (final (dependant, importance)
+          in getDependantsWithImportance(entity)) {
+        if (areWithinClosure(entity, dependant)) {
+          if (importance > innerValue) {
+            secondInnerValue = innerValue;
+            innerValue = importance;
+            innerLeader = dependant;
+          } else if (importance == innerValue && innerLeader != dependant) {
+            innerLeader = null;
+          } else if (importance > secondInnerValue) {
+            secondInnerValue = importance;
+          }
+        } else {
+          outerValue = max(
+            outerValue,
+            max(importance, _getBubbledImportance(dependant)),
+          );
         }
       }
     }
 
-    if (isCacheable || seen.isEmpty) {
-      _bubbledImportance[entity] = value;
-    }
+    if (outerValue >= innerValue) {
+      for (final entity in closure) {
+        _bubbledImportance[entity] = outerValue;
+      }
 
-    return (value: value, isCacheable: isCacheable);
+      return outerValue;
+    } else {
+      for (final entity in closure) {
+        if (entity == innerLeader) {
+          _bubbledImportance[entity] = secondInnerValue;
+        } else {
+          _bubbledImportance[entity] = innerValue;
+        }
+      }
+
+      return entity == innerLeader ? secondInnerValue : innerValue;
+    }
   }
 
   bool _hasLostFactor(Identity<Entity> entity, Set<Identity<Entity>> seen) {

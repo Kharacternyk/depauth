@@ -10,10 +10,38 @@ class FlattenedStorage extends ListenableStorage {
     required super.entityDuplicateSuffix,
   });
 
+  final _closures = <Identity<Entity>, Set<Identity<Entity>>>{};
   final _ancestors = <Identity<Entity>, Set<Identity<Entity>>>{};
   final _descendants = <Identity<Entity>, Set<Identity<Entity>>>{};
 
-  Set<Identity<Entity>> getAncestors(Identity<Entity> entity) {
+  bool areWithinClosure(Identity<Entity> first, Identity<Entity> second) {
+    return first == second || _getClosure(first).contains(second);
+  }
+
+  Iterable<Identity<Entity>> getClosure(Identity<Entity> entity) {
+    return [entity].followedBy(_getClosure(entity));
+  }
+
+  Iterable<Identity<Entity>> getAncestors(Identity<Entity> entity) {
+    return _getAncestors(entity);
+  }
+
+  Iterable<Identity<Entity>> getDescendants(Identity<Entity> entity) {
+    return _getDescendants(entity);
+  }
+
+  Set<Identity<Entity>> _getClosure(Identity<Entity> entity) {
+    if (_closures[entity] case Set<Identity<Entity>> closure) {
+      return closure;
+    }
+
+    final ancestors = _getAncestors(entity);
+    final descendants = _getDescendants(entity);
+
+    return _closures[entity] = ancestors.intersection(descendants);
+  }
+
+  Set<Identity<Entity>> _getAncestors(Identity<Entity> entity) {
     if (_ancestors[entity] case Set<Identity<Entity>> ancestors) {
       return ancestors;
     }
@@ -21,7 +49,7 @@ class FlattenedStorage extends ListenableStorage {
     _ancestors[entity] = const {};
 
     final ancestors = getDistinctDependencies(entity)
-        .expand((entity) => getAncestors(entity).followedBy([entity]))
+        .expand((entity) => _getAncestors(entity).followedBy([entity]))
         .toSet();
 
     ancestors.remove(entity);
@@ -39,7 +67,7 @@ class FlattenedStorage extends ListenableStorage {
     return ancestors;
   }
 
-  Set<Identity<Entity>> getDescendants(Identity<Entity> entity) {
+  Set<Identity<Entity>> _getDescendants(Identity<Entity> entity) {
     if (_descendants[entity] case Set<Identity<Entity>> descendants) {
       return descendants;
     }
@@ -48,7 +76,7 @@ class FlattenedStorage extends ListenableStorage {
 
     final descendants = getDependants(entity)
         .expand(
-            (dependant) => getDescendants(dependant).followedBy([dependant]))
+            (dependant) => _getDescendants(dependant).followedBy([dependant]))
         .toSet();
 
     descendants.remove(entity);
@@ -147,7 +175,9 @@ class FlattenedStorage extends ListenableStorage {
     final expandedDownward =
         downward.followedBy(downward.expand(getDescendants).toList());
 
+    expandedUpward.forEach(_closures.remove);
     expandedUpward.forEach(_descendants.remove);
+    expandedDownward.forEach(_closures.remove);
     expandedDownward.forEach(_ancestors.remove);
   }
 }

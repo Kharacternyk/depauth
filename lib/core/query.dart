@@ -11,21 +11,6 @@ class Query {
     return _select(parameters).map(create).toList();
   }
 
-  Iterable<T> selectThrough<R, T>(
-    Values? parameters,
-    R Function(Values) create,
-    Iterable<T> Function(Iterable<R>) combine, [
-    Comparator<T>? compare,
-  ]) {
-    final result = combine(_select(parameters).map(create)).toList();
-
-    if (compare != null) {
-      result.sort(compare);
-    }
-
-    return result;
-  }
-
   Values? selectOne([Values? parameters]) {
     return _select(parameters).firstOrNull;
   }
