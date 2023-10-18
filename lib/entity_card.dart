@@ -61,7 +61,8 @@ class EntityCard extends StatelessWidget {
 
     final lost = insight.hasLostFactor || entity.lost;
     final compromised = insight.areAllFactorsCompromised || entity.compromised;
-    final importance = max(insight.bubbledImportance, entity.importance);
+    final importance =
+        min(3, max(insight.bubbledImportance, entity.importance));
     final lostIcon = Icon(
       Icons.not_listed_location,
       color: colors.onError,
