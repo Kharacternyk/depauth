@@ -18,7 +18,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
   final String entityDuplicateSuffix;
 
   late final _entityQuery = Query(_database, '''
-    select identity, name, type, lost, compromised, importance
+    select identity, name, type, importance
     from entities
     where x = ? and y = ?
   ''');
@@ -49,7 +49,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
         return null;
 
       case Values values:
-        final [identity, name, type, lost, compromised, importance] = values;
+        final [identity, name, type, importance] = values;
         final passport = EntityPassport._(
           Identity._(identity as int),
           position,
@@ -59,8 +59,6 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
           passport,
           name as String,
           EntityType(type as int),
-          lost: lost as int != 0,
-          compromised: compromised as int != 0,
           importance: importance as int,
           factors: _factorsQuery.select([identity], (values) {
             final [factorIdentity] = values;
@@ -422,15 +420,6 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
   ''');
   void resetCompromise() => _resetCompromiseStatement.execute();
 
-  late final _normalEntitiesQuery = Query(_database, '''
-    select identity
-    from entities
-    where not lost and not compromised
-  ''');
-  Iterable<Identity<Entity>> get normalEntities {
-    return _normalEntitiesQuery.select(null, _parseIdentity);
-  }
-
   late final _lostEntititesQuery = Query(_database, '''
     select identity
     from entities
@@ -554,6 +543,8 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
         on dependencies(factor, entity);
 
       create index if not exists entity_ys on entities(y);
+      create index if not exists entity_loss on entities(lost);
+      create index if not exists entity_compromise on entities(compromised);
 
       create trigger if not exists after_delete_entity
       after delete on entities begin

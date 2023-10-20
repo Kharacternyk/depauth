@@ -78,8 +78,8 @@ class InsightfulStorage extends FlattenedStorage {
 
   EntityInsight getEntityInsight(Identity<Entity> entity) {
     return EntityInsight(
-      lossHeritage: _entityLoss[entity].iterable,
-      compromiseHeritage: _entityCompromise[entity].iterable,
+      loss: _entityLoss[entity],
+      compromise: _entityCompromise[entity],
       ancestorCount: getAncestors(entity).length,
       descendantCount: getDescendants(entity).length,
       bubbledImportance: _getBubbledImportance(entity),

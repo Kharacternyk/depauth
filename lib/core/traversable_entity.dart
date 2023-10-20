@@ -5,8 +5,6 @@ import 'storage.dart';
 class TraversableEntity extends Entity {
   final EntityPassport passport;
   final Iterable<Factor> factors;
-  final bool lost;
-  final bool compromised;
   final int importance;
 
   TraversableEntity(
@@ -14,8 +12,6 @@ class TraversableEntity extends Entity {
     super.name,
     super.type, {
     required this.factors,
-    required this.lost,
-    required this.compromised,
     required this.importance,
   });
 

@@ -59,9 +59,8 @@ class EntityCard extends StatelessWidget {
       dependencyIcons.removeLast();
     }
 
-    final lost = insight.lossHeritage.isNotEmpty || entity.lost;
-    final compromised =
-        insight.compromiseHeritage.isNotEmpty || entity.compromised;
+    final lost = insight.loss != null;
+    final compromised = insight.compromise != null;
     final importance =
         min(3, max(insight.bubbledImportance, entity.importance));
     final lostIcon = Icon(

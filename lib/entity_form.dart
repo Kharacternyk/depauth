@@ -13,6 +13,7 @@ import 'debounced_text_field.dart';
 import 'entity_chip.dart';
 import 'entity_theme.dart';
 import 'scaled_draggable.dart';
+import 'trait_switch.dart';
 import 'widget_extension.dart';
 
 class EntityForm extends StatelessWidget {
@@ -36,30 +37,19 @@ class EntityForm extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final messages = AppLocalizations.of(context)!;
     final typeName = entity.type.name(messages);
-    final lossHeritage = insight.lossHeritage.toSet();
-    final compromiseHeritage = insight.compromiseHeritage.toSet();
+    final dependencies = entity.factors.expand((factor) => factor.dependencies);
     final factorCards = <Widget>[];
-    final lostChips = <Widget>[];
-    final compromisedChips = <Widget>[];
 
     for (final factor in entity.factors) {
-      final dependencies = <Widget>[];
-
-      for (final dependency in factor.dependencies) {
-        dependencies.add(ScaledDraggable(
-          key: ValueKey(dependency.identity),
-          needsMaterial: true,
-          dragData: DependencyTraveler(dependency.passport),
-          child: dependency.chip,
-        ));
-
-        if (lossHeritage.remove(dependency.identity)) {
-          lostChips.add(dependency.chip);
-        }
-        if (compromiseHeritage.remove(dependency.identity)) {
-          compromisedChips.add(dependency.chip);
-        }
-      }
+      final dependencies = <Widget>[
+        for (final dependency in factor.dependencies)
+          ScaledDraggable(
+            key: ValueKey(dependency.identity),
+            needsMaterial: true,
+            dragData: DependencyTraveler(dependency.passport),
+            child: dependency.chip,
+          )
+      ];
 
       final card = DragTarget<DependableTraveler>(
         key: ValueKey(factor.identity),
@@ -194,52 +184,20 @@ class EntityForm extends StatelessWidget {
           showSelectedIcon: false,
         ),
       ).card,
-      SwitchListTile(
-        title: lostChips.isNotEmpty
-            ? Text.rich(TextSpan(text: messages.lostBecause, children: [
-                ...lostChips
-                    .map<InlineSpan>((chip) => WidgetSpan(
-                          child: chip,
-                          alignment: PlaceholderAlignment.middle,
-                        ))
-                    .interleave(TextSpan(text: messages.paddedAnd)),
-                TextSpan(
-                    text: lostChips.length > 1
-                        ? messages.arePeriod
-                        : messages.isPeriod),
-              ]))
-            : Text(messages.lost),
-        activeColor: colors.error,
-        value: entity.lost,
-        selected: lostChips.isNotEmpty || entity.lost,
-        secondary: const Icon(Icons.not_listed_location),
-        onChanged: (value) {
-          storage.toggleLost(entity.passport, value);
-        },
-      ).card,
-      SwitchListTile(
-        title: compromisedChips.isNotEmpty
-            ? Text.rich(TextSpan(text: messages.compromisedBecause, children: [
-                ...compromisedChips
-                    .map<InlineSpan>((chip) => WidgetSpan(
-                          child: chip,
-                          alignment: PlaceholderAlignment.middle,
-                        ))
-                    .interleave(TextSpan(text: messages.paddedAnd)),
-                TextSpan(
-                    text: compromisedChips.length > 1
-                        ? messages.arePeriod
-                        : messages.isPeriod),
-              ]))
-            : Text(messages.compromised),
-        activeColor: colors.error,
-        value: entity.compromised,
-        selected: compromisedChips.isNotEmpty || entity.compromised,
-        secondary: const Icon(Icons.report),
-        onChanged: (value) {
-          storage.toggleCompromised(entity.passport, value);
-        },
-      ).card,
+      TraitSwitch(
+        insight.loss,
+        dependencies: dependencies,
+        icon: const Icon(Icons.not_listed_location),
+        toggle: (value) => storage.toggleLost(entity.passport, value),
+        name: messages.lost,
+      ),
+      TraitSwitch(
+        insight.compromise,
+        dependencies: dependencies,
+        icon: const Icon(Icons.report),
+        toggle: (value) => storage.toggleCompromised(entity.passport, value),
+        name: messages.compromised,
+      ),
       ListTile(
         title: Text(
           entity.factors.isEmpty

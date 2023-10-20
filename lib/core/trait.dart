@@ -8,16 +8,7 @@ class OwnTrait implements Trait {
 }
 
 class InheritedTrait implements Trait {
-  final Iterable<Identity<Entity>> from;
+  final Iterable<Identity<Entity>> heritage;
 
-  const InheritedTrait(this.from);
-}
-
-extension IterableTrait on Trait? {
-  Iterable<Identity<Entity>> get iterable {
-    return switch (this) {
-      InheritedTrait trait => trait.from,
-      _ => const [],
-    };
-  }
+  const InheritedTrait(this.heritage);
 }

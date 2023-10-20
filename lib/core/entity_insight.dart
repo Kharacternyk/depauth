@@ -1,16 +1,15 @@
-import 'entity.dart';
-import 'storage.dart';
+import 'trait.dart';
 
 class EntityInsight {
-  final Iterable<Identity<Entity>> lossHeritage;
-  final Iterable<Identity<Entity>> compromiseHeritage;
+  final Trait? loss;
+  final Trait? compromise;
   final int ancestorCount;
   final int descendantCount;
   final int bubbledImportance;
 
   const EntityInsight({
-    required this.lossHeritage,
-    required this.compromiseHeritage,
+    required this.loss,
+    required this.compromise,
     required this.ancestorCount,
     required this.descendantCount,
     required this.bubbledImportance,
