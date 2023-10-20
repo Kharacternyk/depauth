@@ -10,6 +10,7 @@ import 'core/title_case.dart';
 import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
 import 'debounced_text_field.dart';
+import 'entity_chip.dart';
 import 'entity_theme.dart';
 import 'scaled_draggable.dart';
 import 'widget_extension.dart';
@@ -35,6 +36,100 @@ class EntityForm extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final messages = AppLocalizations.of(context)!;
     final typeName = entity.type.name(messages);
+    final lossHeritage = insight.lossHeritage.toSet();
+    final compromiseHeritage = insight.compromiseHeritage.toSet();
+    final factorCards = <Widget>[];
+    final lostChips = <Widget>[];
+    final compromisedChips = <Widget>[];
+
+    for (final factor in entity.factors) {
+      final dependencies = <Widget>[];
+
+      for (final dependency in factor.dependencies) {
+        dependencies.add(ScaledDraggable(
+          key: ValueKey(dependency.identity),
+          needsMaterial: true,
+          dragData: DependencyTraveler(dependency.passport),
+          child: dependency.chip,
+        ));
+
+        if (lossHeritage.remove(dependency.identity)) {
+          lostChips.add(dependency.chip);
+        }
+        if (compromiseHeritage.remove(dependency.identity)) {
+          compromisedChips.add(dependency.chip);
+        }
+      }
+
+      final card = DragTarget<DependableTraveler>(
+        key: ValueKey(factor.identity),
+        onWillAccept: (traveler) {
+          if (traveler case FactorTraveler traveler
+              when traveler.passport.identity == factor.identity) {
+            return false;
+          }
+
+          return factor.passport.entity.identity != traveler?.entity;
+        },
+        onAccept: (traveler) {
+          final travelingEntity = traveler.entity;
+
+          if (travelingEntity != null && factor.contains(travelingEntity)) {
+            return;
+          }
+
+          switch (traveler) {
+            case EntityTraveler traveler:
+              storage.addDependency(
+                factor.passport,
+                traveler.passport.identity,
+              );
+            case DependencyTraveler traveler:
+              storage.moveDependency(traveler.passport, factor.passport);
+            case FactorTraveler traveler:
+              storage.mergeFactors(factor.passport, traveler.passport);
+          }
+        },
+        builder: (context, candidate, rejected) {
+          final willAccept = candidate.any((traveler) {
+            if (traveler == null) {
+              return false;
+            }
+            final travelingEntity = traveler.entity;
+
+            if (travelingEntity != null && factor.contains(travelingEntity)) {
+              return false;
+            }
+
+            return true;
+          });
+
+          return ScaledDraggable(
+            dragData: FactorTraveler(factor.passport),
+            child: Card(
+              color: willAccept ? colors.primaryContainer : null,
+              child: ListTile(
+                mouseCursor: willAccept
+                    ? SystemMouseCursors.copy
+                    : SystemMouseCursors.grab,
+                leading: const Icon(Icons.link),
+                title: factor.dependencies.isNotEmpty
+                    ? Wrap(
+                        spacing: 4,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children:
+                            dependencies.interleave(Text(messages.or)).toList(),
+                      )
+                    : Text(messages.emptyFactorTip),
+              ),
+            ),
+          );
+        },
+      );
+
+      factorCards.add(card);
+    }
 
     final form = CardForm([
       ListTile(
@@ -100,28 +195,46 @@ class EntityForm extends StatelessWidget {
         ),
       ).card,
       SwitchListTile(
-        title: Text(
-          insight.hasLostFactor
-              ? messages.automaticallyLost(typeName)
-              : messages.lost,
-        ),
+        title: lostChips.isNotEmpty
+            ? Text.rich(TextSpan(text: messages.lostBecause, children: [
+                ...lostChips
+                    .map<InlineSpan>((chip) => WidgetSpan(
+                          child: chip,
+                          alignment: PlaceholderAlignment.middle,
+                        ))
+                    .interleave(TextSpan(text: messages.paddedAnd)),
+                TextSpan(
+                    text: lostChips.length > 1
+                        ? messages.arePeriod
+                        : messages.isPeriod),
+              ]))
+            : Text(messages.lost),
         activeColor: colors.error,
         value: entity.lost,
-        selected: insight.hasLostFactor || entity.lost,
+        selected: lostChips.isNotEmpty || entity.lost,
         secondary: const Icon(Icons.not_listed_location),
         onChanged: (value) {
           storage.toggleLost(entity.passport, value);
         },
       ).card,
       SwitchListTile(
-        title: Text(
-          insight.areAllFactorsCompromised
-              ? messages.automaticallyCompromised(typeName)
-              : messages.compromised,
-        ),
+        title: compromisedChips.isNotEmpty
+            ? Text.rich(TextSpan(text: messages.compromisedBecause, children: [
+                ...compromisedChips
+                    .map<InlineSpan>((chip) => WidgetSpan(
+                          child: chip,
+                          alignment: PlaceholderAlignment.middle,
+                        ))
+                    .interleave(TextSpan(text: messages.paddedAnd)),
+                TextSpan(
+                    text: compromisedChips.length > 1
+                        ? messages.arePeriod
+                        : messages.isPeriod),
+              ]))
+            : Text(messages.compromised),
         activeColor: colors.error,
         value: entity.compromised,
-        selected: entity.compromised || insight.areAllFactorsCompromised,
+        selected: compromisedChips.isNotEmpty || entity.compromised,
         secondary: const Icon(Icons.report),
         onChanged: (value) {
           storage.toggleCompromised(entity.passport, value);
@@ -135,93 +248,14 @@ class EntityForm extends StatelessWidget {
           style: TextStyle(color: colors.onSurfaceVariant),
         ),
       ),
-      ...<Widget>[
-        for (final factor in entity.factors)
-          DragTarget<DependableTraveler>(
-            key: ValueKey(factor.identity),
-            onWillAccept: (traveler) {
-              if (traveler case FactorTraveler traveler
-                  when traveler.passport.identity == factor.identity) {
-                return false;
-              }
-
-              return factor.passport.entity.identity != traveler?.entity;
-            },
-            onAccept: (traveler) {
-              final travelingEntity = traveler.entity;
-
-              if (travelingEntity != null && factor.contains(travelingEntity)) {
-                return;
-              }
-
-              switch (traveler) {
-                case EntityTraveler traveler:
-                  storage.addDependency(
-                    factor.passport,
-                    traveler.passport.identity,
-                  );
-                case DependencyTraveler traveler:
-                  storage.moveDependency(traveler.passport, factor.passport);
-                case FactorTraveler traveler:
-                  storage.mergeFactors(factor.passport, traveler.passport);
-              }
-            },
-            builder: (context, candidate, rejected) {
-              final willAccept = candidate.any((traveler) {
-                if (traveler == null) {
-                  return false;
-                }
-                final travelingEntity = traveler.entity;
-
-                if (travelingEntity != null &&
-                    factor.contains(travelingEntity)) {
-                  return false;
-                }
-
-                return true;
-              });
-
-              return ScaledDraggable(
-                dragData: FactorTraveler(factor.passport),
-                child: Card(
-                  color: willAccept ? colors.primaryContainer : null,
-                  child: ListTile(
-                    mouseCursor: willAccept
-                        ? SystemMouseCursors.copy
-                        : SystemMouseCursors.grab,
-                    leading: const Icon(Icons.link),
-                    title: factor.dependencies.isNotEmpty
-                        ? Wrap(
-                            spacing: 4,
-                            runSpacing: 4,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: <Widget>[
-                              for (final dependency in factor.dependencies)
-                                ScaledDraggable(
-                                  key: ValueKey(dependency.identity),
-                                  needsMaterial: true,
-                                  dragData:
-                                      DependencyTraveler(dependency.passport),
-                                  child: dependency.type.chip(dependency.name),
-                                ),
-                            ].interleave(Text(messages.or)).toList(),
-                          )
-                        : Text(messages.emptyFactorTip),
-                  ),
-                ),
-              );
-            },
+      ...factorCards.interleave(
+        ListTile(
+          title: Text(
+            messages.and,
+            style: TextStyle(color: colors.onSurfaceVariant),
           ),
-      ]
-          .interleave(
-            ListTile(
-              title: Text(
-                messages.and,
-                style: TextStyle(color: colors.onSurfaceVariant),
-              ),
-            ),
-          )
-          .toList(),
+        ),
+      )
     ]);
 
     return DragTarget<FactorableTraveler>(

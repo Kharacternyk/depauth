@@ -14,12 +14,8 @@ class FlattenedStorage extends ListenableStorage {
   final _ancestors = <Identity<Entity>, Set<Identity<Entity>>>{};
   final _descendants = <Identity<Entity>, Set<Identity<Entity>>>{};
 
-  bool areWithinClosure(Identity<Entity> first, Identity<Entity> second) {
-    return first == second || _getClosure(first).contains(second);
-  }
-
   Iterable<Identity<Entity>> getClosure(Identity<Entity> entity) {
-    return [entity].followedBy(_getClosure(entity));
+    return _getClosure(entity);
   }
 
   Iterable<Identity<Entity>> getAncestors(Identity<Entity> entity) {

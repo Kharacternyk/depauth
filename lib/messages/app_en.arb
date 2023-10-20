@@ -58,22 +58,11 @@
   "name": "Name",
   "lost": "Unreachable",
   "compromised": "Compromised",
-  "automaticallyLost": "This {entityType} is unreachable because all dependencies in at least one group are unreachable.",
-  "@automaticallyLost": {
-    "placeholders": {
-      "entityType": {
-        "type": "String"
-      }
-    }
-  },
-  "automaticallyCompromised": "This {entityType} is compromised because all dependency groups have at least one compromised dependency.",
-  "@automaticallyCompromised": {
-    "placeholders": {
-      "entityType": {
-        "type": "String"
-      }
-    }
-  },
+  "lostBecause": "Unreachable because ",
+  "compromisedBecause": "Compromised because ",
+  "isPeriod": " is.",
+  "arePeriod": " are.",
+  "paddedAnd": " and ",
   "accessTip": "To access this {entityType}, one needs to have access to…",
   "@accessTip": {
     "placeholders": {

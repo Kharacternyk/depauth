@@ -3,6 +3,11 @@ class StorageInsight {
   final int lostEntityCount;
   final int compromisedEntityCount;
 
+  const StorageInsight.zero()
+      : entityCount = 0,
+        lostEntityCount = 0,
+        compromisedEntityCount = 0;
+
   const StorageInsight({
     required this.entityCount,
     required this.lostEntityCount,
