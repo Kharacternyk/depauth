@@ -34,7 +34,7 @@ class FlattenedStorage extends ListenableStorage {
     final ancestors = _getAncestors(entity);
     final descendants = _getDescendants(entity);
 
-    return _closures[entity] = ancestors.intersection(descendants);
+    return _closures[entity] = ancestors.intersection(descendants)..add(entity);
   }
 
   Set<Identity<Entity>> _getAncestors(Identity<Entity> entity) {

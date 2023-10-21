@@ -97,10 +97,10 @@ class InsightfulStorage extends FlattenedStorage {
     var secondInnerValue = 0;
     Identity<Entity>? innerLeader;
 
-    for (final sibling in [entity].followedBy(closure)) {
+    for (final entity in closure) {
       for (final (dependant, importance)
-          in getDependantsWithImportance(sibling)) {
-        if (entity == dependant || closure.contains(dependant)) {
+          in getDependantsWithImportance(entity)) {
+        if (closure.contains(dependant)) {
           if (importance > innerValue) {
             secondInnerValue = innerValue;
             innerValue = importance;
@@ -142,6 +142,7 @@ class InsightfulStorage extends FlattenedStorage {
     Identity<Entity> entity, [
     Set<Identity<Entity>> seen = const {},
   ]) {
+    final seenWithThis = seen.union({entity});
     final lostFactor = getFactors(entity).map(getDependencies).where((factor) {
       if (factor.isEmpty) {
         return false;
@@ -149,9 +150,8 @@ class InsightfulStorage extends FlattenedStorage {
 
       return factor.every((dependency) {
         return _hasTrait(
-          dependency: dependency,
-          entity: entity,
-          seen: seen,
+          entity: dependency,
+          seen: seenWithThis,
           map: _entityLoss,
           recurse: _getEntityLoss,
         );
@@ -169,6 +169,7 @@ class InsightfulStorage extends FlattenedStorage {
     Identity<Entity> entity, [
     Set<Identity<Entity>> seen = const {},
   ]) {
+    final seenWithThis = seen.union({entity});
     final compromisedDependencies = <Identity<Entity>>{};
     final factors = getFactors(entity).map(getDependencies).where((factor) {
       return factor.isNotEmpty;
@@ -176,14 +177,9 @@ class InsightfulStorage extends FlattenedStorage {
 
     for (final factor in factors) {
       final compromisedDependency = factor.where((dependency) {
-        if (compromisedDependencies.contains(dependency)) {
-          return true;
-        }
-
         return _hasTrait(
-          dependency: dependency,
-          entity: entity,
-          seen: seen,
+          entity: dependency,
+          seen: seenWithThis,
           map: _entityCompromise,
           recurse: _getEntityCompromise,
         );
@@ -330,27 +326,23 @@ class InsightfulStorage extends FlattenedStorage {
   int get entityCount => _entityCount;
 
   bool _hasTrait({
-    required Identity<Entity> dependency,
     required Identity<Entity> entity,
     required Set<Identity<Entity>> seen,
     required ListenableMap<Identity<Entity>, Trait> map,
     required InheritedTrait? Function(Identity<Entity>, Set<Identity<Entity>>)
         recurse,
   }) {
-    if (seen.firstOrNull == dependency) {
+    if (seen.contains(entity)) {
       return false;
     }
 
-    final trait = map[dependency];
+    final trait = map[entity];
 
     if (trait is OwnTrait) {
       return true;
     }
-    if (entity == dependency || seen.contains(dependency)) {
-      return false;
-    }
-    if (getClosure(entity).contains(dependency)) {
-      return recurse(dependency, seen.union({entity})) != null;
+    if (getDescendants(seen.first).contains(entity)) {
+      return recurse(entity, seen) != null;
     }
 
     return trait != null;
