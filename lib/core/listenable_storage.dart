@@ -97,18 +97,6 @@ class ListenableStorage extends Storage {
   }
 
   @override
-  toggleCompromised(entity, value) {
-    super.toggleCompromised(entity, value);
-    _updateEntities([entity.position]);
-  }
-
-  @override
-  toggleLost(entity, value) {
-    super.toggleLost(entity, value);
-    _updateEntities([entity.position]);
-  }
-
-  @override
   addDependencyAsFactor(entity, dependency) {
     super.addDependencyAsFactor(entity, dependency);
     _updateEntities([entity.position]);
@@ -157,20 +145,6 @@ class ListenableStorage extends Storage {
   removeFactor(factor) {
     super.removeFactor(factor);
     _updateEntities([factor.entity.position]);
-  }
-
-  @override
-  resetLoss() {
-    final positions = lostPositions;
-    super.resetLoss();
-    _updateEntities(positions);
-  }
-
-  @override
-  resetCompromise() {
-    final positions = compromisedPositions;
-    super.resetCompromise();
-    _updateEntities(positions);
   }
 
   @override

@@ -438,24 +438,6 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     return _compromisedEntititesQuery.select(null, _parseIdentity);
   }
 
-  late final _lostPositionsQuery = Query(_database, '''
-    select x, y
-    from entities
-    where lost
-  ''');
-  Iterable<Position> get lostPositions {
-    return _lostPositionsQuery.select(null, _parsePosition);
-  }
-
-  late final _compromisedPositionsQuery = Query(_database, '''
-    select x, y
-    from entities
-    where compromised
-  ''');
-  Iterable<Position> get compromisedPositions {
-    return _compromisedPositionsQuery.select(null, _parsePosition);
-  }
-
   late final _entityCountQuery = Query(_database, '''
     select count(true)
     from entities
