@@ -144,10 +144,6 @@ class InsightfulStorage extends FlattenedStorage {
   ]) {
     final seenWithThis = seen.union({entity});
     final lostFactor = getFactors(entity).map(getDependencies).where((factor) {
-      if (factor.isEmpty) {
-        return false;
-      }
-
       return factor.every((dependency) {
         return _hasTrait(
           entity: dependency,
