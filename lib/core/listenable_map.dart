@@ -1,7 +1,7 @@
 class ListenableMap<K, V> {
   final _map = <K, V>{};
-  final void Function(K, ListenableMap<K, V>)? onSet;
-  final void Function(K, ListenableMap<K, V>)? onUnset;
+  final void Function(K, ListenableMap<K, V>) onSet;
+  final void Function(K, ListenableMap<K, V>) onUnset;
 
   ListenableMap({
     required this.onSet,
@@ -17,7 +17,7 @@ class ListenableMap<K, V> {
       _map[key] = value;
 
       if (wasUnset) {
-        onSet?.call(key, this);
+        onSet(key, this);
       }
     } else {
       final wasSet = _map.containsKey(key);
@@ -25,7 +25,7 @@ class ListenableMap<K, V> {
       _map.remove(key);
 
       if (wasSet) {
-        onUnset?.call(key, this);
+        onUnset(key, this);
       }
     }
   }
