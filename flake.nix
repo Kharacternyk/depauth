@@ -26,6 +26,8 @@
     in
     {
       devShell = pkgs.mkShell {
+        GRADLE_OPTS = "-Dorg.gradle.project.android.aapt2FromMavenOverride="
+          + "${sdk}/libexec/android-sdk/build-tools/34.0.0/aapt2";
         ANDROID_SDK_ROOT = "${sdk}/libexec/android-sdk";
         XDG_DATA_DIRS = pkgs.lib.strings.concatMapStringsSep
           ":"
