@@ -91,12 +91,6 @@ class ListenableStorage extends Storage {
   }
 
   @override
-  changeImportance(entity, value) {
-    super.changeImportance(entity, value);
-    _updateEntities([entity.position]);
-  }
-
-  @override
   addDependencyAsFactor(entity, dependency) {
     super.addDependencyAsFactor(entity, dependency);
     _updateEntities([entity.position]);

@@ -6,8 +6,5 @@ abstract class Entity {
   final String name;
   final EntityType type;
 
-  const Entity(
-    this.name,
-    this.type,
-  );
+  const Entity(this.name, this.type);
 }

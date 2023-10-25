@@ -10,13 +10,8 @@ class FlattenedStorage extends ListenableStorage {
     required super.entityDuplicateSuffix,
   });
 
-  final _closures = <Identity<Entity>, Set<Identity<Entity>>>{};
   final _ancestors = <Identity<Entity>, Set<Identity<Entity>>>{};
   final _descendants = <Identity<Entity>, Set<Identity<Entity>>>{};
-
-  Iterable<Identity<Entity>> getClosure(Identity<Entity> entity) {
-    return _getClosure(entity);
-  }
 
   Iterable<Identity<Entity>> getAncestors(Identity<Entity> entity) {
     return _getAncestors(entity);
@@ -24,17 +19,6 @@ class FlattenedStorage extends ListenableStorage {
 
   Iterable<Identity<Entity>> getDescendants(Identity<Entity> entity) {
     return _getDescendants(entity);
-  }
-
-  Set<Identity<Entity>> _getClosure(Identity<Entity> entity) {
-    if (_closures[entity] case Set<Identity<Entity>> closure) {
-      return closure;
-    }
-
-    final ancestors = _getAncestors(entity);
-    final descendants = _getDescendants(entity);
-
-    return _closures[entity] = ancestors.intersection(descendants)..add(entity);
   }
 
   Set<Identity<Entity>> _getAncestors(Identity<Entity> entity) {
@@ -171,9 +155,7 @@ class FlattenedStorage extends ListenableStorage {
     final expandedDownward =
         downward.followedBy(downward.expand(getDescendants).toList());
 
-    expandedUpward.forEach(_closures.remove);
     expandedUpward.forEach(_descendants.remove);
-    expandedDownward.forEach(_closures.remove);
     expandedDownward.forEach(_ancestors.remove);
   }
 }

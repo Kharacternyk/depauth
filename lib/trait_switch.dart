@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 
 import 'core/entity.dart';
-import 'core/interleave.dart';
 import 'core/storage.dart';
 import 'core/trait.dart';
 import 'entity_chip.dart';
@@ -27,49 +26,39 @@ class TraitSwitch extends StatelessWidget {
   @override
   build(context) {
     final messages = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
     final heritage = switch (trait) {
       InheritedTrait trait => trait.heritage.toSet(),
       _ => const <Identity<Entity>>{},
     };
-    final heritageChips = <InlineSpan>[];
+    final heritageChips = <Widget>[];
 
     for (final dependency in dependencies) {
       if (heritage.isEmpty) {
         break;
       }
       if (heritage.remove(dependency.identity)) {
-        heritageChips.add(
-          WidgetSpan(
-            child: dependency.chip,
-            alignment: PlaceholderAlignment.middle,
-          ),
-        );
+        heritageChips.add(dependency.chip);
       }
     }
 
-    late final and = TextSpan(text: messages.paddedAnd);
-
-    return SwitchListTile(
-      title: heritageChips.isEmpty
-          ? Text(name)
-          : Text.rich(
-              TextSpan(
-                text: name + messages.because,
-                children: [
-                  ...heritageChips.interleave(and),
-                  TextSpan(
-                    text: heritageChips.length > 1
-                        ? messages.arePeriod
-                        : messages.isPeriod,
-                  ),
-                ],
-              ),
-            ),
-      activeColor: Theme.of(context).colorScheme.error,
-      value: trait is OwnTrait,
-      selected: trait != null,
-      secondary: icon,
-      onChanged: toggle,
-    ).card;
+    return [
+      SwitchListTile(
+        title: heritageChips.isEmpty
+            ? Text(name)
+            : Text(name + messages.becauseOf),
+        activeColor: colors.error,
+        value: trait is OwnTrait,
+        selected: trait != null,
+        secondary: icon,
+        onChanged: toggle,
+      ),
+      if (heritageChips.isNotEmpty)
+        ListTile(
+          iconColor: colors.error,
+          leading: const Icon(Icons.link),
+          title: heritageChips.wrap,
+        )
+    ].column.card;
   }
 }

@@ -5,6 +5,7 @@ import 'card_dropdown.dart';
 import 'core/traveler.dart';
 import 'scaled_draggable.dart';
 import 'tip.dart';
+import 'widget_extension.dart';
 
 class StorageDirectoryDropdown extends StatelessWidget {
   final Iterable<String> siblingNames;
@@ -35,25 +36,21 @@ class StorageDirectoryDropdown extends StatelessWidget {
       children: [
         if (siblingNames.isNotEmpty)
           ListTile(
-            title: Wrap(
-              spacing: 4,
-              runSpacing: 4,
-              children: [
-                for (final name in siblingNames)
-                  ScaledDraggable(
-                    key: ValueKey(name),
-                    dragData: StorageTraveler(name),
-                    needsMaterial: true,
-                    child: ActionChip(
-                      avatar: const Icon(Icons.file_open),
-                      label: Text(name),
-                      onPressed: () {
-                        selectStorage(name);
-                      },
-                    ),
+            title: [
+              for (final name in siblingNames)
+                ScaledDraggable(
+                  key: ValueKey(name),
+                  dragData: StorageTraveler(name),
+                  needsMaterial: true,
+                  child: ActionChip(
+                    avatar: const Icon(Icons.file_open),
+                    label: Text(name),
+                    onPressed: () {
+                      selectStorage(name);
+                    },
                   ),
-              ],
-            ),
+                ),
+            ].wrap,
           ),
         ...[
           messages.newStorageTip,

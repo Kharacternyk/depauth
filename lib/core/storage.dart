@@ -18,7 +18,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
   final String entityDuplicateSuffix;
 
   late final _entityQuery = Query(_database, '''
-    select identity, name, type, importance
+    select identity, name, type
     from entities
     where x = ? and y = ?
   ''');
@@ -49,7 +49,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
         return null;
 
       case Values values:
-        final [identity, name, type, importance] = values;
+        final [identity, name, type] = values;
         final passport = EntityPassport._(
           Identity._(identity as int),
           position,
@@ -59,8 +59,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
           passport,
           name as String,
           EntityType(type as int),
-          importance: importance as int,
-          factors: _factorsQuery.select([identity], (values) {
+          _factorsQuery.select([identity], (values) {
             final [factorIdentity] = values;
             final factorPassport = FactorPassport._(
               Identity._(factorIdentity as int),
@@ -363,25 +362,6 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     return _dependantsQuery.select([entity._value], _parseIdentity);
   }
 
-  late final _dependantsWithImportanceQuery = Query(_database, '''
-    select distinct entities.identity, importance
-    from factors
-    join dependencies
-    on factors.identity = factor
-    join entities
-    on factors.entity = entities.identity
-    where dependencies.entity = ?
-  ''');
-  Iterable<(Identity<Entity>, int)> getDependantsWithImportance(
-    Identity<Entity> entity,
-  ) {
-    return _dependantsWithImportanceQuery.select([entity._value], (values) {
-      final [identity, importance] = values;
-
-      return (Identity._(identity as int), importance as int);
-    });
-  }
-
   late final _boundariesQuery = Query(_database, '''
     select min(x) - 1, min(y) - 1, max(x) + 1, max(y) + 1
     from entities
@@ -436,6 +416,19 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
   ''');
   Iterable<Identity<Entity>> get compromisedEntities {
     return _compromisedEntititesQuery.select(null, _parseIdentity);
+  }
+
+  late final _positiveImportanceQuery = Query(_database, '''
+    select identity, importance
+    from entities
+    where importance > 0
+  ''');
+  Iterable<(Identity<Entity>, int)> get positiveImportance {
+    return _positiveImportanceQuery.select(null, (values) {
+      final [identity, importance] = values;
+
+      return (Identity._(identity as int), importance as int);
+    });
   }
 
   late final _entityCountQuery = Query(_database, '''
@@ -527,6 +520,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
       create index if not exists entity_ys on entities(y);
       create index if not exists entity_loss on entities(lost);
       create index if not exists entity_compromise on entities(compromised);
+      create index if not exists entity_importance on entities(importance);
 
       create trigger if not exists after_delete_entity
       after delete on entities begin

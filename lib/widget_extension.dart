@@ -16,6 +16,12 @@ extension WidgetExtension on Widget {
 extension WidgetListExtension on List<Widget> {
   Column get column => Column(children: this);
   Row get row => Row(children: this);
+  Wrap get wrap => Wrap(
+        spacing: 4,
+        runSpacing: 4,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: this,
+      );
 }
 
 extension ValueBuilderExtension<T> on Widget Function(T) {

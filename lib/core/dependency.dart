@@ -7,7 +7,7 @@ class Dependency extends Entity {
   Dependency(
     this.passport,
     super.name,
-    super.type,
+    super.type
   );
 
   @override

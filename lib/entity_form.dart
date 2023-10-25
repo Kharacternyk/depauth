@@ -104,13 +104,7 @@ class EntityForm extends StatelessWidget {
                     : SystemMouseCursors.grab,
                 leading: const Icon(Icons.link),
                 title: factor.dependencies.isNotEmpty
-                    ? Wrap(
-                        spacing: 4,
-                        runSpacing: 4,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children:
-                            dependencies.interleave(Text(messages.or)).toList(),
-                      )
+                    ? dependencies.interleave(Text(messages.or)).toList().wrap
                     : Text(messages.emptyFactorTip),
               ),
             ),
@@ -162,28 +156,32 @@ class EntityForm extends StatelessWidget {
           ),
         ),
       ).card,
-      ListTile(
-        leading: const Icon(Icons.star),
-        title: SegmentedButton<int>(
-          selected: {entity.importance},
-          segments: [
-            for (var importance = 0; importance <= 3; ++importance)
-              ButtonSegment(
-                value: importance,
-                label: importance >= insight.bubbledImportance
-                    ? Text(importance.toString())
-                    : null,
-                icon: importance < insight.bubbledImportance
-                    ? const Icon(Icons.close)
-                    : null,
-              )
-          ],
-          onSelectionChanged: (selection) {
-            storage.changeImportance(entity.passport, selection.first);
-          },
-          showSelectedIcon: false,
+      [
+        ListTile(
+          leading: const Icon(Icons.star),
+          title: SegmentedButton<int>(
+            selected: {insight.importance.value},
+            segments: [
+              for (var importance = 0; importance <= 3; ++importance)
+                ButtonSegment(
+                  value: importance,
+                  label: Text(importance.toString()),
+                )
+            ],
+            onSelectionChanged: (selection) {
+              storage.changeImportance(entity.passport, selection.first);
+            },
+            showSelectedIcon: false,
+          ),
         ),
-      ).card,
+        if (insight.importance.boost != null)
+          ListTile(
+            leading: const Icon(Icons.upgrade),
+            title: Text(
+              messages.importanceAtLeast(insight.importance.boostedValue),
+            ),
+          ),
+      ].column.card,
       TraitSwitch(
         insight.loss,
         dependencies: dependencies,
