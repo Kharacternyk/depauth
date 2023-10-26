@@ -34,10 +34,13 @@ class ImportanceMap<K> {
     }
 
     if (value > importance.value) {
-      if (boost == null) {
+      if (value >= importance.boostedValue) {
         _boosts.remove(key);
-        reevaluateOneWay(getDependencies(key));
-      } else {
+
+        if (value > importance.boostedValue) {
+          reevaluateOneWay(getDependencies(key));
+        }
+      } else if (boost != null) {
         _boosts[key] = ImportanceBoost(
           importance.boostedValue - value,
           boost.origin,
