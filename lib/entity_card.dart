@@ -100,7 +100,7 @@ class EntityCard extends StatelessWidget {
           ),
         ).expand(6),
         [
-          insight.ancestorCount > 0
+          insight.dependencyCount > 0
               ? [
                   Material(
                     color: colors.surfaceVariant,
@@ -109,7 +109,7 @@ class EntityCard extends StatelessWidget {
                           .fit
                           .expand(),
                       Text(
-                        insight.ancestorCount.toString(),
+                        insight.dependencyCount.toString(),
                         style: TextStyle(color: colors.onSurfaceVariant),
                       ).fit.expand(),
                     ].row,
@@ -156,7 +156,7 @@ class EntityCard extends StatelessWidget {
               ],
             _ => [const Spacer(flex: 4)],
           },
-          insight.descendantCount > 0
+          insight.dependantCount > 0
               ? [
                   Material(
                     color: colors.surfaceVariant,
@@ -165,7 +165,7 @@ class EntityCard extends StatelessWidget {
                           .fit
                           .expand(),
                       Text(
-                        insight.descendantCount.toString(),
+                        insight.dependantCount.toString(),
                         style: TextStyle(color: colors.onSurfaceVariant),
                       ).fit.expand(),
                     ].row,

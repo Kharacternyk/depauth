@@ -2,14 +2,14 @@ import 'package:flutter/foundation.dart';
 
 import 'entity.dart';
 import 'entity_insight.dart';
-import 'flattened_storage.dart';
 import 'importance_map.dart';
+import 'listenable_storage.dart';
 import 'storage.dart';
 import 'storage_insight.dart';
 import 'trait.dart';
 import 'trait_map.dart';
 
-class InsightfulStorage extends FlattenedStorage {
+class InsightfulStorage extends ListenableStorage {
   final entityInsightNotifier = _ChangeNotifier();
   late final storageInsight = ValueNotifier(const StorageInsight.zero());
   late var _entityCount = super.entityCount;
@@ -30,8 +30,8 @@ class InsightfulStorage extends FlattenedStorage {
     return EntityInsight(
       loss: _loss[entity],
       compromise: _compromise[entity],
-      ancestorCount: getAncestors(entity).length,
-      descendantCount: getDescendants(entity).length,
+      dependencyCount: getDistinctDependencies(entity).length,
+      dependantCount: getDependants(entity).length,
       importance: _importance[entity],
     );
   }
