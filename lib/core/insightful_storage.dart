@@ -42,6 +42,8 @@ class InsightfulStorage extends ListenableStorage
     );
   }
 
+  final _dependencies = <Identity<Entity>, Set<Identity<Entity>>>{};
+  final _dependants = <Identity<Entity>, Set<Identity<Entity>>>{};
   late final _loss = TraitMap(
     getDependants,
     (entity, isLost) {
@@ -86,9 +88,44 @@ class InsightfulStorage extends ListenableStorage
   );
 
   @override
+  getDistinctDependencies(entity) {
+    final dependencies = _dependencies[entity];
+
+    if (dependencies != null) {
+      return dependencies;
+    }
+
+    return _dependencies[entity] =
+        super.getDistinctDependencies(entity).toSet();
+  }
+
+  @override
+  getDependants(entity) {
+    final dependants = _dependants[entity];
+
+    if (dependants != null) {
+      return dependants;
+    }
+
+    return _dependants[entity] = super.getDependants(entity).toSet();
+  }
+
+  @override
   deleteEntity(entity) {
+    final dependencies = getDistinctDependencies(entity.identity);
+    final dependants = getDependants(entity.identity);
+
     super.deleteEntity(entity);
     --_entityCount;
+    _dependencies.remove(entity.identity);
+
+    for (final dependency in dependencies) {
+      _dependants[dependency]?.remove(entity.identity);
+    }
+    for (final dependant in dependants) {
+      _dependencies[dependant]?.remove(entity.identity);
+    }
+
     _loss.toggle(entity.identity, false);
     _compromise.toggle(entity.identity, false);
     _importance.clear(entity.identity);
@@ -119,6 +156,8 @@ class InsightfulStorage extends ListenableStorage
   @override
   addDependencyAsFactor(entity, dependency) {
     super.addDependencyAsFactor(entity, dependency);
+    _dependencies[entity.identity]?.add(dependency);
+    _dependants[dependency]?.add(entity.identity);
     _loss.reevaluateOneWay([entity.identity]);
     _compromise.reevaluateBothWays([entity.identity]);
     _importance.reevaluateOneWay([dependency]);
@@ -128,6 +167,8 @@ class InsightfulStorage extends ListenableStorage
   @override
   addDependency(factor, entity) {
     super.addDependency(factor, entity);
+    _dependencies[factor.entity.identity]?.add(entity);
+    _dependants[entity]?.add(factor.entity.identity);
     _loss.reevaluateBothWays([factor.entity.identity]);
     _compromise.reevaluateBothWays([factor.entity.identity]);
     _importance.reevaluateOneWay([entity]);
@@ -137,6 +178,8 @@ class InsightfulStorage extends ListenableStorage
   @override
   removeDependency(dependency) {
     super.removeDependency(dependency);
+    _dependencies.remove(dependency.factor.entity.identity);
+    _dependants.remove(dependency.identity);
     _loss.reevaluateBothWays([dependency.factor.entity.identity]);
     _compromise.reevaluateBothWays([dependency.factor.entity.identity]);
     _importance.reevaluateBothWays([dependency.identity]);
@@ -152,13 +195,15 @@ class InsightfulStorage extends ListenableStorage
       factor.entity.identity
     };
 
-    _loss.reevaluateBothWays(identities);
-    _compromise.reevaluateBothWays(identities);
-
     if (identities.length > 1) {
+      _dependencies.remove(dependency.factor.entity.identity);
+      _dependencies[factor.entity.identity]?.add(dependency.identity);
+      _dependants.remove(dependency.identity);
       _importance.reevaluateBothWays([dependency.identity]);
     }
 
+    _loss.reevaluateBothWays(identities);
+    _compromise.reevaluateBothWays(identities);
     _update();
   }
 
@@ -168,13 +213,15 @@ class InsightfulStorage extends ListenableStorage
 
     final identities = {dependency.factor.entity.identity, entity.identity};
 
-    _loss.reevaluateBothWays(identities);
-    _compromise.reevaluateBothWays(identities);
-
     if (identities.length > 1) {
+      _dependencies.remove(dependency.factor.entity.identity);
+      _dependencies[entity.identity]?.add(dependency.identity);
+      _dependants.remove(dependency.identity);
       _importance.reevaluateBothWays([dependency.identity]);
     }
 
+    _loss.reevaluateBothWays(identities);
+    _compromise.reevaluateBothWays(identities);
     _update();
   }
 
@@ -184,13 +231,14 @@ class InsightfulStorage extends ListenableStorage
 
     final identities = {into.entity.identity, from.entity.identity};
 
-    _loss.reevaluateBothWays(identities);
-    _compromise.reevaluateBothWays(identities);
-
     if (identities.length > 1) {
+      _dependencies.clear();
+      _dependants.clear();
       _importance.reevaluateBothWays(getDependencies(into.identity));
     }
 
+    _loss.reevaluateBothWays(identities);
+    _compromise.reevaluateBothWays(identities);
     _update();
   }
 
@@ -199,6 +247,8 @@ class InsightfulStorage extends ListenableStorage
     final dependencies = getDependencies(factor.identity);
 
     super.removeFactor(factor);
+    _dependencies.remove(factor.entity.identity);
+    dependencies.forEach(_dependants.remove);
     _loss.reevaluateBothWays([factor.entity.identity]);
     _compromise.reevaluateBothWays([factor.entity.identity]);
     _importance.reevaluateBothWays(dependencies);
