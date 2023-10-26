@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import 'entity.dart';
 import 'entity_insight.dart';
+import 'entity_insight_origin.dart';
 import 'importance_map.dart';
 import 'listenable_storage.dart';
 import 'storage.dart';
@@ -9,8 +10,9 @@ import 'storage_insight.dart';
 import 'trait.dart';
 import 'trait_map.dart';
 
-class InsightfulStorage extends ListenableStorage {
-  final entityInsightNotifier = _ChangeNotifier();
+class InsightfulStorage extends ListenableStorage
+    implements EntityInsightOrigin {
+  final _entityInsightNotifier = _ChangeNotifier();
   late final storageInsight = ValueNotifier(const StorageInsight.zero());
   late var _entityCount = super.entityCount;
 
@@ -26,7 +28,11 @@ class InsightfulStorage extends ListenableStorage {
     _update();
   }
 
-  EntityInsight getEntityInsight(Identity<Entity> entity) {
+  @override
+  ChangeNotifier get entityInsightNotifier => _entityInsightNotifier;
+
+  @override
+  getEntityInsight(entity) {
     return EntityInsight(
       loss: _loss[entity],
       compromise: _compromise[entity],
@@ -229,7 +235,7 @@ class InsightfulStorage extends ListenableStorage {
       lostEntityCount: _loss.length,
       compromisedEntityCount: _compromise.length,
     );
-    entityInsightNotifier._update();
+    _entityInsightNotifier._update();
   }
 
   @override
@@ -241,7 +247,5 @@ class InsightfulStorage extends ListenableStorage {
 }
 
 class _ChangeNotifier extends ChangeNotifier {
-  void _update() {
-    notifyListeners();
-  }
+  void _update() => notifyListeners();
 }

@@ -3,33 +3,28 @@ import 'package:flutter_gen/gen_l10n/messages.dart';
 import 'package:widget_arrows/widget_arrows.dart';
 
 import 'core/edit_subject.dart';
-import 'core/entity_insight.dart';
-import 'core/position.dart';
+import 'core/entity_insight_origin.dart';
 import 'core/traversable_entity.dart';
 import 'entity_theme.dart';
+import 'leading_insight_ribbon.dart';
+import 'trailing_insight_ribbon.dart';
 import 'widget_extension.dart';
 
 class EntityCard extends StatelessWidget {
   final TraversableEntity entity;
   final ValueNotifier<EditSubject> editSubject;
-  final EntityInsight insight;
-  final Position position;
+  final EntityInsightOrigin insightOrigin;
 
   const EntityCard(
     this.entity, {
     required this.editSubject,
-    required this.insight,
-    required this.position,
+    required this.insightOrigin,
     super.key,
   });
 
   @override
   build(context) {
     const padding = EdgeInsets.all(8);
-    const spacer = Spacer();
-    const spacer2 = Spacer(flex: 2);
-
-    final colors = Theme.of(context).colorScheme;
     final messages = AppLocalizations.of(context)!;
     final dependencyIcons = <Widget>[];
 
@@ -57,30 +52,15 @@ class EntityCard extends StatelessWidget {
       dependencyIcons.removeLast();
     }
 
-    final lost = insight.loss != null;
-    final compromised = insight.compromise != null;
-    final importance = insight.importance.boostedValue.clamp(0, 3);
-    final lostIcon = Icon(
-      Icons.not_listed_location,
-      color: colors.onError,
-    ).fit.grow;
-    final compromisedIcon = Icon(
-      Icons.report,
-      color: colors.onError,
-    ).fit.grow;
-
     return [
-      spacer,
+      const Spacer(),
       [
-        [
-          spacer,
-          if (importance > 0)
-            [
-              Spacer(flex: 6 - importance),
-              entity.type.starRibbon(importance).expand(2 * importance),
-              Spacer(flex: 6 - importance),
-            ].column.expand(),
-        ].row.expand(),
+        () {
+          return LeadingInsightRibbon(
+            insightOrigin.getEntityInsight(entity.identity),
+            entity.type,
+          );
+        }.listen(insightOrigin.entityInsightNotifier).expand(),
         ArrowElement(
           id: entity.identity.toString(),
           child: Card(
@@ -89,7 +69,7 @@ class EntityCard extends StatelessWidget {
             shape: const Border(),
             child: InkWell(
               onTap: () {
-                editSubject.value = EntitySubject(position);
+                editSubject.value = EntitySubject(entity.passport.position);
               },
               child: [
                 if (entity.factors.isNotEmpty) dependencyIcons.row.expand(),
@@ -99,83 +79,15 @@ class EntityCard extends StatelessWidget {
             ),
           ),
         ).expand(6),
-        [
-          insight.dependencyCount > 0
-              ? [
-                  Material(
-                    color: colors.surfaceVariant,
-                    child: [
-                      Icon(Icons.arrow_upward, color: colors.onSurfaceVariant)
-                          .fit
-                          .expand(),
-                      Text(
-                        insight.dependencyCount.toString(),
-                        style: TextStyle(color: colors.onSurfaceVariant),
-                      ).fit.expand(),
-                    ].row,
-                  ).grow.expand(),
-                  spacer,
-                ].row.expand()
-              : spacer,
-          (EditSubject subject) {
-            if (subject case EntitySubject subject
-                when subject.position == position) {
-              return Material(
-                color: colors.secondary,
-                child: Icon(
-                  Icons.edit,
-                  color: colors.onSecondary,
-                ).fit.grow,
-              ).expand(2);
-            }
-            return spacer2;
-          }.listen(editSubject),
-          ...switch ((lost, compromised)) {
-            (true, true) => [
-                Material(
-                  color: colors.error,
-                  child: [
-                    lostIcon.expand(),
-                    compromisedIcon.expand(),
-                  ].column,
-                ).expand(4)
-              ],
-            (true, _) => [
-                Material(
-                  color: colors.error,
-                  child: lostIcon,
-                ).expand(2),
-                spacer2
-              ],
-            (_, true) => [
-                spacer2,
-                Material(
-                  color: colors.error,
-                  child: compromisedIcon,
-                ).expand(2),
-              ],
-            _ => [const Spacer(flex: 4)],
-          },
-          insight.dependantCount > 0
-              ? [
-                  Material(
-                    color: colors.surfaceVariant,
-                    child: [
-                      Icon(Icons.arrow_downward, color: colors.onSurfaceVariant)
-                          .fit
-                          .expand(),
-                      Text(
-                        insight.dependantCount.toString(),
-                        style: TextStyle(color: colors.onSurfaceVariant),
-                      ).fit.expand(),
-                    ].row,
-                  ).grow.expand(),
-                  spacer,
-                ].row.expand()
-              : spacer,
-        ].column.expand(),
+        () {
+          return TrailingInsightRibbon(
+            insightOrigin.getEntityInsight(entity.identity),
+            editSubject,
+            entity.passport.position,
+          );
+        }.listen(insightOrigin.entityInsightNotifier).expand(),
       ].row.expand(6),
-      spacer,
+      const Spacer(),
     ].column;
   }
 }

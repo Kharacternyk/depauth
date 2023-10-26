@@ -37,18 +37,15 @@ class EntityGraph extends StatelessWidget {
             final listenableEntity = storage.getListenableEntity(position);
             final cell = (TraversableEntity? entity) {
               return switch (entity) {
-                TraversableEntity entity => () {
-                    return ScaledDraggable(
-                      keepsSpace: false,
-                      dragData: EntityTraveler(entity.passport),
-                      child: EntityCard(
-                        entity,
-                        insight: storage.getEntityInsight(entity.identity),
-                        editSubject: editSubject,
-                        position: position,
-                      ),
-                    ).expand();
-                  }.listen(storage.entityInsightNotifier),
+                TraversableEntity entity => ScaledDraggable(
+                    keepsSpace: false,
+                    dragData: EntityTraveler(entity.passport),
+                    child: EntityCard(
+                      entity,
+                      insightOrigin: storage,
+                      editSubject: editSubject,
+                    ),
+                  ).expand(),
                 null => EntityPlaceholder<GrabbableTraveler>(
                     onDragAccepted: (source) {
                       switch (source) {
