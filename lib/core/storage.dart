@@ -6,6 +6,7 @@ import 'dependency.dart';
 import 'entity.dart';
 import 'entity_type.dart';
 import 'factor.dart';
+import 'passportless_entity.dart';
 import 'position.dart';
 import 'query.dart';
 import 'statement.dart';
@@ -84,6 +85,28 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
           }),
         );
     }
+  }
+
+  late final _passportlessEntityQuery = Query(_database, '''
+    select name, type
+    from entities
+    where identity = ?
+  ''');
+  @override
+  getPassportlessEntity(identity) {
+    final values = _passportlessEntityQuery.selectOne([identity._value]);
+
+    if (values == null) {
+      return null;
+    }
+
+    final [name, type] = values;
+
+    return PassportlessEntity(
+      identity,
+      name as String,
+      EntityType(type as int),
+    );
   }
 
   late final _moveEntityStatement = Statement(_database, '''

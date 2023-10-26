@@ -3,9 +3,12 @@ import 'package:flutter_gen/gen_l10n/messages.dart';
 
 import 'card_form.dart';
 import 'core/active_record_storage.dart';
+import 'core/entity.dart';
 import 'core/entity_insight.dart';
 import 'core/entity_type.dart';
+import 'core/importance_boost.dart';
 import 'core/interleave.dart';
+import 'core/storage.dart';
 import 'core/title_case.dart';
 import 'core/traveler.dart';
 import 'core/traversable_entity.dart';
@@ -37,7 +40,6 @@ class EntityForm extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final messages = AppLocalizations.of(context)!;
     final typeName = entity.type.name(messages);
-    final dependencies = entity.factors.expand((factor) => factor.dependencies);
     final factorCards = <Widget>[];
 
     for (final factor in entity.factors) {
@@ -174,24 +176,30 @@ class EntityForm extends StatelessWidget {
             showSelectedIcon: false,
           ),
         ),
-        if (insight.importance.boost != null)
+        if (insight.importance.boost
+            case ImportanceBoost<Identity<Entity>> boost)
           ListTile(
             leading: const Icon(Icons.upgrade),
-            title: Text(
-              messages.importanceAtLeast(insight.importance.boostedValue),
-            ),
+            title: [
+              Text(
+                [insight.importance.boostedValue, messages.becauseOf].join(),
+              ),
+              if (storage.getPassportlessEntity(boost.origin)
+                  case Entity entity)
+                entity.chip
+            ].wrap,
           ),
       ].column.card,
       TraitSwitch(
         insight.loss,
-        dependencies: dependencies,
+        storage: storage,
         icon: const Icon(Icons.not_listed_location),
         toggle: (value) => storage.toggleLost(entity.passport, value),
         name: messages.lost,
       ),
       TraitSwitch(
         insight.compromise,
-        dependencies: dependencies,
+        storage: storage,
         icon: const Icon(Icons.report),
         toggle: (value) => storage.toggleCompromised(entity.passport, value),
         name: messages.compromised,

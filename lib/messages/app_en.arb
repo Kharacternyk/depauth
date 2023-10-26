@@ -59,14 +59,6 @@
   "lost": "Unreachable",
   "compromised": "Compromised",
   "becauseOf": " because of:",
-  "importanceAtLeast": "Cannot be less than {value} because some cards that depend on this one have {value}.",
-  "@importanceAtLeast": {
-    "placeholders": {
-      "value": {
-        "type": "int"
-      }
-    }
-  },
   "accessTip": "To access this {entityType}, one needs to have access to…",
   "@accessTip": {
     "placeholders": {

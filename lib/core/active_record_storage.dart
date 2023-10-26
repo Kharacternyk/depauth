@@ -1,9 +1,13 @@
 import 'entity.dart';
 import 'entity_type.dart';
+import 'passportless_entity.dart';
 import 'storage.dart';
 
 abstract interface class ActiveRecordStorage {
   bool get disposed;
+
+  PassportlessEntity? getPassportlessEntity(Identity<Entity> identity);
+
   void changeName(EntityPassport entity, String name);
   void changeType(EntityPassport entity, EntityType type);
   void changeImportance(EntityPassport entity, int value);
