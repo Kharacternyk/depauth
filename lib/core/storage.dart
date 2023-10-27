@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+
+import 'package:cross_file/cross_file.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 import 'active_record_storage.dart';
@@ -502,7 +505,7 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     required this.entityDuplicateSuffix,
   }) : _database = sqlite3.open(path) {
     _database.execute('''
-      pragma application_id = 1147498561;
+      pragma application_id = $_applicationIdentity;
       pragma foreign_keys = true;
       pragma auto_vacuum = full;
       pragma cache_size = -100000;
@@ -568,6 +571,57 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     _database.dispose();
     super.dispose();
   }
+
+  static Future<bool> isStorage(XFile file) async {
+    final builder = BytesBuilder();
+
+    await file.openRead(0, 100).forEach(builder.add);
+
+    final bytes = builder.takeBytes();
+
+    if (bytes.isEmpty) {
+      return true;
+    }
+    if (bytes.length < 100) {
+      return false;
+    }
+
+    const magic = [
+      83,
+      81,
+      76,
+      105,
+      116,
+      101,
+      32,
+      102,
+      111,
+      114,
+      109,
+      97,
+      116,
+      32,
+      51,
+      0,
+    ];
+
+    for (var i = 0; i < magic.length; ++i) {
+      if (bytes[i] != magic[i]) {
+        return false;
+      }
+    }
+
+    var identity = 0;
+
+    for (var i = 0; i < 4; ++i) {
+      identity <<= 8;
+      identity += bytes[68 + i];
+    }
+
+    return identity == _applicationIdentity;
+  }
+
+  static const _applicationIdentity = 1147498561;
 }
 
 class DependencyPassport {

@@ -34,14 +34,7 @@
       }
     }
   },
-  "storageImported": "Imported as {storageName}.",
-  "@storageImported": {
-    "placeholders": {
-      "storageName": {
-        "type": "String"
-      }
-    }
-  },
+  "notStorage": "The selected file is not a DepAuth document.",
   "back": "Back",
   "otherStorages": "Other documents",
   "bulkCardActions": "Bulk card actions",

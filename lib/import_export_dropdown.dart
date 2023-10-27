@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'card_dropdown.dart';
 import 'context_messanger.dart';
 import 'core/inactive_storage_directory.dart';
+import 'core/storage.dart';
 import 'core/traveler.dart';
 import 'tip.dart';
 
@@ -35,13 +36,17 @@ class ImportExportDropdown extends StatelessWidget {
           title: Text(messages.importStorage),
           subtitle: Text(messages.importWarning),
           onTap: () async {
+            if (directory.locked) {
+              return;
+            }
+
             final file = await openFile(acceptedTypeGroups: _typeGroups);
 
             if (file != null) {
-              final storage = await directory.importStorage(file.path);
-
-              if (storage != null && context.mounted) {
-                context.pushMessage(messages.storageImported(storage.name));
+              if (await Storage.isStorage(file)) {
+                directory.importStorage(file);
+              } else if (context.mounted) {
+                context.pushMessage(messages.notStorage);
               }
             }
           },

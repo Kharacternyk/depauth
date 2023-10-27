@@ -7,6 +7,7 @@ environment:
 
 dependencies:
   assorted_layout_widgets: ^8.0.4
+  cross_file: ^0.3.3+6
   file_selector: ^1.0.1
   flutter:
     sdk: flutter

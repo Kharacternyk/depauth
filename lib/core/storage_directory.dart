@@ -62,7 +62,7 @@ class StorageDirectory implements InactiveStorageDirectory {
   @override
   createStorage() {
     return withLock(() async {
-      final storage = _getPassport('');
+      final storage = _getPassport();
 
       await File(storage.path).create();
       _storages.addSecond(storage);
@@ -73,12 +73,14 @@ class StorageDirectory implements InactiveStorageDirectory {
   }
 
   @override
-  importStorage(path) {
+  importStorage(file) {
     return withLock(() async {
-      final storage = _getPassport(basenameWithoutExtension(path));
+      final storage = _getPassport(withoutExtension(file.name));
 
-      await File(path).copy(storage.path);
-      _storages.addSecond(storage);
+      await file.saveTo(storage.path);
+      _disposeActiveStorage();
+      _storages.addFirst(storage);
+      activeStorage.value = _getStorage();
       inactiveStorages.value = _storages.tail;
 
       return storage;
@@ -135,15 +137,20 @@ class StorageDirectory implements InactiveStorageDirectory {
   }
 
   InsightfulStorage _getStorage() {
-    return InsightfulStorage(
-      name: _storages.first.name,
-      path: _storages.first.path,
-      entityDuplicatePrefix: _configuration.entityDuplicatePrefix,
-      entityDuplicateSuffix: _configuration.entityDuplicateSuffix,
-    );
+    try {
+      return InsightfulStorage(
+        name: _storages.first.name,
+        path: _storages.first.path,
+        entityDuplicatePrefix: _configuration.entityDuplicatePrefix,
+        entityDuplicateSuffix: _configuration.entityDuplicateSuffix,
+      );
+    } on Exception {
+      _storages.addFirst(_storages.tail.firstOrNull ?? _getPassport());
+      return _getStorage();
+    }
   }
 
-  StoragePassport _getPassport(String name) {
+  StoragePassport _getPassport([String name = '']) {
     final sanitized = sanitizeFilename(name);
     final notEmptySanitized =
         sanitized.isEmpty ? _configuration.newStorageName : sanitized;
