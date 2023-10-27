@@ -57,6 +57,7 @@
   "importStorage": "Import document",
   "importWarning": "Avoid importing documents from untrusted sources.",
   "exportTip": "Drag other documents here to export them.",
+  "zoomTip": "Scroll or use the gesture to zoom in on cards.",
   "autoSaveTip": "All changes are saved automatically.",
   "and": "and",
   "or": "or",

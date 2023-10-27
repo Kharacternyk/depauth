@@ -82,6 +82,7 @@ class StorageForm extends StatelessWidget {
           messages.editEntityTip,
           messages.moveEntityTip,
           messages.deleteEntityTip,
+          messages.zoomTip,
         ].map(Tip.onSurfaceVariant),
       Tip.onSurfaceVariant(messages.autoSaveTip),
     ]);
