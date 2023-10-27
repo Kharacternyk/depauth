@@ -34,6 +34,14 @@
       }
     }
   },
+  "storageImported": "Imported as {storageName}.",
+  "@storageImported": {
+    "placeholders": {
+      "storageName": {
+        "type": "String"
+      }
+    }
+  },
   "back": "Back",
   "otherStorages": "Other documents",
   "bulkCardActions": "Bulk card actions",
@@ -52,6 +60,10 @@
   "newStorageTip": "Drag the + button here to create a new document.",
   "selectStorageTip": "Click or tap on a document to view and edit it.",
   "deleteStorageTip": "Drag a document onto the delete button to delete it.",
+  "importAndExport": "Export and import",
+  "importStorage": "Import document",
+  "importWarning": "Avoid importing documents from untrusted sources.",
+  "exportTip": "Drag other documents here to export them.",
   "autoSaveTip": "All changes are saved automatically.",
   "and": "and",
   "or": "or",

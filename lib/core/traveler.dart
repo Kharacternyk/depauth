@@ -1,5 +1,6 @@
 import 'entity.dart';
 import 'storage.dart';
+import 'storage_directory.dart';
 
 sealed class GrabbableTraveler {}
 
@@ -49,7 +50,7 @@ class DependencyTraveler
 }
 
 class StorageTraveler implements DeletableTraveler {
-  final String storageName;
+  final StoragePassport passport;
 
-  const StorageTraveler(this.storageName);
+  const StorageTraveler(this.passport);
 }

@@ -4,153 +4,178 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:sanitize_filename/sanitize_filename.dart';
 
+import 'inactive_storage_directory.dart';
 import 'insightful_storage.dart';
 import 'set_queue.dart';
 import 'storage_directory_configuration.dart';
 
-class StorageDirectory {
-  final String storagesPath;
-  final SetQueue<String> _storageNames;
-  final StorageDirectoryConfiguration configuration;
+class StorageDirectory implements InactiveStorageDirectory {
+  final String _path;
+  final Iterable<String> _initialContent;
+  final StorageDirectoryConfiguration _configuration;
 
+  @override
+  late final inactiveStorages = ValueNotifier(_storages.tail);
+  late final activeStorage = ValueNotifier(_getStorage());
+  late final _storages = SetQueue(_initialContent.map(_getInitialPassport));
   final pendingOperationProgress = ValueNotifier<double?>(null);
-  late final siblingNames = ValueNotifier<Iterable<String>>(_storageNames.tail);
+  var _locked = false;
 
-  late var _currentStorage = _getStorage();
+  @override
+  bool get locked => _locked;
 
-  InsightfulStorage get currentStorage => _currentStorage;
-
-  StorageDirectory(
-    this.storagesPath,
-    Iterable<String> storageNames,
-    this.configuration,
-  ) : _storageNames = SetQueue(storageNames);
+  StorageDirectory(this._path, this._initialContent, this._configuration);
 
   void dispose() {
     pendingOperationProgress.dispose();
-    siblingNames.dispose();
-    currentStorage.dispose();
+    inactiveStorages.dispose();
+    activeStorage.dispose();
   }
 
-  Future<String?> copyCurrentStorage() async {
-    if (pendingOperationProgress.value != null) {
-      return null;
-    }
+  Future<StoragePassport?> copyActiveStorage() {
+    return withLock(() async {
+      final copy = _getPassport(
+          _configuration.getNameOfStorageCopy(activeStorage.value.name));
 
-    final name = _deduplicateName(_sanitize(
-      configuration.getNameOfStorageCopy(_currentStorage.name),
-    ));
+      await for (final progress in activeStorage.value.copy(copy.path)) {
+        pendingOperationProgress.value = progress;
+      }
 
-    pendingOperationProgress.value = 0;
+      _storages.addSecond(copy);
+      inactiveStorages.value = _storages.tail;
 
-    await for (final progress in _currentStorage.copy(_getPath(name))) {
-      pendingOperationProgress.value = progress;
-    }
-
-    pendingOperationProgress.value = null;
-
-    _storageNames.addSecond(name);
-    siblingNames.value = _storageNames.tail;
-
-    return name;
+      return copy;
+    });
   }
 
-  Future<void> deleteStorage(String name) async {
-    if (pendingOperationProgress.value != null) {
+  Future<void> deleteStorage(StoragePassport storage) {
+    return withLock(() async {
+      if (_storages.contains(storage) && storage != _storages.first) {
+        await File(storage.path).delete();
+
+        _storages.remove(storage);
+        inactiveStorages.value = _storages.tail;
+      }
+    });
+  }
+
+  @override
+  createStorage() {
+    return withLock(() async {
+      final storage = _getPassport('');
+
+      await File(storage.path).create();
+      _storages.addSecond(storage);
+      inactiveStorages.value = _storages.tail;
+
+      return storage;
+    });
+  }
+
+  @override
+  importStorage(path) {
+    return withLock(() async {
+      final storage = _getPassport(basenameWithoutExtension(path));
+
+      await File(path).copy(storage.path);
+      _storages.addSecond(storage);
+      inactiveStorages.value = _storages.tail;
+
+      return storage;
+    });
+  }
+
+  @override
+  switchStorage(storage) {
+    if (locked) {
       return;
     }
 
-    if (_storageNames.contains(name) && name != _storageNames.first) {
+    _disposeActiveStorage();
+    _storages.addFirst(storage);
+    activeStorage.value = _getStorage();
+    inactiveStorages.value = _storages.tail;
+  }
+
+  @override
+  withLock<T>(operate) async {
+    if (!_locked) {
       pendingOperationProgress.value = 0;
-      await File(_getPath(name)).delete();
+      _locked = true;
+
+      final result = await operate();
+
+      _locked = false;
       pendingOperationProgress.value = null;
 
-      _storageNames.remove(name);
-      siblingNames.value = _storageNames.tail;
+      return result;
     }
+
+    return null;
   }
 
-  Future<String?> createStorage() async {
-    if (pendingOperationProgress.value != null) {
-      return null;
+  void _disposeActiveStorage() {
+    final initialStorage = _storages.first;
+
+    _storages.remove(initialStorage);
+
+    final updatedStorage = _getPassport(activeStorage.value.name);
+
+    if (updatedStorage.name != activeStorage.value.name) {
+      activeStorage.value.name = updatedStorage.name;
     }
 
-    final name = _deduplicateName(configuration.newStorageName);
+    activeStorage.value.dispose();
 
-    pendingOperationProgress.value = 0;
-    await File(_getPath(name)).create();
-    pendingOperationProgress.value = null;
-
-    _storageNames.addSecond(name);
-    siblingNames.value = _storageNames.tail;
-
-    return name;
-  }
-
-  void switchStorage(String name) {
-    if (pendingOperationProgress.value != null) {
-      return;
+    if (updatedStorage.name != initialStorage.name) {
+      File(initialStorage.path).renameSync(updatedStorage.path);
     }
 
-    _disposeCurrentStorage();
-    _storageNames.addFirst(_sanitize(name));
-    _currentStorage = _getStorage();
-  }
-
-  void _disposeCurrentStorage() {
-    final initialCurrentStorageName = _storageNames.first;
-
-    _storageNames.remove(initialCurrentStorageName);
-
-    final actualCurrentStorageName =
-        _deduplicateName(_sanitize(_currentStorage.name));
-
-    if (actualCurrentStorageName != _currentStorage.name) {
-      _currentStorage.name = actualCurrentStorageName;
-    }
-
-    _currentStorage.dispose();
-
-    if (actualCurrentStorageName != initialCurrentStorageName) {
-      File(_getPath(initialCurrentStorageName))
-          .renameSync(_getPath(actualCurrentStorageName));
-    }
-
-    _storageNames.addFirst(actualCurrentStorageName);
-  }
-
-  String _sanitize(String name) {
-    final sanitized = sanitizeFilename(name);
-
-    if (sanitized.isEmpty) {
-      return configuration.newStorageName;
-    }
-
-    return sanitized;
-  }
-
-  String _deduplicateName(String name) {
-    var deduplicatedName = name;
-    var i = 0;
-
-    while (_storageNames.contains(deduplicatedName)) {
-      ++i;
-      deduplicatedName = configuration.deduplicateStorageName(name, i);
-    }
-
-    return deduplicatedName;
+    _storages.addFirst(updatedStorage);
   }
 
   InsightfulStorage _getStorage() {
     return InsightfulStorage(
-      name: _storageNames.first,
-      path: _getPath(_storageNames.first),
-      entityDuplicatePrefix: configuration.entityDuplicatePrefix,
-      entityDuplicateSuffix: configuration.entityDuplicateSuffix,
+      name: _storages.first.name,
+      path: _storages.first.path,
+      entityDuplicatePrefix: _configuration.entityDuplicatePrefix,
+      entityDuplicateSuffix: _configuration.entityDuplicateSuffix,
     );
   }
 
-  String _getPath(String name) {
-    return join(storagesPath, name + configuration.applicationFileExtension);
+  StoragePassport _getPassport(String name) {
+    final sanitized = sanitizeFilename(name);
+    final notEmptySanitized =
+        sanitized.isEmpty ? _configuration.newStorageName : sanitized;
+    var deduplicated = _getInitialPassport(notEmptySanitized);
+
+    for (var i = 1; _storages.contains(deduplicated); ++i) {
+      deduplicated = _getInitialPassport(
+        _configuration.deduplicateStorageName(notEmptySanitized, i),
+      );
+    }
+
+    return deduplicated;
   }
+
+  StoragePassport _getInitialPassport(String name) {
+    return StoragePassport._(
+      name: name,
+      path: join(_path, name + _configuration.applicationFileExtension),
+    );
+  }
+}
+
+class StoragePassport {
+  final String name;
+  final String path;
+
+  const StoragePassport._({required this.name, required this.path});
+
+  @override
+  operator ==(Object other) =>
+      other is StoragePassport && name == other.name && path == other.path;
+
+  @override
+  int get hashCode => Object.hash(name, path);
 }

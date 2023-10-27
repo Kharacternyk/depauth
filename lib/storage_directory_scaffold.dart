@@ -4,10 +4,12 @@ import 'package:flutter_gen/gen_l10n/messages.dart';
 import 'bottom_bar.dart';
 import 'context_messanger.dart';
 import 'core/edit_subject.dart';
+import 'core/insightful_storage.dart';
 import 'core/storage_directory.dart';
 import 'core/storage_directory_configuration.dart';
 import 'core/storage_directory_loader.dart';
 import 'core/traveler.dart';
+import 'import_export_dropdown.dart';
 import 'storage_directory_dropdown.dart';
 import 'storage_insight_row.dart';
 import 'storage_scaffold.dart';
@@ -64,70 +66,69 @@ class _State extends State<StorageDirectoryScaffold> {
 
   @override
   build(context) {
-    if (storageDirectory case StorageDirectory storageDirectory) {
-      final storage = storageDirectory.currentStorage;
-      final messages = AppLocalizations.of(context)!;
+    final storageDirectory = this.storageDirectory;
 
-      return (Iterable<String> siblingNames) {
-        return StorageScaffold(
-          storage: storage,
-          editSubject: editSubject,
-          formHasTraveler: formHasTraveler,
-          viewRegion: viewRegion,
-          formChildren: [
-            (double? progress) {
-              return ListTile(
-                leading: const Icon(Icons.file_copy),
-                title: switch (progress) {
-                  null => Text(messages.copyStorage),
-                  double progress => LinearProgressIndicator(value: progress),
-                },
-                onTap: progress == null
-                    ? () async {
-                        final copyName =
-                            await storageDirectory.copyCurrentStorage();
-
-                        if (copyName != null && context.mounted) {
-                          context.pushMessage(messages.storageCopied(copyName));
-                        }
-                      }
-                    : null,
-              );
-            }.listen(storageDirectory.pendingOperationProgress).card,
-            StorageDirectoryDropdown(
-              siblingNames: siblingNames,
-              selectStorage: (name) {
-                setState(() {
-                  storageDirectory.switchStorage(name);
-                });
-              },
-              createStorage: storageDirectory.createStorage,
-            )
-          ],
-          bottomBar: BottomBar(
-            children: [
-              ViewRegionIndicator.new.listen(viewRegion),
-              StorageInsightRow.new.listen(
-                storageDirectory.currentStorage.storageInsight,
-              ),
-            ],
-            delete: (traveler) {
-              switch (traveler) {
-                case EntityTraveler traveler:
-                  storage.deleteEntity(traveler.passport);
-                case FactorTraveler traveler:
-                  storage.removeFactor(traveler.passport);
-                case DependencyTraveler traveler:
-                  storage.removeDependency(traveler.passport);
-                case StorageTraveler traveler:
-                  storageDirectory.deleteStorage(traveler.storageName);
-              }
-            },
-          ),
-        );
-      }.listen(storageDirectory.siblingNames);
+    if (storageDirectory == null) {
+      return const Center(child: CircularProgressIndicator());
     }
 
-    return const Center(child: CircularProgressIndicator());
+    final messages = AppLocalizations.of(context)!;
+    final dropdown = StorageDirectoryDropdown(storageDirectory);
+
+    return (InsightfulStorage storage) {
+      return StorageScaffold(
+        storage: storage,
+        editSubject: editSubject,
+        formHasTraveler: formHasTraveler,
+        viewRegion: viewRegion,
+        formChildren: [
+          (double? progress) {
+            return ListTile(
+              title: Text(messages.copyStorage),
+              leading: switch (progress) {
+                null => const Icon(Icons.file_copy),
+                double progress => SizedBox.square(
+                    dimension: 24,
+                    child: CircularProgressIndicator(
+                      value: progress > 0 ? progress : null,
+                    ),
+                  ),
+              },
+              enabled: progress == null,
+              onTap: () async {
+                final copy = await storageDirectory.copyActiveStorage();
+
+                if (copy != null && context.mounted) {
+                  context.pushMessage(messages.storageCopied(copy.name));
+                }
+              },
+            );
+          }.listen(storageDirectory.pendingOperationProgress).card,
+          dropdown,
+          ImportExportDropdown(
+            storageDirectory,
+            widget.configuration.applicationFileExtension,
+          ),
+        ],
+        bottomBar: BottomBar(
+          children: [
+            ViewRegionIndicator.new.listen(viewRegion),
+            StorageInsightRow.new.listen(storage.storageInsight),
+          ],
+          delete: (traveler) {
+            switch (traveler) {
+              case EntityTraveler traveler:
+                storage.deleteEntity(traveler.passport);
+              case FactorTraveler traveler:
+                storage.removeFactor(traveler.passport);
+              case DependencyTraveler traveler:
+                storage.removeDependency(traveler.passport);
+              case StorageTraveler traveler:
+                storageDirectory.deleteStorage(traveler.passport);
+            }
+          },
+        ),
+      );
+    }.listen(storageDirectory.activeStorage);
   }
 }
