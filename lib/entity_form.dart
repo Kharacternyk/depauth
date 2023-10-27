@@ -5,7 +5,6 @@ import 'card_form.dart';
 import 'core/active_record_storage.dart';
 import 'core/entity.dart';
 import 'core/entity_insight.dart';
-import 'core/entity_type.dart';
 import 'core/importance_boost.dart';
 import 'core/interleave.dart';
 import 'core/storage.dart';
@@ -150,7 +149,7 @@ class EntityForm extends StatelessWidget {
                 ),
             ],
             onChanged: (type) {
-              if (type case EntityType type) {
+              if (type != null) {
                 storage.changeType(entity.passport, type);
               }
             },

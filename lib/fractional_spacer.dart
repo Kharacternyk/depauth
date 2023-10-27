@@ -14,16 +14,15 @@ class FractionalSpacer extends StatelessWidget {
 
   @override
   build(context) {
+    final child = this.child;
     final flex = (this.flex * factor).round();
 
     if (flex <= 0) {
       return const SizedBox.shrink();
     }
 
-    if (child case Widget child) {
-      return Expanded(flex: flex, child: child);
-    }
-
-    return Spacer(flex: flex);
+    return child != null
+        ? Expanded(flex: flex, child: child)
+        : Spacer(flex: flex);
   }
 }
