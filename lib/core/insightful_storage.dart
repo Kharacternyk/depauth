@@ -281,6 +281,7 @@ class InsightfulStorage extends ListenableStorage
 
   void _update() {
     storageInsight.value = StorageInsight(
+      totalImportance: _importance.sum,
       entityCount: _entityCount,
       lostEntityCount: _loss.length,
       compromisedEntityCount: _compromise.length,

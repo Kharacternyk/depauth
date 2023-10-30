@@ -26,6 +26,14 @@ class StorageInsightRow extends StatelessWidget {
                 style: TextStyle(color: colors.onSurfaceVariant),
               ).fit.expand(),
             ].column.pad(padding),
+          if (insight.totalImportance > 0)
+            [
+              const Icon(Icons.star).fit.expand(),
+              Text(
+                insight.totalImportance.toString(),
+                style: TextStyle(color: colors.onSurfaceVariant),
+              ).fit.expand(),
+            ].column.pad(padding),
           if (insight.lostEntityCount > 0)
             [
               const Icon(Icons.not_listed_location).fit.expand(),

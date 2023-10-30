@@ -7,6 +7,9 @@ class ImportanceMap<K> {
   final _boosts = <K, ImportanceBoost<K>>{};
   final Iterable<K> Function(K) getDependencies;
   final Iterable<K> Function(K) getDependants;
+  var _sum = 0;
+
+  int get sum => _sum;
 
   ImportanceMap({required this.getDependencies, required this.getDependants});
 
@@ -16,9 +19,12 @@ class ImportanceMap<K> {
 
   void clear(K key) {
     final value = _own.remove(key);
-    final boost = _boosts.remove(value);
+    final boost = _boosts.remove(key);
 
-    if (value != null && boost == null) {
+    _sum -= value ?? 0;
+    _sum -= boost?.value ?? 0;
+
+    if (value != null || boost != null) {
       _reevaluateAll();
     }
   }
@@ -36,6 +42,7 @@ class ImportanceMap<K> {
     if (value > importance.value) {
       if (value >= importance.boostedValue) {
         _boosts.remove(key);
+        _sum += value - importance.boostedValue;
 
         if (value > importance.boostedValue) {
           reevaluateOneWay(getDependencies(key));
@@ -83,9 +90,11 @@ class ImportanceMap<K> {
           dependant,
         );
       }).fold(null, ImportanceBoost.max);
+      final delta = (boost?.value ?? 0) - (importance.boost?.value ?? 0);
 
-      if (boost != null && boost.value > (importance.boost?.value ?? 0)) {
+      if (boost != null && delta > 0) {
         _boosts[key] = boost;
+        _sum += delta;
 
         return getDependencies(key);
       }
@@ -96,6 +105,7 @@ class ImportanceMap<K> {
 
   void _reevaluateAll() {
     _boosts.clear();
+    _sum = _own.values.fold(0, (sum, value) => sum + value);
     reevaluateOneWay(_own.keys.expand(getDependencies));
   }
 }
