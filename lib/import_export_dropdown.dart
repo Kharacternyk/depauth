@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
@@ -25,7 +27,8 @@ class ImportExportDropdown extends StatelessWidget {
 
   @override
   build(context) {
-    late final colors = Theme.of(context).colorScheme;
+    late final theme = Theme.of(context);
+    late final colors = theme.colorScheme;
     final messages = AppLocalizations.of(context)!;
     final dropdown = CardDropdown(
       leading: const Icon(Icons.drive_file_move),
@@ -65,7 +68,19 @@ class ImportExportDropdown extends StatelessWidget {
       onWillAccept: (traveler) => !directory.locked,
       onAccept: (traveler) {
         directory.withLock(() async {
-          await Share.shareXFiles([XFile(traveler.passport.path)]);
+          if (theme.platform == TargetPlatform.android ||
+              theme.platform == TargetPlatform.iOS) {
+            await Share.shareXFiles([XFile(traveler.passport.path)]);
+          } else {
+            final location = await getSaveLocation(
+              suggestedName:
+                  traveler.passport.name + messages.applicationFileExtension,
+            );
+
+            if (location != null) {
+              await File(traveler.passport.path).copy(location.path);
+            }
+          }
         });
       },
     );
