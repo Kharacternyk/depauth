@@ -30,6 +30,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^2.0.0
   flutter_launcher_icons: ^0.13.1
+  msix: ^3.16.6
 
 flutter:
   uses-material-design: true
@@ -45,3 +46,11 @@ flutter_launcher_icons:
   image_path: misc/square.png
   adaptive_icon_background: "#004d64"
   adaptive_icon_foreground: misc/square.png
+
+msix_config:
+  display_name: DepAuth
+  publisher_display_name: Nazar Vinnichuk
+  identity_name: 42626NazarVinnichuk.DepAuth
+  publisher: CN=380FADA1-3D36-4086-BD01-792DE16F16EE
+  msix_version: 1.0.0.0
+  logo_path: misc/square.png
