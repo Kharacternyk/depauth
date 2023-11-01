@@ -14,7 +14,11 @@ Future<StorageDirectory> loadStorageDirectory(
   var documentsDirectory = Directory(fallbackDocumentsPath);
 
   try {
-    documentsDirectory = await getApplicationDocumentsDirectory();
+    if (Platform.isWindows) {
+      documentsDirectory = await getApplicationSupportDirectory();
+    } else {
+      documentsDirectory = await getApplicationDocumentsDirectory();
+    }
   } on MissingPlatformDirectoryException {}
 
   final storagesDirectory = Directory(
