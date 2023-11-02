@@ -54,3 +54,4 @@ msix_config:
   publisher: CN=380FADA1-3D36-4086-BD01-792DE16F16EE
   msix_version: 1.0.0.0
   logo_path: misc/square.png
+  store: true
