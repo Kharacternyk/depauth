@@ -4,6 +4,7 @@ import 'package:widget_arrows/widget_arrows.dart';
 
 import 'core/edit_subject.dart';
 import 'core/entity_insight_origin.dart';
+import 'core/title_case.dart';
 import 'core/traversable_entity.dart';
 import 'entity_theme.dart';
 import 'leading_insight_ribbon.dart';
@@ -39,6 +40,7 @@ class EntityCard extends StatelessWidget {
                 ].join(messages.arrowIdentitySeparator),
                 target: dependency.identity.toString(),
               )
+              .tip(dependency.name, 20)
               .expand()
               .keyed(ValueKey((factor.identity, dependency.identity))),
         );
@@ -74,7 +76,11 @@ class EntityCard extends StatelessWidget {
               child: [
                 if (entity.factors.isNotEmpty) dependencyIcons.row.expand(),
                 Text(entity.name).pad(padding).fit.expand(),
-                entity.type.banner.expand(),
+                entity.type.banner
+                    .tip(
+                      entity.type.name(messages).title(messages.wordSeparator),
+                    )
+                    .expand(),
               ].column,
             ),
           ),

@@ -8,9 +8,14 @@ extension WidgetExtension on Widget {
   Card get card => Card(child: this);
   Opacity hideIf(bool condition) =>
       Opacity(opacity: condition ? 0 : 1, child: this);
-  Tooltip tip(String message) => Tooltip(message: message, child: this);
   FocusTraversalGroup get group => FocusTraversalGroup(child: this);
   KeyedSubtree keyed(Key key) => KeyedSubtree(key: key, child: this);
+  Tooltip tip(String message, [double? offset]) => Tooltip(
+        message: message,
+        preferBelow: offset == null ? null : false,
+        verticalOffset: offset,
+        child: this,
+      );
 }
 
 extension WidgetListExtension on List<Widget> {
