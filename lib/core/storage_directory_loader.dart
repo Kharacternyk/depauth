@@ -9,13 +9,9 @@ import 'storage_directory_configuration.dart';
 Future<StorageDirectory> loadStorageDirectory(
   StorageDirectoryConfiguration configuration,
 ) async {
-  final Directory storagesDirectory;
-
-  if (Platform.isAndroid) {
-    storagesDirectory = await getApplicationDocumentsDirectory();
-  } else {
-    storagesDirectory = await getApplicationSupportDirectory();
-  }
+  final storagesDirectory = Platform.isAndroid
+      ? await getApplicationDocumentsDirectory()
+      : await getApplicationSupportDirectory();
 
   await storagesDirectory.create(recursive: true);
 
