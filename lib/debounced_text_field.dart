@@ -23,7 +23,7 @@ class DebouncedTextField extends StatefulWidget {
 }
 
 class _State extends State<DebouncedTextField> {
-  late var controller = TextEditingController(text: widget.value);
+  late final controller = TextEditingController(text: widget.value);
   Timer? debouncer;
 
   @override
