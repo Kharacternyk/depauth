@@ -19,38 +19,24 @@ Future<StorageDirectory> loadStorageDirectory(
 
   await storagesDirectory.create(recursive: true);
 
-  final storages = <_Storage>[];
-
-  await for (final file in storagesDirectory.list()) {
-    if (file is File &&
-        extension(file.path) == configuration.applicationFileExtension) {
-      final stat = await file.stat();
-
-      storages.add(
-        _Storage(
-          basenameWithoutExtension(file.path),
-          stat.accessed.microsecondsSinceEpoch,
-        ),
-      );
-    }
-  }
+  final storages = [
+    await for (final file in storagesDirectory.list())
+      if (file is File &&
+          extension(file.path) == configuration.applicationFileExtension)
+        (
+          name: basenameWithoutExtension(file.path),
+          timestamp: (await file.stat()).accessed.microsecondsSinceEpoch,
+        )
+  ];
 
   storages.sort((first, second) {
     return second.timestamp.compareTo(first.timestamp);
   });
 
-  var storageNames = storages.map((storage) => storage.name);
-
-  if (storageNames.isEmpty) {
-    storageNames = [configuration.newStorageName];
-  }
+  final existingStorageNames = storages.map((storage) => storage.name);
+  final storageNames = existingStorageNames.isEmpty
+      ? [configuration.newStorageName]
+      : existingStorageNames;
 
   return StorageDirectory(storagesDirectory.path, storageNames, configuration);
-}
-
-class _Storage {
-  final String name;
-  final int timestamp;
-
-  const _Storage(this.name, this.timestamp);
 }
