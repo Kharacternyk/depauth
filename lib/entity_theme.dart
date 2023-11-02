@@ -6,7 +6,7 @@ import 'scaled_line.dart';
 import 'widget_extension.dart';
 
 extension EntityTheme on EntityType {
-  static Iterable<EntityType> knownTypes = [
+  static final Iterable<EntityType> knownTypes = [
     for (final (value, _, _, _) in _known) EntityType(value)
   ];
 
