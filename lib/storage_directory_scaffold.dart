@@ -20,12 +20,10 @@ import 'widget_extension.dart';
 class StorageDirectoryScaffold extends StatefulWidget {
   final StorageDirectoryConfiguration configuration;
   final String applicationName;
-  final String fallbackDocumentsPath;
 
   const StorageDirectoryScaffold(
     this.configuration, {
     required this.applicationName,
-    required this.fallbackDocumentsPath,
     super.key,
   });
 
@@ -53,11 +51,7 @@ class _State extends State<StorageDirectoryScaffold> {
   @override
   initState() {
     super.initState();
-    loadStorageDirectory(
-      widget.configuration,
-      applicationName: widget.applicationName,
-      fallbackDocumentsPath: widget.fallbackDocumentsPath,
-    ).then((directory) {
+    loadStorageDirectory(widget.configuration).then((directory) {
       setState(() {
         storageDirectory = directory;
       });

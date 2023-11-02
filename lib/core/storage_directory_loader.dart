@@ -7,23 +7,15 @@ import 'storage_directory.dart';
 import 'storage_directory_configuration.dart';
 
 Future<StorageDirectory> loadStorageDirectory(
-  StorageDirectoryConfiguration configuration, {
-  required String fallbackDocumentsPath,
-  required String applicationName,
-}) async {
-  var documentsDirectory = Directory(fallbackDocumentsPath);
+  StorageDirectoryConfiguration configuration,
+) async {
+  final Directory storagesDirectory;
 
-  try {
-    if (Platform.isWindows) {
-      documentsDirectory = await getApplicationSupportDirectory();
-    } else {
-      documentsDirectory = await getApplicationDocumentsDirectory();
-    }
-  } on MissingPlatformDirectoryException {}
-
-  final storagesDirectory = Directory(
-    join(documentsDirectory.path, applicationName),
-  );
+  if (Platform.isAndroid) {
+    storagesDirectory = await getApplicationDocumentsDirectory();
+  } else {
+    storagesDirectory = await getApplicationSupportDirectory();
+  }
 
   await storagesDirectory.create(recursive: true);
 

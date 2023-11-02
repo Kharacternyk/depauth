@@ -3,7 +3,6 @@
   "applicationFileExtension": ".depauth",
   "entityDuplicatePrefix": " (",
   "entityDuplicateSuffix": ")",
-  "fallbackDocumentsPath": ".",
   "wordSeparator": " ",
   "arrowIdentitySeparator": ":",
   "newStorageName": "New Document",

@@ -89,7 +89,7 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "Nazar Vinnichuk" "\0"
+            VALUE "CompanyName", "DepAuth" "\0"
             VALUE "FileDescription", "DepAuth" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "depauth" "\0"

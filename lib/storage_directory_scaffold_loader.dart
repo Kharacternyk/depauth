@@ -20,7 +20,6 @@ class StorageDirectoryScaffoldLoader extends StatelessWidget {
         deduplicateStorageName: messages.deduplicatedStorageName,
         getNameOfStorageCopy: messages.storageCopy,
       ),
-      fallbackDocumentsPath: messages.fallbackDocumentsPath,
       applicationName: messages.applicationName,
     );
   }
