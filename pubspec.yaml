@@ -55,3 +55,4 @@ msix_config:
   msix_version: 1.0.0.0
   logo_path: misc/square.png
   store: true
+  windows_build_args: --obfuscate --split-debug-info=debug-info
