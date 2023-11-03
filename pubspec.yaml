@@ -55,4 +55,5 @@ msix_config:
   publisher: CN=380FADA1-3D36-4086-BD01-792DE16F16EE
   publisher_display_name: Nazar Vinnichuk
   store: true
+  trim_logo: false
   windows_build_args: --obfuscate --split-debug-info=debug-info
