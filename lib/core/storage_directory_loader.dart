@@ -61,7 +61,10 @@ class StorageDirectoryLoader {
     final storageNames = existingStorageNames.isEmpty
         ? [_configuration.newStorageName]
         : existingStorageNames;
-    final activeStoragePath = join(storagesDirectory.path, storageNames.first);
+    final activeStoragePath = join(
+      storagesDirectory.path,
+      storageNames.first + _configuration.applicationFileExtension,
+    );
     final activeStorage =
         await File(activeStoragePath).open(mode: FileMode.writeOnlyAppend);
 
