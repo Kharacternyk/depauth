@@ -1,6 +1,6 @@
 name: depauth
 publish_to: none
-version: 1.0.0+2
+version: 1.1.0+3
 
 environment:
   sdk: ">=3.0.5 <4.0.0"
@@ -51,7 +51,7 @@ msix_config:
   display_name: DepAuth
   identity_name: 42626NazarVinnichuk.DepAuth
   logo_path: misc/square.png
-  msix_version: 1.0.0.0
+  msix_version: 1.1.0.0
   publisher: CN=380FADA1-3D36-4086-BD01-792DE16F16EE
   publisher_display_name: Nazar Vinnichuk
   store: true
