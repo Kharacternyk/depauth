@@ -1,6 +1,7 @@
 {
   "applicationName": "DepAuth",
   "applicationFileExtension": ".depauth",
+  "lockFileName": "directory.lock",
   "entityDuplicatePrefix": " (",
   "entityDuplicateSuffix": ")",
   "wordSeparator": " ",
@@ -34,6 +35,8 @@
     }
   },
   "notStorage": "The selected file is not a DepAuth document.",
+  "loadingStorageDirectory": "Loading documents…",
+  "lockedStorageDirectory": "Waiting for the other DepAuth windows to be closed…",
   "back": "Back",
   "otherStorages": "Other documents",
   "bulkCardActions": "Bulk card actions",

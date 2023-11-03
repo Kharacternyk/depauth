@@ -1,38 +1,73 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart' hide StorageDirectory;
 
 import 'storage_directory.dart';
 import 'storage_directory_configuration.dart';
+import 'storage_directory_status.dart';
 
-Future<StorageDirectory> loadStorageDirectory(
-  StorageDirectoryConfiguration configuration,
-) async {
-  final storagesDirectory = Platform.isAndroid
-      ? await getApplicationDocumentsDirectory()
-      : await getApplicationSupportDirectory();
+class StorageDirectoryLoader {
+  final status = ValueNotifier<StorageDirectoryStatus>(
+    const LoadingStorageDirectory(),
+  );
+  final StorageDirectoryConfiguration _configuration;
+  final String lockFileName;
 
-  await storagesDirectory.create(recursive: true);
+  StorageDirectoryLoader(this._configuration, this.lockFileName) {
+    _load();
+  }
 
-  final storages = [
-    await for (final file in storagesDirectory.list())
-      if (file is File &&
-          extension(file.path) == configuration.applicationFileExtension)
-        (
-          name: basenameWithoutExtension(file.path),
-          timestamp: (await file.stat()).accessed.microsecondsSinceEpoch,
-        )
-  ];
+  void dispose() {
+    if (status case LoadedStorageDirectory status) {
+      status.directory.dispose();
+    }
 
-  storages.sort((first, second) {
-    return second.timestamp.compareTo(first.timestamp);
-  });
+    status.dispose();
+  }
 
-  final existingStorageNames = storages.map((storage) => storage.name);
-  final storageNames = existingStorageNames.isEmpty
-      ? [configuration.newStorageName]
-      : existingStorageNames;
+  void _load() async {
+    final storagesDirectory = Platform.isAndroid
+        ? await getApplicationDocumentsDirectory()
+        : await getApplicationSupportDirectory();
 
-  return StorageDirectory(storagesDirectory.path, storageNames, configuration);
+    await storagesDirectory.create(recursive: true);
+
+    final lockFilePath = join(storagesDirectory.path, lockFileName);
+    final lockFile = await File(lockFilePath).open(mode: FileMode.write);
+
+    status.value = const LockedStorageDirectory();
+
+    await lockFile.lock(FileLock.blockingExclusive);
+
+    status.value = const LoadingStorageDirectory();
+
+    final storages = [
+      await for (final file in storagesDirectory.list())
+        if (file is File &&
+            extension(file.path) == _configuration.applicationFileExtension)
+          (
+            name: basenameWithoutExtension(file.path),
+            timestamp: (await file.stat()).accessed.microsecondsSinceEpoch,
+          )
+    ];
+
+    storages.sort((first, second) {
+      return second.timestamp.compareTo(first.timestamp);
+    });
+
+    final existingStorageNames = storages.map((storage) => storage.name);
+    final storageNames = existingStorageNames.isEmpty
+        ? [_configuration.newStorageName]
+        : existingStorageNames;
+
+    status.value = LoadedStorageDirectory(
+      StorageDirectory(
+        storagesDirectory.path,
+        storageNames,
+        _configuration,
+      ),
+    );
+  }
 }
