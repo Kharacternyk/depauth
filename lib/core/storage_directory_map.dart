@@ -8,16 +8,21 @@ class StorageDirectoryMap {
   final Database _database;
 
   StorageDirectoryMap(String path) : _database = sqlite3.open(path)..execute('''
-    pragma auto_vacuum = full;
     pragma encoding = 'UTF-8';
     pragma locking_mode = exclusive;
     pragma synchronous = full;
+
+    begin immediate;
+
+    pragma auto_vacuum = full;
     pragma user_version = 1;
 
     create table if not exists map(
       key integer primary key,
       value any not null
     ) strict, without rowid;
+
+    commit;
   ''');
 
   void dispose() {

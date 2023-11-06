@@ -311,11 +311,13 @@ class Storage extends TrackedDisposal implements ActiveRecord {
   ''');
   @override
   moveDependencyAsFactor(dependency, entity) {
+    _begin.execute();
     _addFactorStatement.execute([entity.identity._value]);
     _moveDependencyAsFactorStatement.execute([
       dependency.factor.identity._value,
       dependency.identity._value,
     ]);
+    _commit.execute();
   }
 
   late final _addFactorStatement = Statement(_database, '''
@@ -340,11 +342,13 @@ class Storage extends TrackedDisposal implements ActiveRecord {
   ''');
   @override
   mergeFactors(into, from) {
+    _begin.execute();
     _mergeFactorsStatement.execute([
       into.identity._value,
       from.identity._value,
     ]);
     _removeFactorStatement.execute([from.identity._value]);
+    _commit.execute();
   }
 
   late final _addDependencyAsFactorStatement = Statement(_database, '''
@@ -352,8 +356,10 @@ class Storage extends TrackedDisposal implements ActiveRecord {
   ''');
   @override
   addDependencyAsFactor(entity, dependency) {
+    _begin.execute();
     _addFactorStatement.execute([entity.identity._value]);
     _addDependencyAsFactorStatement.execute([dependency._value]);
+    _commit.execute();
   }
 
   late final _factorIdentitiesQuery = Query(_database, '''
@@ -472,6 +478,13 @@ class Storage extends TrackedDisposal implements ActiveRecord {
     from entities
   ''');
   int get entityCount => _entityCountQuery.selectOne()?.first as int;
+
+  late final _begin = Statement(_database, '''
+    begin immediate
+  ''');
+  late final _commit = Statement(_database, '''
+    commit
+  ''');
 
   Position _parsePosition(Values values) {
     final [x, y] = values;

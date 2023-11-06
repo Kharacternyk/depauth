@@ -11,13 +11,16 @@ extension StorageSchema on Database {
 
   void applyStorageSchema() {
     execute('''
-      pragma application_id = $_identity;
-      pragma foreign_keys = true;
-      pragma auto_vacuum = full;
       pragma cache_size = -100000;
       pragma encoding = 'UTF-8';
+      pragma foreign_keys = true;
       pragma locking_mode = exclusive;
       pragma synchronous = full;
+
+      begin immediate;
+
+      pragma application_id = $_identity;
+      pragma auto_vacuum = full;
       pragma user_version = $_version;
 
       create table if not exists entities(
@@ -59,6 +62,8 @@ extension StorageSchema on Database {
       after delete on factors begin
         delete from dependencies where factor = old.identity;
       end;
+
+      commit;
     ''');
   }
 
