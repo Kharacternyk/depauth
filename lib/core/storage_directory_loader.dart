@@ -53,7 +53,7 @@ class StorageDirectoryLoader {
             extension(file.path) == _configuration.applicationFileExtension)
           (
             name: basenameWithoutExtension(file.path),
-            timestamp: (await file.stat()).accessed.microsecondsSinceEpoch,
+            timestamp: (await file.stat()).modified.microsecondsSinceEpoch,
           )
     ];
 
