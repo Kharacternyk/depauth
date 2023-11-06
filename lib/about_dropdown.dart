@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'card_dropdown.dart';
 import 'widget_extension.dart';
@@ -17,7 +18,8 @@ class AboutDropdown extends StatelessWidget {
       children: [
         ListTile(
           leading: const Icon(Icons.public),
-          title: SelectableText(messages.website),
+          title: Text(messages.website),
+          onTap: () => launchUrl(Uri.https(messages.website)),
         ),
         ListTile(
           leading: const Icon(Icons.email),
@@ -26,9 +28,7 @@ class AboutDropdown extends StatelessWidget {
         ListTile(
           leading: const Icon(Icons.balance),
           title: Text(messages.licenses),
-          onTap: () {
-            showLicensePage(context: context);
-          },
+          onTap: () => showLicensePage(context: context),
         ),
       ],
     ).card;
