@@ -17,6 +17,8 @@ class StorageDirectoryScaffoldLoader extends StatelessWidget {
         entityDuplicatePrefix: messages.entityDuplicatePrefix,
         entityDuplicateSuffix: messages.entityDuplicateSuffix,
         newStorageName: messages.newStorageName,
+        importedStorageName: messages.importedStorageName,
+        mapFileName: messages.mapFileName,
         deduplicateStorageName: messages.deduplicatedStorageName,
         getNameOfStorageCopy: messages.storageCopy,
       ),

@@ -3,7 +3,7 @@ import 'entity_type.dart';
 import 'passportless_entity.dart';
 import 'storage.dart';
 
-abstract interface class ActiveRecordStorage {
+abstract interface class ActiveRecord {
   bool get disposed;
 
   PassportlessEntity? getPassportlessEntity(Identity<Entity> identity);

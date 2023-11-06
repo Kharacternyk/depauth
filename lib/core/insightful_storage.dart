@@ -17,7 +17,6 @@ class InsightfulStorage extends ListenableStorage
   late var _entityCount = super.entityCount;
 
   InsightfulStorage({
-    required super.name,
     required super.path,
     required super.entityDuplicatePrefix,
     required super.entityDuplicateSuffix,

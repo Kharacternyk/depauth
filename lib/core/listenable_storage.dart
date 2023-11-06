@@ -7,7 +7,6 @@ import 'traversable_entity.dart';
 
 class ListenableStorage extends Storage {
   ListenableStorage({
-    required super.name,
     required super.path,
     required super.entityDuplicatePrefix,
     required super.entityDuplicateSuffix,

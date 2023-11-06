@@ -5,6 +5,8 @@ class StorageDirectoryConfiguration {
   final String newStorageName;
   final String Function(String, int) deduplicateStorageName;
   final String Function(String) getNameOfStorageCopy;
+  final String mapFileName;
+  final String importedStorageName;
 
   const StorageDirectoryConfiguration({
     required this.applicationFileExtension,
@@ -13,5 +15,7 @@ class StorageDirectoryConfiguration {
     required this.newStorageName,
     required this.deduplicateStorageName,
     required this.getNameOfStorageCopy,
+    required this.mapFileName,
+    required this.importedStorageName,
   });
 }

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 
-import 'core/active_record_storage.dart';
+import 'core/active_record.dart';
 import 'core/trait.dart';
 import 'entity_chip.dart';
 import 'widget_extension.dart';
 
 class TraitSwitch extends StatelessWidget {
-  final ActiveRecordStorage storage;
+  final ActiveRecord storage;
   final Trait? trait;
   final String name;
   final Widget icon;

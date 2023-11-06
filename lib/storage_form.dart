@@ -5,26 +5,19 @@ import 'about_dropdown.dart';
 import 'card_dropdown.dart';
 import 'card_form.dart';
 import 'core/storage_insight.dart';
-import 'debounced_text_field.dart';
 import 'tip.dart';
 import 'widget_extension.dart';
 
 class StorageForm extends StatelessWidget {
-  final String storageName;
   final StorageInsight insight;
   final VoidCallback resetLoss;
   final VoidCallback resetCompromise;
-  final void Function(String) rename;
-  final bool Function() isRenameCanceled;
   final List<Widget> children;
 
   const StorageForm({
-    required this.storageName,
     required this.insight,
     required this.resetLoss,
     required this.resetCompromise,
-    required this.rename,
-    required this.isRenameCanceled,
     required this.children,
     super.key,
   });
@@ -39,17 +32,6 @@ class StorageForm extends StatelessWidget {
     ].where((count) => count > 0).length;
 
     return CardForm([
-      ListTile(
-        leading: const Icon(Icons.edit_document),
-        title: DebouncedTextField(
-          key: ValueKey(storageName),
-          value: storageName,
-          delay: const Duration(milliseconds: 200),
-          commitValue: rename,
-          hint: messages.name,
-          isCanceled: isRenameCanceled,
-        ),
-      ).card,
       ...children,
       CardDropdown(
         leading: Badge.count(

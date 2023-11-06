@@ -8,6 +8,7 @@ import 'inactive_storage_directory.dart';
 import 'insightful_storage.dart';
 import 'set_queue.dart';
 import 'storage_directory_configuration.dart';
+import 'storage_directory_map.dart';
 
 class StorageDirectory implements InactiveStorageDirectory {
   final String _path;
@@ -17,12 +18,21 @@ class StorageDirectory implements InactiveStorageDirectory {
   @override
   late final inactiveStorages = ValueNotifier(_storages.tail);
   late final activeStorage = ValueNotifier(_getStorage());
+  late final _map =
+      StorageDirectoryMap(join(_path, _configuration.mapFileName));
   late final _storages = SetQueue(_initialContent.map(_getInitialPassport));
   final pendingOperationProgress = ValueNotifier<double?>(null);
   var _locked = false;
 
   @override
   bool get locked => _locked;
+  String get activeStorageName {
+    return _map.activeStoragePendingName ?? _storages.first.name;
+  }
+
+  set activeStorageName(String value) {
+    _map.activeStoragePendingName = value;
+  }
 
   StorageDirectory(this._path, this._initialContent, this._configuration);
 
@@ -30,12 +40,13 @@ class StorageDirectory implements InactiveStorageDirectory {
     pendingOperationProgress.dispose();
     inactiveStorages.dispose();
     activeStorage.dispose();
+    _map.dispose();
   }
 
   Future<StoragePassport?> copyActiveStorage() {
     return withLock(() async {
-      final copy = _getPassport(
-          _configuration.getNameOfStorageCopy(activeStorage.value.name));
+      final copy =
+          _getPassport(_configuration.getNameOfStorageCopy(activeStorageName));
 
       await for (final progress in activeStorage.value.copy(copy.path)) {
         pendingOperationProgress.value = progress;
@@ -75,7 +86,10 @@ class StorageDirectory implements InactiveStorageDirectory {
   @override
   importStorage(file) {
     return withLock(() async {
-      final storage = _getPassport(withoutExtension(file.name));
+      final name = Platform.isAndroid
+          ? _configuration.importedStorageName
+          : withoutExtension(file.name);
+      final storage = _getPassport(name);
 
       await file.saveTo(storage.path);
       _disposeActiveStorage();
@@ -118,28 +132,24 @@ class StorageDirectory implements InactiveStorageDirectory {
 
   void _disposeActiveStorage() {
     final initialStorage = _storages.first;
+    final name = activeStorageName;
 
     _storages.remove(initialStorage);
-
-    final updatedStorage = _getPassport(activeStorage.value.name);
-
-    if (updatedStorage.name != activeStorage.value.name) {
-      activeStorage.value.name = updatedStorage.name;
-    }
-
     activeStorage.value.dispose();
+
+    final updatedStorage = _getPassport(name);
+
+    _storages.addFirst(updatedStorage);
+    _map.activeStoragePendingName = null;
 
     if (updatedStorage.name != initialStorage.name) {
       File(initialStorage.path).renameSync(updatedStorage.path);
     }
-
-    _storages.addFirst(updatedStorage);
   }
 
   InsightfulStorage _getStorage() {
     try {
       return InsightfulStorage(
-        name: _storages.first.name,
         path: _storages.first.path,
         entityDuplicatePrefix: _configuration.entityDuplicatePrefix,
         entityDuplicateSuffix: _configuration.entityDuplicateSuffix,
@@ -154,11 +164,14 @@ class StorageDirectory implements InactiveStorageDirectory {
     final sanitized = sanitizeFilename(name);
     final notEmptySanitized =
         sanitized.isEmpty ? _configuration.newStorageName : sanitized;
-    var deduplicated = _getInitialPassport(notEmptySanitized);
+    final constrainedSanitized = notEmptySanitized.length > 100
+        ? notEmptySanitized.substring(0, 100)
+        : notEmptySanitized;
+    var deduplicated = _getInitialPassport(constrainedSanitized);
 
     for (var i = 1; _storages.contains(deduplicated); ++i) {
       deduplicated = _getInitialPassport(
-        _configuration.deduplicateStorageName(notEmptySanitized, i),
+        _configuration.deduplicateStorageName(constrainedSanitized, i),
       );
     }
 

@@ -2,11 +2,13 @@
   "applicationName": "DepAuth",
   "applicationFileExtension": ".depauth",
   "lockFileName": "directory.lock",
+  "mapFileName": "directory.db",
   "entityDuplicatePrefix": " (",
   "entityDuplicateSuffix": ")",
   "wordSeparator": " ",
   "arrowIdentitySeparator": ":",
   "newStorageName": "New Document",
+  "importedStorageName": "Imported Document",
   "deduplicatedStorageName": "{storageName} ({duplicateCount})",
   "@deduplicatedStorageName": {
     "placeholders": {
@@ -35,6 +37,7 @@
     }
   },
   "notStorage": "The selected file is not a DepAuth document.",
+  "versionMismatch": "The selected file is exported from a new major version of DepAuth. Please update DepAuth to be able to import it.",
   "loadingStorageDirectory": "Loading documents…",
   "lockedStorageDirectory": "Waiting for the other DepAuth windows to be closed…",
   "back": "Back",

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 
 import 'card_form.dart';
-import 'core/active_record_storage.dart';
+import 'core/active_record.dart';
 import 'core/entity.dart';
 import 'core/entity_insight.dart';
 import 'core/importance_boost.dart';
@@ -20,7 +20,7 @@ import 'widget_extension.dart';
 
 class EntityForm extends StatelessWidget {
   final TraversableEntity entity;
-  final ActiveRecordStorage storage;
+  final ActiveRecord storage;
   final EntityInsight insight;
   final ValueNotifier<bool> hasTraveler;
   final void Function() goBack;
@@ -126,7 +126,7 @@ class EntityForm extends StatelessWidget {
         leading: const Icon(Icons.edit),
         title: DebouncedTextField(
           key: ValueKey(entity.identity),
-          value: entity.name,
+          getInitialValue: () => entity.name,
           delay: const Duration(milliseconds: 200),
           commitValue: (name) {
             storage.changeName(entity.passport, name);

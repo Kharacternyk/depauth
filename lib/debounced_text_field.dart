@@ -3,14 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class DebouncedTextField extends StatefulWidget {
-  final String value;
   final Duration delay;
+  final String Function() getInitialValue;
   final void Function(String) commitValue;
   final bool Function() isCanceled;
   final String hint;
 
   const DebouncedTextField({
-    required this.value,
+    required this.getInitialValue,
     required this.delay,
     required this.commitValue,
     required this.hint,
@@ -23,7 +23,7 @@ class DebouncedTextField extends StatefulWidget {
 }
 
 class _State extends State<DebouncedTextField> {
-  late final controller = TextEditingController(text: widget.value);
+  late final controller = TextEditingController(text: widget.getInitialValue());
   Timer? debouncer;
 
   @override

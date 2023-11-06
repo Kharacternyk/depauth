@@ -9,6 +9,7 @@ import 'core/storage_directory_configuration.dart';
 import 'core/storage_directory_loader.dart';
 import 'core/storage_directory_status.dart';
 import 'core/traveler.dart';
+import 'debounced_text_field.dart';
 import 'import_export_dropdown.dart';
 import 'pending_scaffold.dart';
 import 'storage_directory_dropdown.dart';
@@ -40,7 +41,7 @@ class _State extends State<StorageDirectoryScaffold> {
   );
   late final loader = StorageDirectoryLoader(
     widget.configuration,
-    widget.lockFileName,
+    lockFileName: widget.lockFileName,
   );
 
   @override
@@ -72,6 +73,19 @@ class _State extends State<StorageDirectoryScaffold> {
               formHasTraveler: formHasTraveler,
               viewRegion: viewRegion,
               formChildren: [
+                ListTile(
+                  leading: const Icon(Icons.edit_document),
+                  title: DebouncedTextField(
+                    key: ObjectKey(storage),
+                    getInitialValue: () => status.directory.activeStorageName,
+                    delay: const Duration(milliseconds: 200),
+                    commitValue: (value) {
+                      status.directory.activeStorageName = value;
+                    },
+                    hint: messages.name,
+                    isCanceled: () => storage.disposed,
+                  ),
+                ).card,
                 (double? progress) {
                   return ListTile(
                     title: Text(messages.copyStorage),

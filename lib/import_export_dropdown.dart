@@ -7,8 +7,9 @@ import 'package:share_plus/share_plus.dart';
 
 import 'card_dropdown.dart';
 import 'context_messanger.dart';
+import 'core/compatibility.dart';
 import 'core/inactive_storage_directory.dart';
-import 'core/storage.dart';
+import 'core/storage_schema.dart';
 import 'core/traveler.dart';
 import 'tip.dart';
 
@@ -46,10 +47,15 @@ class ImportExportDropdown extends StatelessWidget {
             final file = await openFile(acceptedTypeGroups: _typeGroups);
 
             if (file != null) {
-              if (await Storage.isStorage(file)) {
+              final compatibility = await StorageSchema.getCompatibility(file);
+
+              if (compatibility == Compatibility.match) {
                 directory.importStorage(file);
               } else if (context.mounted) {
-                context.pushMessage(messages.notStorage);
+                context.pushMessage(switch (compatibility) {
+                  Compatibility.versionMismatch => messages.versionMismatch,
+                  _ => messages.notStorage,
+                });
               }
             }
           },

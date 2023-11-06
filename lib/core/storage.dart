@@ -1,9 +1,6 @@
-import 'dart:typed_data';
-
-import 'package:cross_file/cross_file.dart';
 import 'package:sqlite3/sqlite3.dart';
 
-import 'active_record_storage.dart';
+import 'active_record.dart';
 import 'boundaries.dart';
 import 'dependency.dart';
 import 'entity.dart';
@@ -13,13 +10,26 @@ import 'passportless_entity.dart';
 import 'position.dart';
 import 'query.dart';
 import 'statement.dart';
-import 'tracked_disposal_storage.dart';
+import 'storage_schema.dart';
+import 'tracked_disposal.dart';
 import 'traversable_entity.dart';
 
-class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
+class Storage extends TrackedDisposal implements ActiveRecord {
   final Database _database;
   final String entityDuplicatePrefix;
   final String entityDuplicateSuffix;
+
+  Storage({
+    required String path,
+    required this.entityDuplicatePrefix,
+    required this.entityDuplicateSuffix,
+  }) : _database = sqlite3.open(path)..applyStorageSchema();
+
+  @override
+  dispose() {
+    _database.dispose();
+    super.dispose();
+  }
 
   late final _entityQuery = Query(_database, '''
     select identity, name, type
@@ -473,155 +483,13 @@ class Storage extends TrackedDisposalStorage implements ActiveRecordStorage {
     return Identity._(values.first as int);
   }
 
-  late final _nameQuery = Query(_database, '''
-    select name from meta
-  ''');
-  String get name {
-    return _nameQuery.selectOne()?.first as String;
-  }
-
-  late final _setNameStatement = Statement(_database, '''
-    update meta set name = ?
-  ''');
-  set name(String value) {
-    _setNameStatement.execute([value]);
-  }
-
   Stream<double> copy(String path) async* {
     final copy = sqlite3.open(path);
 
     yield* _database.backup(copy);
 
-    copy.execute('''
-      delete from meta
-    ''');
     copy.dispose();
   }
-
-  Storage({
-    required String path,
-    required String name,
-    required this.entityDuplicatePrefix,
-    required this.entityDuplicateSuffix,
-  }) : _database = sqlite3.open(path) {
-    _database.execute('''
-      pragma application_id = $_applicationIdentity;
-      pragma foreign_keys = true;
-      pragma auto_vacuum = full;
-      pragma cache_size = -100000;
-      pragma encoding = 'UTF-8';
-      pragma locking_mode = exclusive;
-      pragma synchronous = full;
-      pragma user_version = 1;
-
-      create table if not exists meta(
-        identity integer primary key,
-        name text not null
-      ) strict, without rowid;
-      create table if not exists entities(
-        identity integer primary key,
-        name text not null,
-        type integer not null,
-        x integer not null,
-        y integer not null,
-        lost integer not null,
-        compromised integer not null,
-        importance integer not null
-      ) strict;
-      create table if not exists factors(
-        identity integer primary key,
-        entity integer not null references entities
-      ) strict;
-      create table if not exists dependencies(
-        identity integer primary key,
-        factor integer not null references factors,
-        entity integer not null references entities
-      ) strict;
-
-      create unique index if not exists entity_names on entities(name);
-      create unique index if not exists entity_xs_ys on entities(x, y);
-      create unique index if not exists dependency_factors_entities
-        on dependencies(factor, entity);
-
-      create index if not exists entity_ys on entities(y);
-      create index if not exists entity_loss on entities(lost);
-      create index if not exists entity_compromise on entities(compromised);
-      create index if not exists entity_importance on entities(importance);
-
-      create trigger if not exists after_delete_entity
-      after delete on entities begin
-        delete from factors where entity = old.identity;
-        delete from dependencies where entity = old.identity;
-      end;
-      create trigger if not exists after_delete_factor
-      after delete on factors begin
-        delete from dependencies where factor = old.identity;
-      end;
-    ''');
-
-    _database.execute('''
-      insert or ignore
-      into meta(identity, name)
-      values(0, ?)
-    ''', [name]);
-  }
-
-  @override
-  dispose() {
-    _database.dispose();
-    super.dispose();
-  }
-
-  static Future<bool> isStorage(XFile file) async {
-    final builder = BytesBuilder();
-
-    await file.openRead(0, 100).forEach(builder.add);
-
-    final bytes = builder.takeBytes();
-
-    if (bytes.isEmpty) {
-      return true;
-    }
-    if (bytes.length < 100) {
-      return false;
-    }
-
-    const magic = [
-      83,
-      81,
-      76,
-      105,
-      116,
-      101,
-      32,
-      102,
-      111,
-      114,
-      109,
-      97,
-      116,
-      32,
-      51,
-      0,
-    ];
-
-    for (var i = 0; i < magic.length; ++i) {
-      if (bytes[i] != magic[i]) {
-        return false;
-      }
-    }
-
-    var identity = 0;
-
-    for (var i = 0; i < 4; ++i) {
-      identity <<= 8;
-      identity += bytes[68 + i];
-    }
-
-    return identity == _applicationIdentity;
-  }
-
-  static const _applicationIdentity = 1147498561;
 }
 
 class DependencyPassport {

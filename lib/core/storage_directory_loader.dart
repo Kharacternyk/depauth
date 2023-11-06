@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart' hide StorageDirectory;
 
+import 'await_file_release.dart';
 import 'storage_directory.dart';
 import 'storage_directory_configuration.dart';
 import 'storage_directory_status.dart';
@@ -15,7 +16,10 @@ class StorageDirectoryLoader {
   final StorageDirectoryConfiguration _configuration;
   final String lockFileName;
 
-  StorageDirectoryLoader(this._configuration, this.lockFileName) {
+  StorageDirectoryLoader(
+    this._configuration, {
+    required this.lockFileName,
+  }) {
     _load();
   }
 
@@ -61,16 +65,14 @@ class StorageDirectoryLoader {
     final storageNames = existingStorageNames.isEmpty
         ? [_configuration.newStorageName]
         : existingStorageNames;
+    final mapPath = join(storagesDirectory.path, _configuration.mapFileName);
     final activeStoragePath = join(
       storagesDirectory.path,
       storageNames.first + _configuration.applicationFileExtension,
     );
-    final activeStorage =
-        await File(activeStoragePath).open(mode: FileMode.writeOnlyAppend);
 
-    await activeStorage.lock(FileLock.blockingExclusive);
-    await activeStorage.unlock();
-    await activeStorage.close();
+    await File(mapPath).release;
+    await File(activeStoragePath).release;
 
     status.value = LoadedStorageDirectory(
       StorageDirectory(
