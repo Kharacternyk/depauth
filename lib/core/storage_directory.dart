@@ -140,11 +140,12 @@ class StorageDirectory implements InactiveStorageDirectory {
     final updatedStorage = _getPassport(name);
 
     _storages.addFirst(updatedStorage);
-    _map.activeStoragePendingName = null;
 
     if (updatedStorage.name != initialStorage.name) {
       File(initialStorage.path).renameSync(updatedStorage.path);
     }
+
+    _map.activeStoragePendingName = null;
   }
 
   InsightfulStorage _getStorage() {
