@@ -8,13 +8,15 @@ import 'entity_type.dart';
 import 'factor.dart';
 import 'passportless_entity.dart';
 import 'position.dart';
+import 'storage.pb.dart' as proto;
 import 'query.dart';
 import 'statement.dart';
 import 'storage_schema.dart';
+import 'storage_slot.dart';
 import 'tracked_disposal.dart';
 import 'traversable_entity.dart';
 
-class Storage extends TrackedDisposal implements ActiveRecord {
+class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
   final Database _database;
   final String entityDuplicatePrefix;
   final String entityDuplicateSuffix;
@@ -502,6 +504,112 @@ class Storage extends TrackedDisposal implements ActiveRecord {
     yield* _database.backup(copy);
 
     copy.dispose();
+  }
+
+  late final _insertEntityStatment = Statement(_database, '''
+    insert into entities(identity, name, type, x, y, lost, compromised, importance)
+    values(?, ?, ?, ?, ?, ?, ?, ?)
+  ''');
+  late final _insertFactorStatement = Statement(_database, '''
+    insert into factors(identity, entity)
+    values(?, ?)
+  ''');
+  late final _insertDependencyStatement = Statement(_database, '''
+    insert or ignore
+    into dependencies(factor, entity)
+    values(?, ?)
+  ''');
+  late final _entityIdentityOffsetQuery = Query(_database, '''
+    select max(identity) from entities
+  ''');
+  late final _factorIdentityOffsetQuery = Query(_database, '''
+    select max(identity) from factors
+  ''');
+  @override
+  import(storage) {
+    final origin = boundaries.end;
+    final entityIdentityOffset =
+        (_entityIdentityOffsetQuery.selectOne()?.first as int? ?? 0) + 1;
+    final factorIdentityOffset =
+        (_factorIdentityOffsetQuery.selectOne()?.first as int? ?? 0) + 1;
+
+    _begin.execute();
+    storage.entities.forEach((identity, entity) {
+      _insertEntityStatment.execute([
+        identity + entityIdentityOffset,
+        entity.name,
+        entity.type,
+        entity.x + origin.x,
+        entity.y + origin.y,
+        entity.lost,
+        entity.compromised,
+        entity.importance,
+      ]);
+    });
+    storage.factors.forEach((identity, factor) {
+      if (storage.entities.containsKey(factor.entity)) {
+        _insertFactorStatement.execute([
+          identity + factorIdentityOffset,
+          factor.entity + entityIdentityOffset,
+        ]);
+      }
+    });
+    storage.dependencies.forEach((identity, dependency) {
+      if (storage.factors.containsKey(dependency.factor) &&
+          storage.entities.containsKey(dependency.entity)) {
+        _insertDependencyStatement.execute([
+          dependency.factor + factorIdentityOffset,
+          dependency.entity + entityIdentityOffset,
+        ]);
+      }
+    });
+    _commit.execute();
+  }
+
+  late final _entityExportQuery = Query(_database, '''
+    select identity, name, type, x, y, lost, compromised, importance
+    from entities
+  ''');
+  late final _factorExportQuery = Query(_database, '''
+    select identity, entity
+    from factors
+  ''');
+  late final _dependenciesExportQuery = Query(_database, '''
+    select identity, entity, factor
+    from dependencies
+  ''');
+  @override
+  export() {
+    final storage = proto.Storage();
+
+    StorageSchema.setCompatibility(storage);
+
+    final origin = boundaries.start;
+
+    for (final [identity, name, type, x, y, lost, compromised, importance]
+        in _entityExportQuery.selectLazy()) {
+      storage.entities[identity as int] = proto.Entity(
+        name: name as String,
+        type: type as int,
+        x: (x as int) - origin.x,
+        y: (y as int) - origin.y,
+        lost: lost as int,
+        compromised: compromised as int,
+        importance: importance as int,
+      );
+    }
+    for (final [identity, entity] in _factorExportQuery.selectLazy()) {
+      storage.factors[identity as int] = proto.Factor(entity: entity as int);
+    }
+    for (final [identity, entity, factor]
+        in _dependenciesExportQuery.selectLazy()) {
+      storage.dependencies[identity as int] = proto.Dependency(
+        entity: entity as int,
+        factor: factor as int,
+      );
+    }
+
+    return storage;
   }
 }
 

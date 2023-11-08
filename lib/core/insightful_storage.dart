@@ -117,6 +117,7 @@ class InsightfulStorage extends ListenableStorage
     super.deleteEntity(entity);
     --_entityCount;
     _dependencies.remove(entity.identity);
+    _dependants.remove(entity.identity);
 
     for (final dependency in dependencies) {
       _dependants[dependency]?.remove(entity.identity);
@@ -277,6 +278,16 @@ class InsightfulStorage extends ListenableStorage
 
   @override
   int get entityCount => _entityCount;
+
+  @override
+  import(storage) {
+    super.import(storage);
+    _entityCount = super.entityCount;
+    _loss.setAll(lostEntities);
+    _compromise.setAll(compromisedEntities);
+    _importance.setAll(positiveImportance);
+    _update();
+  }
 
   void _update() {
     storageInsight.value = StorageInsight(

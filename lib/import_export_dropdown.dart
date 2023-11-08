@@ -8,20 +8,21 @@ import 'package:share_plus/share_plus.dart';
 import 'card_dropdown.dart';
 import 'context_messanger.dart';
 import 'core/compatibility.dart';
-import 'core/inactive_storage_directory.dart';
 import 'core/storage_schema.dart';
-import 'core/traveler.dart';
-import 'tip.dart';
+import 'core/storage_slot.dart';
+import 'widget_extension.dart';
 
 class ImportExportDropdown extends StatelessWidget {
-  final InactiveStorageDirectory directory;
+  final StorageSlot slot;
+  final String Function() getName;
   final String applicationFileExtension;
   late final _typeGroups = [
     XTypeGroup(extensions: [applicationFileExtension])
   ];
 
   ImportExportDropdown(
-    this.directory,
+    this.slot,
+    this.getName,
     this.applicationFileExtension, {
     super.key,
   });
@@ -29,66 +30,54 @@ class ImportExportDropdown extends StatelessWidget {
   @override
   build(context) {
     late final theme = Theme.of(context);
-    late final colors = theme.colorScheme;
     final messages = AppLocalizations.of(context)!;
-    final dropdown = CardDropdown(
-      leading: const Icon(Icons.drive_file_move),
+
+    return CardDropdown(
+      leading: const Icon(Icons.sync_alt),
       title: Text(messages.importAndExport),
       children: [
         ListTile(
-          leading: const Icon(Icons.note_add),
+          leading: const Icon(Icons.west),
           title: Text(messages.importStorage),
-          subtitle: Text(messages.importWarning),
           onTap: () async {
-            if (directory.locked) {
-              return;
-            }
-
             final file = await openFile(acceptedTypeGroups: _typeGroups);
 
             if (file != null) {
               final compatibility = await StorageSchema.getCompatibility(file);
 
-              if (compatibility == Compatibility.match) {
-                directory.importStorage(file);
+              if (compatibility case CompatibilityMatch match) {
+                slot.import(match.storage);
               } else if (context.mounted) {
                 context.pushMessage(switch (compatibility) {
-                  Compatibility.versionMismatch => messages.versionMismatch,
+                  VersionMismatch _ => messages.versionMismatch,
                   _ => messages.notStorage,
                 });
               }
             }
           },
         ),
-        Tip.onCard(messages.exportTip),
-      ],
-    );
+        ListTile(
+          leading: const Icon(Icons.east),
+          title: Text(messages.exportStorage),
+          onTap: () async {
+            final name = getName() + applicationFileExtension;
+            late final storage = slot.export().writeToBuffer();
 
-    return DragTarget<StorageTraveler>(
-      builder: (context, candidate, rejected) {
-        return Card(
-          color: candidate.isNotEmpty ? colors.primaryContainer : null,
-          child: dropdown,
-        );
-      },
-      onWillAccept: (traveler) => !directory.locked,
-      onAccept: (traveler) {
-        directory.withLock(() async {
-          if (theme.platform == TargetPlatform.android ||
-              theme.platform == TargetPlatform.iOS) {
-            await Share.shareXFiles([XFile(traveler.passport.path)]);
-          } else {
-            final location = await getSaveLocation(
-              suggestedName:
-                  traveler.passport.name + messages.applicationFileExtension,
-            );
+            if (theme.platform == TargetPlatform.android ||
+                theme.platform == TargetPlatform.iOS) {
+              await Share.shareXFiles([
+                XFile.fromData(storage, name: name),
+              ]);
+            } else {
+              final location = await getSaveLocation(suggestedName: name);
 
-            if (location != null) {
-              await File(traveler.passport.path).copy(location.path);
+              if (location != null) {
+                await File(location.path).writeAsBytes(storage);
+              }
             }
-          }
-        });
-      },
-    );
+          },
+        ),
+      ],
+    ).card;
   }
 }

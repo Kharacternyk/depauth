@@ -26,7 +26,7 @@ class StorageDirectoryDropdown extends StatelessWidget {
           count: storages.length,
           backgroundColor: colors.primaryContainer,
           textColor: colors.onPrimaryContainer,
-          child: const Icon(Icons.folder),
+          child: const Icon(Icons.inventory),
         ),
         title: Text(messages.otherStorages),
         children: [

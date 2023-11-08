@@ -110,7 +110,8 @@ class _State extends State<StorageDirectoryScaffold> {
                 }.listen(status.directory.pendingOperationProgress).card,
                 dropdown,
                 ImportExportDropdown(
-                  status.directory,
+                  storage,
+                  () => status.directory.activeStorageName,
                   widget.configuration.applicationFileExtension,
                 ),
               ],

@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package depauth;
+
+message Storage {
+  uint32 identity = 1;
+  uint32 version = 2;
+  map<uint32, Entity> entities = 3;
+  map<uint32, Factor> factors = 4;
+  map<uint32, Dependency> dependencies = 5;
+}
+
+message Entity {
+  string name = 1;
+  uint32 type = 2;
+  uint32 x = 3;
+  uint32 y = 4;
+  uint32 lost = 5;
+  uint32 compromised = 6;
+  uint32 importance = 7;
+}
+
+message Factor {
+  uint32 entity = 1;
+}
+
+message Dependency {
+  uint32 factor = 1;
+  uint32 entity = 2;
+}

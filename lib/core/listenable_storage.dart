@@ -141,6 +141,15 @@ class ListenableStorage extends Storage {
   }
 
   @override
+  import(storage) {
+    super.import(storage);
+    _entities.removeWhere((position, _) {
+      return position.x > boundaries.end.x || position.y > boundaries.end.y;
+    });
+    _updateBoundaries();
+  }
+
+  @override
   dispose() {
     listenableBoundaries.dispose();
     for (final entity in _entities.values) {

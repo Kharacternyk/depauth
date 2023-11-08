@@ -66,11 +66,17 @@ class ImportanceMap<K> {
   }
 
   void setAll(Iterable<(K, int)> pairs) {
+    final unseen = <K>{};
+
     for (final (key, value) in pairs) {
-      _own[key] = value;
+      if (!_own.containsKey(key)) {
+        _own[key] = value;
+        _sum += value;
+        unseen.add(key);
+      }
     }
 
-    _reevaluateAll();
+    reevaluateOneWay(unseen.expand(getDependencies));
   }
 
   void reevaluateBothWays(Iterable<K> keys) {

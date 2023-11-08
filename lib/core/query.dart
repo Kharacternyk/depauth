@@ -8,14 +8,14 @@ class Query {
   Query(Database database, String sql) : _statement = database.prepare(sql);
 
   Iterable<T> select<T>(Values? parameters, T Function(Values) create) {
-    return _select(parameters).map(create).toList();
+    return selectLazy(parameters).map(create).toList();
   }
 
   Values? selectOne([Values? parameters]) {
-    return _select(parameters).firstOrNull;
+    return selectLazy(parameters).firstOrNull;
   }
 
-  Iterable<Values> _select(Values? parameters) sync* {
+  Iterable<Values> selectLazy([Values? parameters]) sync* {
     final cursor = _statement.selectCursor(parameters ?? const []);
 
     while (cursor.moveNext()) {

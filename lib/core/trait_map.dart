@@ -32,7 +32,7 @@ class TraitMap<K> {
 
   void setAll(Iterable<K> keys) {
     _own.addAll(keys);
-    _reevaluateAll();
+    reevaluateOneWay(keys.expand(getAffected));
   }
 
   void clear() {

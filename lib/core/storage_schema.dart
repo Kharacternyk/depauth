@@ -1,13 +1,15 @@
-import 'dart:typed_data';
-
 import 'package:cross_file/cross_file.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 import 'compatibility.dart';
+import 'storage.pb.dart';
 
 extension StorageSchema on Database {
   static const _identity = 1147498561;
-  static const _version = 1;
+  static const _version = (
+    internal: 1,
+    external: 1,
+  );
 
   void applyStorageSchema() {
     execute('''
@@ -21,7 +23,7 @@ extension StorageSchema on Database {
 
       pragma application_id = $_identity;
       pragma auto_vacuum = full;
-      pragma user_version = $_version;
+      pragma user_version = ${_version.internal};
 
       create table if not exists entities(
         identity integer primary key,
@@ -43,7 +45,6 @@ extension StorageSchema on Database {
         entity integer not null references entities
       ) strict;
 
-      create unique index if not exists entity_names on entities(name);
       create unique index if not exists entity_xs_ys on entities(x, y);
       create unique index if not exists dependency_factors_entities
         on dependencies(factor, entity);
@@ -63,71 +64,40 @@ extension StorageSchema on Database {
         delete from dependencies where factor = old.identity;
       end;
 
+      drop index if exists entity_names;
+
       commit;
     ''');
   }
 
   static Future<Compatibility> getCompatibility(XFile file) async {
-    final builder = BytesBuilder();
+    final List<int> bytes;
 
-    await file.openRead(0, 100).forEach(builder.add);
-
-    final bytes = builder.takeBytes();
-
-    if (bytes.isEmpty) {
-      return Compatibility.match;
-    }
-    if (bytes.length < 100) {
-      return Compatibility.applicationMismatch;
+    try {
+      bytes = await file.readAsBytes();
+    } on Exception {
+      return const ApplicationMismatch();
     }
 
-    const magic = [
-      83,
-      81,
-      76,
-      105,
-      116,
-      101,
-      32,
-      102,
-      111,
-      114,
-      109,
-      97,
-      116,
-      32,
-      51,
-      0,
-    ];
+    final Storage storage;
 
-    for (var i = 0; i < magic.length; ++i) {
-      if (bytes[i] != magic[i]) {
-        return Compatibility.applicationMismatch;
-      }
+    try {
+      storage = Storage.fromBuffer(bytes);
+    } on Exception {
+      return const ApplicationMismatch();
+    }
+    if (storage.identity != _identity) {
+      return const ApplicationMismatch();
+    }
+    if (storage.version > _version.external) {
+      return const VersionMismatch();
     }
 
-    var identity = 0;
+    return CompatibilityMatch(storage);
+  }
 
-    for (var i = 0; i < 4; ++i) {
-      identity <<= 8;
-      identity += bytes[68 + i];
-    }
-
-    if (identity != _identity) {
-      return Compatibility.applicationMismatch;
-    }
-
-    var version = 0;
-
-    for (var i = 0; i < 4; ++i) {
-      version <<= 8;
-      version += bytes[60 + i];
-    }
-
-    if (version > _version) {
-      return Compatibility.versionMismatch;
-    }
-
-    return Compatibility.match;
+  static void setCompatibility(Storage storage) {
+    storage.identity = _identity;
+    storage.version = _version.external;
   }
 }

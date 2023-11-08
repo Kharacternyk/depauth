@@ -24,8 +24,6 @@ class StorageDirectory implements InactiveStorageDirectory {
   final pendingOperationProgress = ValueNotifier<double?>(null);
   var _locked = false;
 
-  @override
-  bool get locked => _locked;
   String get activeStorageName {
     return _map.activeStoragePendingName ?? _storages.first.name;
   }
@@ -44,7 +42,7 @@ class StorageDirectory implements InactiveStorageDirectory {
   }
 
   Future<StoragePassport?> copyActiveStorage() {
-    return withLock(() async {
+    return _withLock(() async {
       final copy =
           _getPassport(_configuration.getNameOfStorageCopy(activeStorageName));
 
@@ -60,7 +58,7 @@ class StorageDirectory implements InactiveStorageDirectory {
   }
 
   Future<void> deleteStorage(StoragePassport storage) {
-    return withLock(() async {
+    return _withLock(() async {
       if (_storages.contains(storage) && storage != _storages.first) {
         await File(storage.path).delete();
 
@@ -72,7 +70,7 @@ class StorageDirectory implements InactiveStorageDirectory {
 
   @override
   createStorage() {
-    return withLock(() async {
+    return _withLock(() async {
       final storage = _getPassport();
 
       await File(storage.path).create();
@@ -84,26 +82,8 @@ class StorageDirectory implements InactiveStorageDirectory {
   }
 
   @override
-  importStorage(file) {
-    return withLock(() async {
-      final name = Platform.isAndroid
-          ? _configuration.importedStorageName
-          : withoutExtension(file.name);
-      final storage = _getPassport(name);
-
-      await file.saveTo(storage.path);
-      _disposeActiveStorage();
-      _storages.addFirst(storage);
-      activeStorage.value = _getStorage();
-      inactiveStorages.value = _storages.tail;
-
-      return storage;
-    });
-  }
-
-  @override
   switchStorage(storage) {
-    if (locked) {
+    if (_locked) {
       return;
     }
 
@@ -113,8 +93,7 @@ class StorageDirectory implements InactiveStorageDirectory {
     inactiveStorages.value = _storages.tail;
   }
 
-  @override
-  withLock<T>(operate) async {
+  Future<T?> _withLock<T>(Future<T> Function() operate) async {
     if (!_locked) {
       pendingOperationProgress.value = 0;
       _locked = true;
