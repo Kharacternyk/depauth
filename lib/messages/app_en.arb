@@ -3,13 +3,12 @@
   "applicationFileExtension": ".depauth",
   "lockFileName": "directory.lock",
   "mapFileName": "directory.db",
-  "entityDuplicatePrefix": " (",
-  "entityDuplicateSuffix": ")",
+  "duplicatePrefix": " (",
+  "duplicateSuffix": ")",
   "wordSeparator": " ",
   "arrowIdentitySeparator": ":",
   "newStorageName": "New Document",
   "importedStorageName": "Imported Document",
-  "deduplicatedStorageName": "{storageName} ({duplicateCount})",
   "@deduplicatedStorageName": {
     "placeholders": {
       "storageName": {

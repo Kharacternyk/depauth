@@ -131,8 +131,8 @@ class StorageDirectory implements InactiveStorageDirectory {
     try {
       return InsightfulStorage(
         path: _storages.first.path,
-        entityDuplicatePrefix: _configuration.entityDuplicatePrefix,
-        entityDuplicateSuffix: _configuration.entityDuplicateSuffix,
+        entityDuplicatePrefix: _configuration.duplicatePrefix,
+        entityDuplicateSuffix: _configuration.duplicateSuffix,
       );
     } on Exception {
       _storages.addFirst(_storages.tail.firstOrNull ?? _getPassport());
@@ -150,9 +150,12 @@ class StorageDirectory implements InactiveStorageDirectory {
     var deduplicated = _getInitialPassport(constrainedSanitized);
 
     for (var i = 1; _storages.contains(deduplicated); ++i) {
-      deduplicated = _getInitialPassport(
-        _configuration.deduplicateStorageName(constrainedSanitized, i),
-      );
+      deduplicated = _getInitialPassport([
+        constrainedSanitized,
+        _configuration.duplicatePrefix,
+        i,
+        _configuration.duplicateSuffix,
+      ].join());
     }
 
     return deduplicated;

@@ -77,9 +77,12 @@ class EntityCard extends StatelessWidget {
                 if (entity.factors.isNotEmpty) dependencyIcons.row.expand(),
                 Text(entity.name).pad(padding).fit.expand(),
                 entity.type.banner
-                    .tip(
+                    .tip([
+                      entity.name,
+                      messages.duplicatePrefix,
                       entity.type.name(messages).title(messages.wordSeparator),
-                    )
+                      messages.duplicateSuffix,
+                    ].join())
                     .expand(),
               ].column,
             ),

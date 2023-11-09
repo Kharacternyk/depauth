@@ -14,12 +14,11 @@ class StorageDirectoryScaffoldLoader extends StatelessWidget {
     return StorageDirectoryScaffold(
       StorageDirectoryConfiguration(
         applicationFileExtension: messages.applicationFileExtension,
-        entityDuplicatePrefix: messages.entityDuplicatePrefix,
-        entityDuplicateSuffix: messages.entityDuplicateSuffix,
+        duplicatePrefix: messages.duplicatePrefix,
+        duplicateSuffix: messages.duplicateSuffix,
         newStorageName: messages.newStorageName,
         importedStorageName: messages.importedStorageName,
         mapFileName: messages.mapFileName,
-        deduplicateStorageName: messages.deduplicatedStorageName,
         getNameOfStorageCopy: messages.storageCopy,
       ),
       lockFileName: messages.lockFileName,
