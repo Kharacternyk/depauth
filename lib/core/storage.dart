@@ -6,11 +6,12 @@ import 'dependency.dart';
 import 'entity.dart';
 import 'entity_type.dart';
 import 'factor.dart';
+import 'packed_integer_pair.dart';
 import 'passportless_entity.dart';
 import 'position.dart';
-import 'storage.pb.dart' as proto;
 import 'query.dart';
 import 'statement.dart';
+import 'storage.pb.dart' as proto;
 import 'storage_schema.dart';
 import 'storage_slot.dart';
 import 'tracked_disposal.dart';
@@ -534,17 +535,23 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
         (_factorIdentityOffsetQuery.selectOne()?.first as int? ?? 0) + 1;
 
     _begin.execute();
-    storage.entities.forEach((identity, entity) {
-      _insertEntityStatment.execute([
-        identity + entityIdentityOffset,
-        entity.name,
-        entity.type,
-        entity.x + origin.x,
-        entity.y + origin.y,
-        entity.lost,
-        entity.compromised,
-        entity.importance,
-      ]);
+    storage.positions.forEach((position, identity) {
+      final pair = PackedIntegerPair.fromPacked(position);
+      final (x, y) = (pair.first + origin.x, pair.second + origin.y);
+      final entity = storage.entities[identity];
+
+      if (entity != null) {
+        _insertEntityStatment.execute([
+          identity + entityIdentityOffset,
+          _getValidName(Position(x, y), entity.name),
+          entity.type,
+          x,
+          y,
+          entity.lost,
+          entity.compromised,
+          entity.importance,
+        ]);
+      }
     });
     storage.factors.forEach((identity, factor) {
       if (storage.entities.containsKey(factor.entity)) {
@@ -588,11 +595,15 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
 
     for (final [identity, name, type, x, y, lost, compromised, importance]
         in _entityExportQuery.selectLazy()) {
-      storage.entities[identity as int] = proto.Entity(
+      final position = PackedIntegerPair.fromPair(
+        (x as int) - origin.x,
+        (y as int) - origin.y,
+      );
+
+      storage.positions[position.packed] = identity as int;
+      storage.entities[identity] = proto.Entity(
         name: name as String,
         type: type as int,
-        x: (x as int) - origin.x,
-        y: (y as int) - origin.y,
         lost: lost as int,
         compromised: compromised as int,
         importance: importance as int,

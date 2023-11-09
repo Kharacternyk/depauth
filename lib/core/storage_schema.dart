@@ -45,6 +45,7 @@ extension StorageSchema on Database {
         entity integer not null references entities
       ) strict;
 
+      create unique index if not exists entity_names on entities(name);
       create unique index if not exists entity_xs_ys on entities(x, y);
       create unique index if not exists dependency_factors_entities
         on dependencies(factor, entity);
@@ -63,8 +64,6 @@ extension StorageSchema on Database {
       after delete on factors begin
         delete from dependencies where factor = old.identity;
       end;
-
-      drop index if exists entity_names;
 
       commit;
     ''');

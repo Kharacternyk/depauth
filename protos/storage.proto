@@ -5,19 +5,18 @@ package depauth;
 message Storage {
   uint32 identity = 1;
   uint32 version = 2;
-  map<uint32, Entity> entities = 3;
-  map<uint32, Factor> factors = 4;
-  map<uint32, Dependency> dependencies = 5;
+  map<uint32, uint32> positions = 3;
+  map<uint32, Entity> entities = 4;
+  map<uint32, Factor> factors = 5;
+  map<uint32, Dependency> dependencies = 6;
 }
 
 message Entity {
   string name = 1;
   uint32 type = 2;
-  uint32 x = 3;
-  uint32 y = 4;
-  uint32 lost = 5;
-  uint32 compromised = 6;
-  uint32 importance = 7;
+  uint32 lost = 3;
+  uint32 compromised = 4;
+  uint32 importance = 5;
 }
 
 message Factor {

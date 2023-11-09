@@ -17,6 +17,7 @@ class Storage extends $pb.GeneratedMessage {
   factory Storage({
     $core.int? identity,
     $core.int? version,
+    $core.Map<$core.int, $core.int>? positions,
     $core.Map<$core.int, Entity>? entities,
     $core.Map<$core.int, Factor>? factors,
     $core.Map<$core.int, Dependency>? dependencies,
@@ -27,6 +28,9 @@ class Storage extends $pb.GeneratedMessage {
     }
     if (version != null) {
       $result.version = version;
+    }
+    if (positions != null) {
+      $result.positions.addAll(positions);
     }
     if (entities != null) {
       $result.entities.addAll(entities);
@@ -46,9 +50,10 @@ class Storage extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Storage', package: const $pb.PackageName(_omitMessageNames ? '' : 'depauth'), createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'identity', $pb.PbFieldType.OU3)
     ..a<$core.int>(2, _omitFieldNames ? '' : 'version', $pb.PbFieldType.OU3)
-    ..m<$core.int, Entity>(3, _omitFieldNames ? '' : 'entities', entryClassName: 'Storage.EntitiesEntry', keyFieldType: $pb.PbFieldType.OU3, valueFieldType: $pb.PbFieldType.OM, valueCreator: Entity.create, valueDefaultOrMaker: Entity.getDefault, packageName: const $pb.PackageName('depauth'))
-    ..m<$core.int, Factor>(4, _omitFieldNames ? '' : 'factors', entryClassName: 'Storage.FactorsEntry', keyFieldType: $pb.PbFieldType.OU3, valueFieldType: $pb.PbFieldType.OM, valueCreator: Factor.create, valueDefaultOrMaker: Factor.getDefault, packageName: const $pb.PackageName('depauth'))
-    ..m<$core.int, Dependency>(5, _omitFieldNames ? '' : 'dependencies', entryClassName: 'Storage.DependenciesEntry', keyFieldType: $pb.PbFieldType.OU3, valueFieldType: $pb.PbFieldType.OM, valueCreator: Dependency.create, valueDefaultOrMaker: Dependency.getDefault, packageName: const $pb.PackageName('depauth'))
+    ..m<$core.int, $core.int>(3, _omitFieldNames ? '' : 'positions', entryClassName: 'Storage.PositionsEntry', keyFieldType: $pb.PbFieldType.OU3, valueFieldType: $pb.PbFieldType.OU3, packageName: const $pb.PackageName('depauth'))
+    ..m<$core.int, Entity>(4, _omitFieldNames ? '' : 'entities', entryClassName: 'Storage.EntitiesEntry', keyFieldType: $pb.PbFieldType.OU3, valueFieldType: $pb.PbFieldType.OM, valueCreator: Entity.create, valueDefaultOrMaker: Entity.getDefault, packageName: const $pb.PackageName('depauth'))
+    ..m<$core.int, Factor>(5, _omitFieldNames ? '' : 'factors', entryClassName: 'Storage.FactorsEntry', keyFieldType: $pb.PbFieldType.OU3, valueFieldType: $pb.PbFieldType.OM, valueCreator: Factor.create, valueDefaultOrMaker: Factor.getDefault, packageName: const $pb.PackageName('depauth'))
+    ..m<$core.int, Dependency>(6, _omitFieldNames ? '' : 'dependencies', entryClassName: 'Storage.DependenciesEntry', keyFieldType: $pb.PbFieldType.OU3, valueFieldType: $pb.PbFieldType.OM, valueCreator: Dependency.create, valueDefaultOrMaker: Dependency.getDefault, packageName: const $pb.PackageName('depauth'))
     ..hasRequiredFields = false
   ;
 
@@ -92,21 +97,22 @@ class Storage extends $pb.GeneratedMessage {
   void clearVersion() => clearField(2);
 
   @$pb.TagNumber(3)
-  $core.Map<$core.int, Entity> get entities => $_getMap(2);
+  $core.Map<$core.int, $core.int> get positions => $_getMap(2);
 
   @$pb.TagNumber(4)
-  $core.Map<$core.int, Factor> get factors => $_getMap(3);
+  $core.Map<$core.int, Entity> get entities => $_getMap(3);
 
   @$pb.TagNumber(5)
-  $core.Map<$core.int, Dependency> get dependencies => $_getMap(4);
+  $core.Map<$core.int, Factor> get factors => $_getMap(4);
+
+  @$pb.TagNumber(6)
+  $core.Map<$core.int, Dependency> get dependencies => $_getMap(5);
 }
 
 class Entity extends $pb.GeneratedMessage {
   factory Entity({
     $core.String? name,
     $core.int? type,
-    $core.int? x,
-    $core.int? y,
     $core.int? lost,
     $core.int? compromised,
     $core.int? importance,
@@ -117,12 +123,6 @@ class Entity extends $pb.GeneratedMessage {
     }
     if (type != null) {
       $result.type = type;
-    }
-    if (x != null) {
-      $result.x = x;
-    }
-    if (y != null) {
-      $result.y = y;
     }
     if (lost != null) {
       $result.lost = lost;
@@ -142,11 +142,9 @@ class Entity extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Entity', package: const $pb.PackageName(_omitMessageNames ? '' : 'depauth'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'name')
     ..a<$core.int>(2, _omitFieldNames ? '' : 'type', $pb.PbFieldType.OU3)
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'x', $pb.PbFieldType.OU3)
-    ..a<$core.int>(4, _omitFieldNames ? '' : 'y', $pb.PbFieldType.OU3)
-    ..a<$core.int>(5, _omitFieldNames ? '' : 'lost', $pb.PbFieldType.OU3)
-    ..a<$core.int>(6, _omitFieldNames ? '' : 'compromised', $pb.PbFieldType.OU3)
-    ..a<$core.int>(7, _omitFieldNames ? '' : 'importance', $pb.PbFieldType.OU3)
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'lost', $pb.PbFieldType.OU3)
+    ..a<$core.int>(4, _omitFieldNames ? '' : 'compromised', $pb.PbFieldType.OU3)
+    ..a<$core.int>(5, _omitFieldNames ? '' : 'importance', $pb.PbFieldType.OU3)
     ..hasRequiredFields = false
   ;
 
@@ -190,49 +188,31 @@ class Entity extends $pb.GeneratedMessage {
   void clearType() => clearField(2);
 
   @$pb.TagNumber(3)
-  $core.int get x => $_getIZ(2);
+  $core.int get lost => $_getIZ(2);
   @$pb.TagNumber(3)
-  set x($core.int v) { $_setUnsignedInt32(2, v); }
+  set lost($core.int v) { $_setUnsignedInt32(2, v); }
   @$pb.TagNumber(3)
-  $core.bool hasX() => $_has(2);
+  $core.bool hasLost() => $_has(2);
   @$pb.TagNumber(3)
-  void clearX() => clearField(3);
+  void clearLost() => clearField(3);
 
   @$pb.TagNumber(4)
-  $core.int get y => $_getIZ(3);
+  $core.int get compromised => $_getIZ(3);
   @$pb.TagNumber(4)
-  set y($core.int v) { $_setUnsignedInt32(3, v); }
+  set compromised($core.int v) { $_setUnsignedInt32(3, v); }
   @$pb.TagNumber(4)
-  $core.bool hasY() => $_has(3);
+  $core.bool hasCompromised() => $_has(3);
   @$pb.TagNumber(4)
-  void clearY() => clearField(4);
+  void clearCompromised() => clearField(4);
 
   @$pb.TagNumber(5)
-  $core.int get lost => $_getIZ(4);
+  $core.int get importance => $_getIZ(4);
   @$pb.TagNumber(5)
-  set lost($core.int v) { $_setUnsignedInt32(4, v); }
+  set importance($core.int v) { $_setUnsignedInt32(4, v); }
   @$pb.TagNumber(5)
-  $core.bool hasLost() => $_has(4);
+  $core.bool hasImportance() => $_has(4);
   @$pb.TagNumber(5)
-  void clearLost() => clearField(5);
-
-  @$pb.TagNumber(6)
-  $core.int get compromised => $_getIZ(5);
-  @$pb.TagNumber(6)
-  set compromised($core.int v) { $_setUnsignedInt32(5, v); }
-  @$pb.TagNumber(6)
-  $core.bool hasCompromised() => $_has(5);
-  @$pb.TagNumber(6)
-  void clearCompromised() => clearField(6);
-
-  @$pb.TagNumber(7)
-  $core.int get importance => $_getIZ(6);
-  @$pb.TagNumber(7)
-  set importance($core.int v) { $_setUnsignedInt32(6, v); }
-  @$pb.TagNumber(7)
-  $core.bool hasImportance() => $_has(6);
-  @$pb.TagNumber(7)
-  void clearImportance() => clearField(7);
+  void clearImportance() => clearField(5);
 }
 
 class Factor extends $pb.GeneratedMessage {
