@@ -8,7 +8,8 @@ message Storage {
   map<uint32, uint32> positions = 3;
   map<uint32, Entity> entities = 4;
   map<uint32, Factor> factors = 5;
-  map<uint32, Dependency> dependencies = 6;
+  repeated Dependency dependencies = 6;
+  repeated Note notes = 7;
 }
 
 message Entity {
@@ -26,4 +27,9 @@ message Factor {
 message Dependency {
   uint32 factor = 1;
   uint32 entity = 2;
+}
+
+message Note {
+  uint32 entity = 1;
+  string text = 2;
 }

@@ -13,6 +13,9 @@ abstract interface class ActiveRecord {
   void changeImportance(EntityPassport entity, int value);
   void toggleCompromised(EntityPassport entity, bool value);
   void toggleLost(EntityPassport entity, bool value);
+  void createNote(EntityPassport entity, String note);
+  void changeNote(EntityPassport entity, String note);
+  void deleteNote(EntityPassport entity);
   void addDependency(FactorPassport factor, Identity<Entity> entity);
   void addFactor(EntityPassport entity);
   void mergeFactors(FactorPassport into, FactorPassport from);

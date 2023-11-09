@@ -135,8 +135,12 @@ class StorageDirectory implements InactiveStorageDirectory {
         entityDuplicateSuffix: _configuration.duplicateSuffix,
       );
     } on Exception {
-      _storages.addFirst(_storages.tail.firstOrNull ?? _getPassport());
-      return _getStorage();
+      if (kReleaseMode) {
+        _storages.addFirst(_storages.tail.firstOrNull ?? _getPassport());
+        return _getStorage();
+      } else {
+        rethrow;
+      }
     }
   }
 

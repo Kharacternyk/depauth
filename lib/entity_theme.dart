@@ -60,6 +60,15 @@ extension EntityTheme on EntityType {
     );
   }
 
+  Widget get noteBadge {
+    final data = _data.get(value);
+
+    return Material(
+      color: data.colors.primary,
+      child: Icon(Icons.notes, color: data.colors.onPrimary).fit.grow,
+    );
+  }
+
   static final _data = {
     for (final (value, icon, color, name) in _known)
       value: (

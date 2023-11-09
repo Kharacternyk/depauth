@@ -20,7 +20,8 @@ class Storage extends $pb.GeneratedMessage {
     $core.Map<$core.int, $core.int>? positions,
     $core.Map<$core.int, Entity>? entities,
     $core.Map<$core.int, Factor>? factors,
-    $core.Map<$core.int, Dependency>? dependencies,
+    $core.Iterable<Dependency>? dependencies,
+    $core.Iterable<Note>? notes,
   }) {
     final $result = create();
     if (identity != null) {
@@ -41,6 +42,9 @@ class Storage extends $pb.GeneratedMessage {
     if (dependencies != null) {
       $result.dependencies.addAll(dependencies);
     }
+    if (notes != null) {
+      $result.notes.addAll(notes);
+    }
     return $result;
   }
   Storage._() : super();
@@ -53,7 +57,8 @@ class Storage extends $pb.GeneratedMessage {
     ..m<$core.int, $core.int>(3, _omitFieldNames ? '' : 'positions', entryClassName: 'Storage.PositionsEntry', keyFieldType: $pb.PbFieldType.OU3, valueFieldType: $pb.PbFieldType.OU3, packageName: const $pb.PackageName('depauth'))
     ..m<$core.int, Entity>(4, _omitFieldNames ? '' : 'entities', entryClassName: 'Storage.EntitiesEntry', keyFieldType: $pb.PbFieldType.OU3, valueFieldType: $pb.PbFieldType.OM, valueCreator: Entity.create, valueDefaultOrMaker: Entity.getDefault, packageName: const $pb.PackageName('depauth'))
     ..m<$core.int, Factor>(5, _omitFieldNames ? '' : 'factors', entryClassName: 'Storage.FactorsEntry', keyFieldType: $pb.PbFieldType.OU3, valueFieldType: $pb.PbFieldType.OM, valueCreator: Factor.create, valueDefaultOrMaker: Factor.getDefault, packageName: const $pb.PackageName('depauth'))
-    ..m<$core.int, Dependency>(6, _omitFieldNames ? '' : 'dependencies', entryClassName: 'Storage.DependenciesEntry', keyFieldType: $pb.PbFieldType.OU3, valueFieldType: $pb.PbFieldType.OM, valueCreator: Dependency.create, valueDefaultOrMaker: Dependency.getDefault, packageName: const $pb.PackageName('depauth'))
+    ..pc<Dependency>(6, _omitFieldNames ? '' : 'dependencies', $pb.PbFieldType.PM, subBuilder: Dependency.create)
+    ..pc<Note>(7, _omitFieldNames ? '' : 'notes', $pb.PbFieldType.PM, subBuilder: Note.create)
     ..hasRequiredFields = false
   ;
 
@@ -106,7 +111,10 @@ class Storage extends $pb.GeneratedMessage {
   $core.Map<$core.int, Factor> get factors => $_getMap(4);
 
   @$pb.TagNumber(6)
-  $core.Map<$core.int, Dependency> get dependencies => $_getMap(5);
+  $core.List<Dependency> get dependencies => $_getList(5);
+
+  @$pb.TagNumber(7)
+  $core.List<Note> get notes => $_getList(6);
 }
 
 class Entity extends $pb.GeneratedMessage {
@@ -327,6 +335,70 @@ class Dependency extends $pb.GeneratedMessage {
   $core.bool hasEntity() => $_has(1);
   @$pb.TagNumber(2)
   void clearEntity() => clearField(2);
+}
+
+class Note extends $pb.GeneratedMessage {
+  factory Note({
+    $core.int? entity,
+    $core.String? text,
+  }) {
+    final $result = create();
+    if (entity != null) {
+      $result.entity = entity;
+    }
+    if (text != null) {
+      $result.text = text;
+    }
+    return $result;
+  }
+  Note._() : super();
+  factory Note.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory Note.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Note', package: const $pb.PackageName(_omitMessageNames ? '' : 'depauth'), createEmptyInstance: create)
+    ..a<$core.int>(1, _omitFieldNames ? '' : 'entity', $pb.PbFieldType.OU3)
+    ..aOS(2, _omitFieldNames ? '' : 'text')
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  Note clone() => Note()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  Note copyWith(void Function(Note) updates) => super.copyWith((message) => updates(message as Note)) as Note;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Note create() => Note._();
+  Note createEmptyInstance() => create();
+  static $pb.PbList<Note> createRepeated() => $pb.PbList<Note>();
+  @$core.pragma('dart2js:noInline')
+  static Note getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Note>(create);
+  static Note? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get entity => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set entity($core.int v) { $_setUnsignedInt32(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasEntity() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearEntity() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get text => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set text($core.String v) { $_setString(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasText() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearText() => clearField(2);
 }
 
 

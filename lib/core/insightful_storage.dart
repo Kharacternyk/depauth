@@ -14,6 +14,7 @@ class InsightfulStorage extends ListenableStorage
     implements EntityInsightOrigin {
   final _entityInsightNotifier = _ChangeNotifier();
   late final storageInsight = ValueNotifier(const StorageInsight.zero());
+  late final _notedEntities = super.notedEntities.toSet();
   late var _entityCount = super.entityCount;
 
   InsightfulStorage({
@@ -116,6 +117,7 @@ class InsightfulStorage extends ListenableStorage
 
     super.deleteEntity(entity);
     --_entityCount;
+    _notedEntities.remove(entity.identity);
     _dependencies.remove(entity.identity);
     _dependants.remove(entity.identity);
 
@@ -129,6 +131,20 @@ class InsightfulStorage extends ListenableStorage
     _loss.toggle(entity.identity, false);
     _compromise.toggle(entity.identity, false);
     _importance.clear(entity.identity);
+    _update();
+  }
+
+  @override
+  createNote(entity, note) {
+    super.createNote(entity, note);
+    _notedEntities.add(entity.identity);
+    _update();
+  }
+
+  @override
+  deleteNote(entity) {
+    super.deleteNote(entity);
+    _notedEntities.remove(entity.identity);
     _update();
   }
 
@@ -280,9 +296,13 @@ class InsightfulStorage extends ListenableStorage
   int get entityCount => _entityCount;
 
   @override
+  Iterable<Identity<Entity>> get notedEntities => _notedEntities;
+
+  @override
   import(storage) {
     super.import(storage);
     _entityCount = super.entityCount;
+    _notedEntities.addAll(super.notedEntities);
     _loss.setAll(lostEntities);
     _compromise.setAll(compromisedEntities);
     _importance.setAll(positiveImportance);
@@ -295,6 +315,7 @@ class InsightfulStorage extends ListenableStorage
       entityCount: _entityCount,
       lostEntityCount: _loss.length,
       compromisedEntityCount: _compromise.length,
+      noteCount: _notedEntities.length,
     );
     _entityInsightNotifier._update();
   }

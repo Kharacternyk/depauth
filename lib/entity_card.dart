@@ -60,7 +60,7 @@ class EntityCard extends StatelessWidget {
         () {
           return LeadingInsightRibbon(
             insightOrigin.getEntityInsight(entity.identity),
-            entity.type,
+            entity,
           );
         }.listen(insightOrigin.entityInsightNotifier).expand(),
         ArrowElement(

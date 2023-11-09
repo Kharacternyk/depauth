@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'core/storage_insight.dart';
+import 'icon_number_column.dart';
 import 'widget_extension.dart';
 
 class StorageInsightRow extends StatelessWidget {
@@ -11,45 +12,23 @@ class StorageInsightRow extends StatelessWidget {
   @override
   build(context) {
     final colors = Theme.of(context).colorScheme;
-    const padding = EdgeInsets.all(4);
 
     return IconTheme(
       data: IconThemeData(color: colors.onSurfaceVariant),
       child: Ink(
         color: colors.surfaceVariant,
         child: [
-          if (insight.entityCount > 0)
-            [
-              const Icon(Icons.style).fit.expand(),
-              Text(
-                insight.entityCount.toString(),
-                style: TextStyle(color: colors.onSurfaceVariant),
-              ).fit.expand(),
-            ].column.pad(padding),
-          if (insight.totalImportance > 0)
-            [
-              const Icon(Icons.star).fit.expand(),
-              Text(
-                insight.totalImportance.toString(),
-                style: TextStyle(color: colors.onSurfaceVariant),
-              ).fit.expand(),
-            ].column.pad(padding),
-          if (insight.lostEntityCount > 0)
-            [
-              const Icon(Icons.not_listed_location).fit.expand(),
-              Text(
-                insight.lostEntityCount.toString(),
-                style: TextStyle(color: colors.onSurfaceVariant),
-              ).fit.expand(),
-            ].column.pad(padding),
-          if (insight.compromisedEntityCount > 0)
-            [
-              const Icon(Icons.report).fit.expand(),
-              Text(
-                insight.compromisedEntityCount.toString(),
-                style: TextStyle(color: colors.onSurfaceVariant),
-              ).fit.expand(),
-            ].column.pad(padding),
+          IconNumberColumn(const Icon(Icons.style), insight.entityCount),
+          IconNumberColumn(const Icon(Icons.edit_note), insight.noteCount),
+          IconNumberColumn(const Icon(Icons.star), insight.totalImportance),
+          IconNumberColumn(
+            const Icon(Icons.not_listed_location),
+            insight.lostEntityCount,
+          ),
+          IconNumberColumn(
+            const Icon(Icons.report),
+            insight.compromisedEntityCount,
+          ),
         ].row,
       ),
     );

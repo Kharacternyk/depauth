@@ -90,6 +90,24 @@ class ListenableStorage extends Storage {
   }
 
   @override
+  createNote(entity, note) {
+    super.createNote(entity, note);
+    _updateEntities([entity.position]);
+  }
+
+  @override
+  changeNote(entity, note) {
+    super.changeNote(entity, note);
+    _updateEntities([entity.position]);
+  }
+
+  @override
+  deleteNote(entity) {
+    super.deleteNote(entity);
+    _updateEntities([entity.position]);
+  }
+
+  @override
   addDependencyAsFactor(entity, dependency) {
     super.addDependencyAsFactor(entity, dependency);
     _updateEntities([entity.position]);

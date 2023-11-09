@@ -8,6 +8,7 @@ class DebouncedTextField extends StatefulWidget {
   final void Function(String) commitValue;
   final bool Function() isCanceled;
   final String hint;
+  final bool multiline;
 
   const DebouncedTextField({
     required this.getInitialValue,
@@ -15,6 +16,7 @@ class DebouncedTextField extends StatefulWidget {
     required this.commitValue,
     required this.hint,
     required this.isCanceled,
+    this.multiline = false,
     super.key,
   });
 
@@ -36,6 +38,8 @@ class _State extends State<DebouncedTextField> {
   build(context) {
     return TextField(
       controller: controller,
+      keyboardType: widget.multiline ? TextInputType.multiline : null,
+      maxLines: widget.multiline ? null : 1,
       onChanged: (value) {
         debouncer?.cancel();
         debouncer = Timer(widget.delay, () {

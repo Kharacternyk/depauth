@@ -44,11 +44,17 @@ extension StorageSchema on Database {
         factor integer not null references factors,
         entity integer not null references entities
       ) strict;
+      create table if not exists notes(
+        identity integer primary key,
+        entity integer not null references entities,
+        text text not null
+      ) strict;
 
       create unique index if not exists entity_names on entities(name);
       create unique index if not exists entity_xs_ys on entities(x, y);
       create unique index if not exists dependency_factors_entities
         on dependencies(factor, entity);
+      create unique index if not exists note_entities on notes(entity);
 
       create index if not exists entity_ys on entities(y);
       create index if not exists entity_loss on entities(lost);
@@ -63,6 +69,10 @@ extension StorageSchema on Database {
       create trigger if not exists after_delete_factor
       after delete on factors begin
         delete from dependencies where factor = old.identity;
+      end;
+      create trigger if not exists after_delete_entity_delete_note
+      after delete on entities begin
+        delete from notes where entity = old.identity;
       end;
 
       commit;

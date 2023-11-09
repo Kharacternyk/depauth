@@ -35,8 +35,10 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
   }
 
   late final _entityQuery = Query(_database, '''
-    select identity, name, type
+    select entities.identity, name, type, text
     from entities
+    left join notes
+    on entities.identity = entity
     where x = ? and y = ?
   ''');
   late final _dependenciesQuery = Query(_database, '''
@@ -66,7 +68,7 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
         return null;
 
       case Values values:
-        final [identity, name, type] = values;
+        final [identity, name, type, note] = values;
         final passport = EntityPassport._(
           Identity._(identity as int),
           position,
@@ -99,6 +101,7 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
               }),
             );
           }),
+          note as String?,
         );
     }
   }
@@ -128,23 +131,22 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
   late final _moveEntityStatement = Statement(_database, '''
     update entities
     set x = ?, y = ?
-    where x = ? and y = ?
+    where identity = ?
   ''');
   void moveEntity(EntityPassport entity, Position position) {
     _moveEntityStatement.execute([
       position.x,
       position.y,
-      entity.position.x,
-      entity.position.y,
+      entity.identity._value,
     ]);
   }
 
   late final _deleteEntityStatement = Statement(_database, '''
     delete from entities
-    where x = ? and y = ?
+    where identity = ?
   ''');
   void deleteEntity(EntityPassport entity) {
-    _deleteEntityStatement.execute([entity.position.x, entity.position.y]);
+    _deleteEntityStatement.execute([entity.identity._value]);
   }
 
   late final _createEntityStatement = Statement(_database, '''
@@ -153,7 +155,7 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
   ''');
   void createEntity(Position position, String name) {
     _createEntityStatement.execute([
-      _getValidName(position, name),
+      _getValidName(name),
       position.x,
       position.y,
     ]);
@@ -162,76 +164,91 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
   late final _changeNameStatement = Statement(_database, '''
     update entities
     set name = ?
-    where x = ? and y = ?
+    where identity = ?
   ''');
   @override
   changeName(entity, name) {
     _changeNameStatement.execute([
-      _getValidName(entity.position, name),
-      entity.position.x,
-      entity.position.y,
+      _getValidName(name, entity.identity),
+      entity.identity._value,
     ]);
   }
 
   late final _changeTypeStatement = Statement(_database, '''
     update entities
     set type = ?
-    where x = ? and y = ?
+    where identity = ?
   ''');
   @override
   changeType(entity, type) {
-    _changeTypeStatement.execute([
-      type.value,
-      entity.position.x,
-      entity.position.y,
-    ]);
+    _changeTypeStatement.execute([type.value, entity.identity._value]);
+  }
+
+  late final _createNoteStatement = Statement(_database, '''
+    insert or ignore
+    into notes(entity, text)
+    values(?, ?)
+  ''');
+  @override
+  createNote(entity, note) {
+    _createNoteStatement.execute([entity.identity._value, note]);
+  }
+
+  late final _changeNoteStatement = Statement(_database, '''
+    update notes
+    set text = ?
+    where entity = ?
+  ''');
+  @override
+  changeNote(entity, note) {
+    _changeNoteStatement.execute([note, entity.identity._value]);
+  }
+
+  late final _deleteNoteStatement = Statement(_database, '''
+    delete from notes
+    where entity = ?
+  ''');
+  @override
+  deleteNote(entity) {
+    _deleteNoteStatement.execute([entity.identity._value]);
   }
 
   late final _changeImportanceStatement = Statement(_database, '''
     update entities
     set importance = ?
-    where x = ? and y = ?
+    where identity = ?
   ''');
   @override
   changeImportance(entity, value) {
-    _changeImportanceStatement.execute([
-      value,
-      entity.position.x,
-      entity.position.y,
-    ]);
+    _changeImportanceStatement.execute([value, entity.identity._value]);
   }
 
   late final _toggleCompromisedStatement = Statement(_database, '''
     update entities
     set compromised = ?
-    where x = ? and y = ?
+    where identity = ?
   ''');
   @override
   toggleCompromised(entity, value) {
     _toggleCompromisedStatement.execute([
       value ? 1 : 0,
-      entity.position.x,
-      entity.position.y,
+      entity.identity._value,
     ]);
   }
 
   late final _toggleLostStatement = Statement(_database, '''
     update entities
     set lost = ?
-    where x = ? and y = ?
+    where identity = ?
   ''');
   @override
   toggleLost(entity, value) {
-    _toggleLostStatement.execute([
-      value ? 1 : 0,
-      entity.position.x,
-      entity.position.y,
-    ]);
+    _toggleLostStatement.execute([value ? 1 : 0, entity.identity._value]);
   }
 
-  String _getValidName(Position position, String name) {
+  String _getValidName(String name, [Identity<Entity>? entity]) {
     name = name.trim();
-    final i = _getEntityDuplicateIndex(position, name);
+    final i = _getEntityDuplicateIndex(name, entity);
 
     if (i > 0) {
       return [
@@ -254,19 +271,19 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
       join entities
       on name = trim(? || ? || i || ?)
       or i = 0 and name = ?
-      where x <> ? or y <> ?
+      where identity <> ? or ? is null
     )
     select max(i)
     from duplicateIndices
   ''');
-  int _getEntityDuplicateIndex(Position position, String name) {
+  int _getEntityDuplicateIndex(String name, [Identity<Entity>? entity]) {
     return _entityDuplicateIndexQuery.selectOne([
       name,
       entityDuplicatePrefix,
       entityDuplicateSuffix,
       name,
-      position.x,
-      position.y,
+      entity?._value,
+      entity?._value,
     ])?.first as int;
   }
 
@@ -476,9 +493,14 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
     });
   }
 
+  late final _notedEntitiesQuery = Query(_database, '''
+    select entity from notes
+  ''');
+  Iterable<Identity<Entity>> get notedEntities =>
+      _notedEntitiesQuery.select(null, _parseIdentity);
+
   late final _entityCountQuery = Query(_database, '''
-    select count(true)
-    from entities
+    select count(true) from entities
   ''');
   int get entityCount => _entityCountQuery.selectOne()?.first as int;
 
@@ -520,6 +542,11 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
     into dependencies(factor, entity)
     values(?, ?)
   ''');
+  late final _insertNoteStatement = Statement(_database, '''
+    insert or ignore
+    into notes(entity, text)
+    values(?, ?)
+  ''');
   late final _entityIdentityOffsetQuery = Query(_database, '''
     select max(identity) from entities
   ''');
@@ -543,7 +570,7 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
       if (entity != null) {
         _insertEntityStatment.execute([
           identity + entityIdentityOffset,
-          _getValidName(Position(x, y), entity.name),
+          _getValidName(entity.name),
           entity.type,
           x,
           y,
@@ -561,7 +588,7 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
         ]);
       }
     });
-    storage.dependencies.forEach((identity, dependency) {
+    for (final dependency in storage.dependencies) {
       if (storage.factors.containsKey(dependency.factor) &&
           storage.entities.containsKey(dependency.entity)) {
         _insertDependencyStatement.execute([
@@ -569,7 +596,15 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
           dependency.entity + entityIdentityOffset,
         ]);
       }
-    });
+    }
+    for (final note in storage.notes) {
+      if (storage.entities.containsKey(note.entity)) {
+        _insertNoteStatement.execute([
+          note.entity + entityIdentityOffset,
+          note.text,
+        ]);
+      }
+    }
     _commit.execute();
   }
 
@@ -581,9 +616,13 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
     select identity, entity
     from factors
   ''');
-  late final _dependenciesExportQuery = Query(_database, '''
-    select identity, entity, factor
+  late final _dependencyExportQuery = Query(_database, '''
+    select entity, factor
     from dependencies
+  ''');
+  late final _noteExportQuery = Query(_database, '''
+    select entity, text
+    from notes
   ''');
   @override
   export() {
@@ -612,12 +651,17 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
     for (final [identity, entity] in _factorExportQuery.selectLazy()) {
       storage.factors[identity as int] = proto.Factor(entity: entity as int);
     }
-    for (final [identity, entity, factor]
-        in _dependenciesExportQuery.selectLazy()) {
-      storage.dependencies[identity as int] = proto.Dependency(
+    for (final [entity, factor] in _dependencyExportQuery.selectLazy()) {
+      storage.dependencies.add(proto.Dependency(
         entity: entity as int,
         factor: factor as int,
-      );
+      ));
+    }
+    for (final [entity, text] in _noteExportQuery.selectLazy()) {
+      storage.notes.add(proto.Note(
+        entity: entity as int,
+        text: text as String,
+      ));
     }
 
     return storage;

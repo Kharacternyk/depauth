@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 
+import 'card_dropdown.dart';
 import 'card_form.dart';
 import 'core/active_record.dart';
 import 'core/entity.dart';
@@ -156,6 +157,36 @@ class EntityForm extends StatelessWidget {
             value: entity.type,
           ),
         ),
+      ).card,
+      CardDropdown(
+        leading: const Icon(Icons.edit_note),
+        title: Text(entity.note == null ? messages.addNote : messages.showNote),
+        children: [
+          ListTile(
+            title: DebouncedTextField(
+              key: ValueKey(entity.identity),
+              getInitialValue: () => entity.note ?? '',
+              delay: const Duration(milliseconds: 200),
+              commitValue: (note) {
+                final trimmed = note.trim();
+                final currentNote = entity.note;
+
+                if (currentNote != null) {
+                  if (trimmed.isNotEmpty) {
+                    storage.changeNote(entity.passport, trimmed);
+                  } else {
+                    storage.deleteNote(entity.passport);
+                  }
+                } else if (trimmed.isNotEmpty) {
+                  storage.createNote(entity.passport, trimmed);
+                }
+              },
+              hint: messages.note,
+              isCanceled: () => storage.disposed,
+              multiline: true,
+            ),
+          ),
+        ],
       ).card,
       [
         ListTile(
