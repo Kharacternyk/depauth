@@ -1,4 +1,4 @@
-package com.depauth.depauth
+package com.depauth
 
 import io.flutter.embedding.android.FlutterActivity
 
