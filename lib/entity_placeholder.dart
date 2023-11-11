@@ -62,6 +62,6 @@ class EntityPlaceholder<DragDataType extends Object> extends StatelessWidget {
         ).hideIf(candidate.isEmpty && !isSingleton);
       },
       onAccept: onDragAccepted,
-    ).expand();
+    );
   }
 }

@@ -10,6 +10,7 @@ extension WidgetExtension on Widget {
       Opacity(opacity: condition ? 0 : 1, child: this);
   FocusTraversalGroup get group => FocusTraversalGroup(child: this);
   KeyedSubtree keyed(Key key) => KeyedSubtree(key: key, child: this);
+  RepaintBoundary get boundary => RepaintBoundary(child: this);
   Tooltip tip(String message, [double? offset]) => Tooltip(
         message: message,
         preferBelow: offset == null ? null : false,

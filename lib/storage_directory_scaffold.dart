@@ -117,8 +117,8 @@ class _State extends State<StorageDirectoryScaffold> {
               ],
               bottomBar: BottomBar(
                 children: [
-                  ViewRegionIndicator.new.listen(viewRegion),
-                  StorageInsightRow.new.listen(storage.storageInsight),
+                  ViewRegionIndicator.new.listen(viewRegion).boundary,
+                  StorageInsightRow.new.listen(storage.storageInsight).boundary,
                 ],
                 delete: (traveler) {
                   switch (traveler) {

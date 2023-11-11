@@ -41,7 +41,7 @@ class BottomBar extends StatelessWidget {
             );
           },
           onAccept: delete,
-        ),
+        ).boundary,
         const SizedBox(width: 8),
         ScaledDraggable(
           dragData: const CreationTraveler(),
@@ -51,7 +51,7 @@ class BottomBar extends StatelessWidget {
             mouseCursor: SystemMouseCursors.grab,
             heroTag: null,
             child: const Icon(Icons.add),
-          ),
+          ).boundary,
         ),
       ].row.group,
     );

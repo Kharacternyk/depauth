@@ -44,8 +44,8 @@ class EntityGraph extends StatelessWidget {
                       entity,
                       insightOrigin: storage,
                       editSubject: editSubject,
-                    ),
-                  ).expand(),
+                    ).boundary,
+                  ),
                 null => EntityPlaceholder<GrabbableTraveler>(
                     onDragAccepted: (source) {
                       switch (source) {
@@ -66,7 +66,7 @@ class EntityGraph extends StatelessWidget {
               };
             }.listen(listenableEntity);
 
-            cells.add(cell.keyed(ValueKey(x)));
+            cells.add(cell.expand().keyed(ValueKey(x)));
           }
 
           rows.add(cells.row.expand().keyed(ValueKey(y)));
