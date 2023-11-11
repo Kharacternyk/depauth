@@ -12,7 +12,11 @@ class Query {
   }
 
   Values? selectOne([Values? parameters]) {
-    return selectLazy(parameters).firstOrNull;
+    final values = selectLazy(parameters).firstOrNull;
+
+    _statement.reset();
+
+    return values;
   }
 
   Iterable<Values> selectLazy([Values? parameters]) sync* {
@@ -21,5 +25,7 @@ class Query {
     while (cursor.moveNext()) {
       yield cursor.current.values;
     }
+
+    _statement.reset();
   }
 }

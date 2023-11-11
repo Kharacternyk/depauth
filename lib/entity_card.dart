@@ -30,21 +30,35 @@ class EntityCard extends StatelessWidget {
     final dependencyIcons = <Widget>[];
 
     for (final factor in entity.factors) {
-      for (final dependency in factor.dependencies) {
+      if (factor.dependencies.isNotEmpty) {
         dependencyIcons.add(
-          dependency.type
-              .pointingBanner(
-                name: [
-                  factor.identity,
-                  dependency.identity,
-                ].join(messages.arrowIdentitySeparator),
-                target: dependency.identity.toString(),
-              )
-              .tip(dependency.name, 20)
-              .expand()
-              .keyed(ValueKey((factor.identity, dependency.identity))),
+          [
+            [
+              for (final dependency in factor.dependencies)
+                dependency.type
+                    .pointingBanner(
+                      name: [
+                        factor.identity,
+                        dependency.identity,
+                      ].join(messages.arrowIdentitySeparator),
+                      target: dependency.identity.toString(),
+                    )
+                    .tip(dependency.name, 20)
+                    .expand()
+                    .keyed(ValueKey(dependency.identity)),
+            ].row.expand(2),
+            if (factor.threshold > 1)
+              [
+                for (var i = 0; i < factor.threshold; ++i)
+                  const Icon(Icons.adjust).pad(padding).fit.grow.expand(),
+              ].row.expand()
+          ]
+              .column
+              .expand(factor.dependencies.length)
+              .keyed(ValueKey(factor.identity)),
         );
       }
+
       dependencyIcons.add(
         const Icon(Icons.add).pad(padding).fit.grow.expand(),
       );

@@ -62,15 +62,22 @@
   "exportStorage": "Export this document",
   "zoomTip": "Scroll or use the gesture to zoom in on cards.",
   "autoSaveTip": "All changes are saved automatically.",
+  "anyOf": "any {number} of",
+  "@anyOf": {
+    "placeholders": {
+      "number": {
+        "number": "int"
+      }
+    }
+  },
   "and": "and",
-  "or": "or",
   "name": "Name",
   "note": "Notes",
   "addNote": "Add notes",
   "showNote": "Show notes",
   "lost": "Unreachable",
   "compromised": "Compromised",
-  "becauseOf": " because of:",
+  "becauseOf": " because of",
   "accessTip": "To access this {entityType}, one needs to have access to…",
   "@accessTip": {
     "placeholders": {

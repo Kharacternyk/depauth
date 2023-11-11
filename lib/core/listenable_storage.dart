@@ -90,8 +90,8 @@ class ListenableStorage extends Storage {
   }
 
   @override
-  createNote(entity, note) {
-    super.createNote(entity, note);
+  addNote(entity, note) {
+    super.addNote(entity, note);
     _updateEntities([entity.position]);
   }
 
@@ -102,8 +102,8 @@ class ListenableStorage extends Storage {
   }
 
   @override
-  deleteNote(entity) {
-    super.deleteNote(entity);
+  removeNote(entity) {
+    super.removeNote(entity);
     _updateEntities([entity.position]);
   }
 
@@ -144,6 +144,12 @@ class ListenableStorage extends Storage {
   addFactor(entity) {
     super.addFactor(entity);
     _updateEntities([entity.position]);
+  }
+
+  @override
+  changeThreshold(factor, value) {
+    super.changeThreshold(factor, value);
+    _updateEntities([factor.entity.position]);
   }
 
   @override

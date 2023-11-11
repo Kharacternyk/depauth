@@ -47,13 +47,21 @@ class InsightfulStorage extends ListenableStorage
   late final _loss = TraitMap(
     getDependants,
     (entity, isLost) {
-      final lostFactor =
-          getFactors(entity).map(getDependencies).where((factor) {
-        return factor.isNotEmpty && factor.every(isLost);
-      }).firstOrNull;
+      for (final factor in getFactors(entity)) {
+        final dependencies = getDependencies(factor.identity);
 
-      if (lostFactor != null) {
-        return InheritedTrait(lostFactor);
+        if (dependencies.length >= factor.threshold) {
+          final lostDependencies = <Identity<Entity>>[];
+
+          for (final lostDependency in dependencies.where(isLost)) {
+            lostDependencies.add(lostDependency);
+
+            if (dependencies.length - lostDependencies.length <
+                factor.threshold) {
+              return InheritedTrait(lostDependencies);
+            }
+          }
+        }
       }
 
       return null;
@@ -63,17 +71,26 @@ class InsightfulStorage extends ListenableStorage
     getDependants,
     (entity, isCompromised) {
       final compromisedDependencies = <Identity<Entity>>{};
-      final factors = getFactors(entity).map(getDependencies).where((factor) {
-        return factor.isNotEmpty;
-      });
 
-      for (final factor in factors) {
-        final compromisedDependency = factor.where(isCompromised).firstOrNull;
+      for (final factor in getFactors(entity)) {
+        final dependencies = getDependencies(factor.identity);
 
-        if (compromisedDependency == null) {
-          return null;
-        } else {
-          compromisedDependencies.add(compromisedDependency);
+        if (dependencies.length >= factor.threshold) {
+          var count = 0;
+
+          for (final compromisedDependency
+              in dependencies.where(isCompromised)) {
+            compromisedDependencies.add(compromisedDependency);
+            ++count;
+
+            if (count >= factor.threshold) {
+              break;
+            }
+          }
+
+          if (count < factor.threshold) {
+            return null;
+          }
         }
       }
 
@@ -135,15 +152,15 @@ class InsightfulStorage extends ListenableStorage
   }
 
   @override
-  createNote(entity, note) {
-    super.createNote(entity, note);
+  addNote(entity, note) {
+    super.addNote(entity, note);
     _notedEntities.add(entity.identity);
     _update();
   }
 
   @override
-  deleteNote(entity) {
-    super.deleteNote(entity);
+  removeNote(entity) {
+    super.removeNote(entity);
     _notedEntities.remove(entity.identity);
     _update();
   }
@@ -166,6 +183,14 @@ class InsightfulStorage extends ListenableStorage
   toggleLost(entity, value) {
     super.toggleLost(entity, value);
     _loss.toggle(entity.identity, value);
+    _update();
+  }
+
+  @override
+  changeThreshold(factor, value) {
+    super.changeThreshold(factor, value);
+    _loss.reevaluateBothWays([factor.entity.identity]);
+    _compromise.reevaluateBothWays([factor.entity.identity]);
     _update();
   }
 

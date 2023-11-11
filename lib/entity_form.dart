@@ -104,10 +104,31 @@ class EntityForm extends StatelessWidget {
                 mouseCursor: willAccept
                     ? SystemMouseCursors.copy
                     : SystemMouseCursors.grab,
-                leading: const Icon(Icons.link),
-                title: factor.dependencies.isNotEmpty
-                    ? dependencies.interleave(Text(messages.or)).toList().wrap
-                    : Text(messages.emptyFactorTip),
+                title: dependencies.isEmpty
+                    ? Text(messages.emptyFactorTip)
+                    : dependencies.wrap,
+                leading: DropdownButtonHideUnderline(
+                  child: DropdownButton(
+                    items: [
+                      for (var i = 5; i >= 1; --i)
+                        DropdownMenuItem(
+                          value: i,
+                          child: Text(messages.anyOf(i)),
+                        ),
+                      if (factor.threshold.clamp(1, 5) != factor.threshold)
+                        DropdownMenuItem(
+                          value: factor.threshold,
+                          child: Text(messages.anyOf(factor.threshold)),
+                        ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        storage.changeThreshold(factor.passport, value);
+                      }
+                    },
+                    value: factor.threshold,
+                  ),
+                ),
               ),
             ),
           );
@@ -175,10 +196,10 @@ class EntityForm extends StatelessWidget {
                   if (trimmed.isNotEmpty) {
                     storage.changeNote(entity.passport, trimmed);
                   } else {
-                    storage.deleteNote(entity.passport);
+                    storage.removeNote(entity.passport);
                   }
                 } else if (trimmed.isNotEmpty) {
-                  storage.createNote(entity.passport, trimmed);
+                  storage.addNote(entity.passport, trimmed);
                 }
               },
               hint: messages.note,

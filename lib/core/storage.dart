@@ -6,6 +6,7 @@ import 'dependency.dart';
 import 'entity.dart';
 import 'entity_type.dart';
 import 'factor.dart';
+import 'factor_digest.dart';
 import 'packed_integer_pair.dart';
 import 'passportless_entity.dart';
 import 'position.dart';
@@ -50,7 +51,7 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
     order by x, y
   ''');
   late final _factorsQuery = Query(_database, '''
-    select factors.identity
+    select factors.identity, threshold
     from factors
     left join dependencies
     on factors.identity = factor
@@ -79,7 +80,7 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
           name as String,
           EntityType(type as int),
           _factorsQuery.select([identity], (values) {
-            final [factorIdentity] = values;
+            final [factorIdentity, threshold] = values;
             final factorPassport = FactorPassport._(
               Identity._(factorIdentity as int),
               passport,
@@ -99,6 +100,7 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
                   EntityType(type as int),
                 );
               }),
+              threshold as int,
             );
           }),
           note as String?,
@@ -184,14 +186,13 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
     _changeTypeStatement.execute([type.value, entity.identity._value]);
   }
 
-  late final _createNoteStatement = Statement(_database, '''
-    insert or ignore
-    into notes(entity, text)
+  late final _addNoteStatement = Statement(_database, '''
+    insert into notes(entity, text)
     values(?, ?)
   ''');
   @override
-  createNote(entity, note) {
-    _createNoteStatement.execute([entity.identity._value, note]);
+  addNote(entity, note) {
+    _addNoteStatement.execute([entity.identity._value, note]);
   }
 
   late final _changeNoteStatement = Statement(_database, '''
@@ -204,13 +205,13 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
     _changeNoteStatement.execute([note, entity.identity._value]);
   }
 
-  late final _deleteNoteStatement = Statement(_database, '''
+  late final _removeNoteStatement = Statement(_database, '''
     delete from notes
     where entity = ?
   ''');
   @override
-  deleteNote(entity) {
-    _deleteNoteStatement.execute([entity.identity._value]);
+  removeNote(entity) {
+    _removeNoteStatement.execute([entity.identity._value]);
   }
 
   late final _changeImportanceStatement = Statement(_database, '''
@@ -341,11 +342,21 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
   }
 
   late final _addFactorStatement = Statement(_database, '''
-    insert into factors(entity) values(?)
+    insert into factors(entity, threshold) values(?, 1)
   ''');
   @override
   addFactor(entity) {
     _addFactorStatement.execute([entity.identity._value]);
+  }
+
+  late final _changeThresholdStatement = Statement(_database, '''
+    update factors
+    set threshold = ?
+    where identity = ?
+  ''');
+  @override
+  changeThreshold(factor, value) {
+    _changeThresholdStatement.execute([value, factor.identity._value]);
   }
 
   late final _removeFactorStatement = Statement(_database, '''
@@ -383,12 +394,16 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
   }
 
   late final _factorIdentitiesQuery = Query(_database, '''
-    select identity
+    select identity, threshold
     from factors
     where entity = ?
   ''');
-  Iterable<Identity<Factor>> getFactors(Identity<Entity> entity) {
-    return _factorIdentitiesQuery.select([entity._value], _parseIdentity);
+  Iterable<FactorDigest> getFactors(Identity<Entity> entity) {
+    return _factorIdentitiesQuery.select([entity._value], (values) {
+      final [identity, threshold] = values;
+
+      return FactorDigest(Identity._(identity as int), threshold as int);
+    });
   }
 
   late final _dependencyEntitiesQuery = Query(_database, '''
@@ -504,6 +519,148 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
   ''');
   int get entityCount => _entityCountQuery.selectOne()?.first as int;
 
+  Stream<double> copy(String path) async* {
+    final copy = sqlite3.open(path);
+
+    yield* _database.backup(copy);
+
+    copy.dispose();
+  }
+
+  late final _insertEntityStatement = Statement(_database, '''
+    insert into entities(name, type, x, y, lost, compromised, importance)
+    values(?, ?, ?, ?, ?, ?, ?)
+  ''');
+  late final _insertFactorQuery = Query(_database, '''
+    insert into factors(entity, threshold)
+    select identity, ?
+    from entities
+    where x = ? and y = ?
+    returning identity
+  ''');
+  late final _insertDependencyStatement = Statement(_database, '''
+    insert into dependencies(factor, entity)
+    select ?, identity
+    from entities
+    where x = ? and y = ?
+  ''');
+  late final _insertNoteStatement = Statement(_database, '''
+    insert into notes(entity, text)
+    values(last_insert_rowid(), ?)
+  ''');
+  @override
+  import(storage) {
+    final boundaries = this.boundaries;
+    final origin = (
+      x: boundaries.end.x,
+      y: boundaries.start.y,
+    );
+
+    (int, int) unpack(int integer) {
+      final pair = PackedIntegerPair.fromPacked(integer);
+
+      return (pair.first + origin.x, pair.second + origin.y);
+    }
+
+    _begin.execute();
+
+    storage.entities.forEach((position, entity) {
+      final (x, y) = unpack(position);
+
+      _insertEntityStatement.execute([
+        _getValidName(entity.name),
+        entity.type,
+        x,
+        y,
+        entity.lost,
+        entity.compromised,
+        entity.importance,
+      ]);
+
+      if (entity.hasNote()) {
+        _insertNoteStatement.execute([entity.note.text]);
+      }
+    });
+
+    for (final factor in storage.factors) {
+      if (storage.entities.containsKey(factor.entity)) {
+        final (x, y) = unpack(factor.entity);
+        final identity = _insertFactorQuery
+            .selectOne([factor.threshold, x, y])?.first as int;
+
+        for (final dependency in factor.dependencies.keys) {
+          if (storage.entities.containsKey(dependency)) {
+            final (x, y) = unpack(dependency);
+
+            _insertDependencyStatement.execute([identity, x, y]);
+          }
+        }
+      }
+    }
+
+    _commit.execute();
+  }
+
+  late final _entityExportQuery = Query(_database, '''
+    select entities.identity, name, type, x, y, lost, compromised, importance, text
+    from entities
+    left join notes
+    on entity = entities.identity
+  ''');
+  late final _factorExportQuery = Query(_database, '''
+    select identity, threshold
+    from factors
+    where entity = ?
+  ''');
+  late final _dependencyExportQuery = Query(_database, '''
+    select x, y
+    from dependencies
+    join entities
+    on dependencies.entity = entities.identity
+    where factor = ?
+  ''');
+  @override
+  export() {
+    final storage = proto.Storage();
+
+    StorageSchema.setCompatibility(storage);
+
+    final origin = boundaries.start;
+
+    int pack(int x, int y) {
+      return PackedIntegerPair.fromPair(x - origin.x, y - origin.y).packed;
+    }
+
+    for (final [identity, name, type, x, y, lost, compromised, importance, note]
+        in _entityExportQuery.selectLazy()) {
+      final position = pack(x as int, y as int);
+
+      storage.entities[position] = proto.Entity(
+        name: name as String,
+        type: type as int,
+        lost: lost as int,
+        compromised: compromised as int,
+        importance: importance as int,
+        note: (note as String?) == null ? null : proto.Note(text: note),
+      );
+
+      for (final [factorIdentity, threshold]
+          in _factorExportQuery.selectLazy([identity])) {
+        final factor =
+            proto.Factor(entity: position, threshold: threshold as int);
+
+        for (final [x, y]
+            in _dependencyExportQuery.selectLazy([factorIdentity])) {
+          factor.dependencies[pack(x as int, y as int)] = proto.Dependency();
+        }
+
+        storage.factors.add(factor);
+      }
+    }
+
+    return storage;
+  }
+
   late final _begin = Statement(_database, '''
     begin immediate
   ''');
@@ -519,152 +676,6 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
 
   Identity<T> _parseIdentity<T>(Values values) {
     return Identity._(values.first as int);
-  }
-
-  Stream<double> copy(String path) async* {
-    final copy = sqlite3.open(path);
-
-    yield* _database.backup(copy);
-
-    copy.dispose();
-  }
-
-  late final _insertEntityStatment = Statement(_database, '''
-    insert into entities(identity, name, type, x, y, lost, compromised, importance)
-    values(?, ?, ?, ?, ?, ?, ?, ?)
-  ''');
-  late final _insertFactorStatement = Statement(_database, '''
-    insert into factors(identity, entity)
-    values(?, ?)
-  ''');
-  late final _insertDependencyStatement = Statement(_database, '''
-    insert or ignore
-    into dependencies(factor, entity)
-    values(?, ?)
-  ''');
-  late final _insertNoteStatement = Statement(_database, '''
-    insert or ignore
-    into notes(entity, text)
-    values(?, ?)
-  ''');
-  late final _entityIdentityOffsetQuery = Query(_database, '''
-    select max(identity) from entities
-  ''');
-  late final _factorIdentityOffsetQuery = Query(_database, '''
-    select max(identity) from factors
-  ''');
-  @override
-  import(storage) {
-    final origin = boundaries.end;
-    final entityIdentityOffset =
-        (_entityIdentityOffsetQuery.selectOne()?.first as int? ?? 0) + 1;
-    final factorIdentityOffset =
-        (_factorIdentityOffsetQuery.selectOne()?.first as int? ?? 0) + 1;
-
-    _begin.execute();
-    storage.positions.forEach((position, identity) {
-      final pair = PackedIntegerPair.fromPacked(position);
-      final (x, y) = (pair.first + origin.x, pair.second + origin.y);
-      final entity = storage.entities[identity];
-
-      if (entity != null) {
-        _insertEntityStatment.execute([
-          identity + entityIdentityOffset,
-          _getValidName(entity.name),
-          entity.type,
-          x,
-          y,
-          entity.lost,
-          entity.compromised,
-          entity.importance,
-        ]);
-      }
-    });
-    storage.factors.forEach((identity, factor) {
-      if (storage.entities.containsKey(factor.entity)) {
-        _insertFactorStatement.execute([
-          identity + factorIdentityOffset,
-          factor.entity + entityIdentityOffset,
-        ]);
-      }
-    });
-    for (final dependency in storage.dependencies) {
-      if (storage.factors.containsKey(dependency.factor) &&
-          storage.entities.containsKey(dependency.entity)) {
-        _insertDependencyStatement.execute([
-          dependency.factor + factorIdentityOffset,
-          dependency.entity + entityIdentityOffset,
-        ]);
-      }
-    }
-    for (final note in storage.notes) {
-      if (storage.entities.containsKey(note.entity)) {
-        _insertNoteStatement.execute([
-          note.entity + entityIdentityOffset,
-          note.text,
-        ]);
-      }
-    }
-    _commit.execute();
-  }
-
-  late final _entityExportQuery = Query(_database, '''
-    select identity, name, type, x, y, lost, compromised, importance
-    from entities
-  ''');
-  late final _factorExportQuery = Query(_database, '''
-    select identity, entity
-    from factors
-  ''');
-  late final _dependencyExportQuery = Query(_database, '''
-    select entity, factor
-    from dependencies
-  ''');
-  late final _noteExportQuery = Query(_database, '''
-    select entity, text
-    from notes
-  ''');
-  @override
-  export() {
-    final storage = proto.Storage();
-
-    StorageSchema.setCompatibility(storage);
-
-    final origin = boundaries.start;
-
-    for (final [identity, name, type, x, y, lost, compromised, importance]
-        in _entityExportQuery.selectLazy()) {
-      final position = PackedIntegerPair.fromPair(
-        (x as int) - origin.x,
-        (y as int) - origin.y,
-      );
-
-      storage.positions[position.packed] = identity as int;
-      storage.entities[identity] = proto.Entity(
-        name: name as String,
-        type: type as int,
-        lost: lost as int,
-        compromised: compromised as int,
-        importance: importance as int,
-      );
-    }
-    for (final [identity, entity] in _factorExportQuery.selectLazy()) {
-      storage.factors[identity as int] = proto.Factor(entity: entity as int);
-    }
-    for (final [entity, factor] in _dependencyExportQuery.selectLazy()) {
-      storage.dependencies.add(proto.Dependency(
-        entity: entity as int,
-        factor: factor as int,
-      ));
-    }
-    for (final [entity, text] in _noteExportQuery.selectLazy()) {
-      storage.notes.add(proto.Note(
-        entity: entity as int,
-        text: text as String,
-      ));
-    }
-
-    return storage;
   }
 }
 

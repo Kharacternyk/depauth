@@ -37,7 +37,8 @@ extension StorageSchema on Database {
       ) strict;
       create table if not exists factors(
         identity integer primary key,
-        entity integer not null references entities
+        entity integer not null references entities,
+        threshold integer not null
       ) strict;
       create table if not exists dependencies(
         identity integer primary key,
@@ -50,29 +51,32 @@ extension StorageSchema on Database {
         text text not null
       ) strict;
 
-      create unique index if not exists entity_names on entities(name);
-      create unique index if not exists entity_xs_ys on entities(x, y);
-      create unique index if not exists dependency_factors_entities
+      create unique index if not exists entity_unique_name on entities(name);
+      create unique index if not exists entity_unique_x_y on entities(x, y);
+      create unique index if not exists dependency_unqiue_factor_entity
         on dependencies(factor, entity);
-      create unique index if not exists note_entities on notes(entity);
+      create unique index if not exists note_unique_entity on notes(entity);
 
-      create index if not exists entity_ys on entities(y);
+      create index if not exists entity_y on entities(y);
       create index if not exists entity_loss on entities(lost);
       create index if not exists entity_compromise on entities(compromised);
       create index if not exists entity_importance on entities(importance);
 
-      create trigger if not exists after_delete_entity
+      create trigger if not exists after_delete_entity_delete_factors
       after delete on entities begin
         delete from factors where entity = old.identity;
+      end;
+      create trigger if not exists after_delete_entity_delete_dependencies
+      after delete on entities begin
         delete from dependencies where entity = old.identity;
       end;
-      create trigger if not exists after_delete_factor
-      after delete on factors begin
-        delete from dependencies where factor = old.identity;
-      end;
-      create trigger if not exists after_delete_entity_delete_note
+      create trigger if not exists after_delete_entity_delete_notes
       after delete on entities begin
         delete from notes where entity = old.identity;
+      end;
+      create trigger if not exists after_delete_factor_delete_dependencies
+      after delete on factors begin
+        delete from dependencies where factor = old.identity;
       end;
 
       commit;
