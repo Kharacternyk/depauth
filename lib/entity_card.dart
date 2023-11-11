@@ -59,7 +59,7 @@ class EntityCard extends StatelessWidget {
             if (factor.threshold > 1)
               [
                 for (var i = 0; i < factor.threshold; ++i)
-                  const Icon(Icons.adjust).pad(padding).fit.grow.expand(),
+                  const Icon(Icons.adjust).pad(padding).fit.expand(),
               ].row.expand()
           ]
               .column
@@ -69,7 +69,7 @@ class EntityCard extends StatelessWidget {
       }
 
       dependencyIcons.add(
-        const Icon(Icons.add).pad(padding).fit.grow.expand(),
+        const Icon(Icons.add).pad(padding).fit.expand(),
       );
     }
 
