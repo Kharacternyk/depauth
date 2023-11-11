@@ -6,6 +6,7 @@
   "duplicatePrefix": " (",
   "duplicateSuffix": ")",
   "wordSeparator": " ",
+  "lineSeparator": "\n",
   "arrowIdentitySeparator": ":",
   "newStorageName": "New Document",
   "importedStorageName": "Imported Document",

@@ -14,6 +14,7 @@ extension WidgetExtension on Widget {
         message: message,
         preferBelow: offset == null ? null : false,
         verticalOffset: offset,
+        textAlign: TextAlign.center,
         child: this,
       );
 }

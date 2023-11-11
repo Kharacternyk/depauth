@@ -43,7 +43,16 @@ class EntityCard extends StatelessWidget {
                       ].join(messages.arrowIdentitySeparator),
                       target: dependency.identity.toString(),
                     )
-                    .tip(dependency.name, 20)
+                    .tip(
+                      [
+                        dependency.name,
+                        messages.lineSeparator,
+                        dependency.type
+                            .name(messages)
+                            .title(messages.wordSeparator),
+                      ].join(),
+                      20,
+                    )
                     .expand()
                     .keyed(ValueKey(dependency.identity)),
             ].row.expand(2),
@@ -93,9 +102,8 @@ class EntityCard extends StatelessWidget {
                 entity.type.banner
                     .tip([
                       entity.name,
-                      messages.duplicatePrefix,
+                      messages.lineSeparator,
                       entity.type.name(messages).title(messages.wordSeparator),
-                      messages.duplicateSuffix,
                     ].join())
                     .expand(),
               ].column,
