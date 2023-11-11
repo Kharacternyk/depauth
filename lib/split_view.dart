@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:multi_split_view/multi_split_view.dart';
 
@@ -21,7 +23,7 @@ class SplitView extends StatelessWidget {
           color: colors.onSurfaceVariant,
           highlightedColor: colors.primary,
         ),
-        dividerThickness: 20,
+        dividerThickness: Platform.isAndroid ? 48 : 20,
       ),
       child: MultiSplitView(
         axis: switch (MediaQuery.of(context).orientation) {

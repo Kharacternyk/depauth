@@ -64,7 +64,7 @@ class ImportExportDropdown extends StatelessWidget {
           onTap: () async {
             late final storage = slot.export().writeToBuffer();
 
-            if (Platform.isAndroid || Platform.isIOS) {
+            if (Platform.isAndroid) {
               final cacheDirectory = await getApplicationCacheDirectory();
               final file = await File(join(
                 cacheDirectory.path,
