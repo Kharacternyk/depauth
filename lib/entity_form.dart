@@ -107,27 +107,25 @@ class EntityForm extends StatelessWidget {
                 title: dependencies.isEmpty
                     ? Text(messages.emptyFactorTip)
                     : dependencies.wrap,
-                leading: DropdownButtonHideUnderline(
-                  child: DropdownButton(
-                    items: [
-                      for (var i = 5; i >= 1; --i)
-                        DropdownMenuItem(
-                          value: i,
-                          child: Text(messages.anyOf(i)),
-                        ),
-                      if (factor.threshold.clamp(1, 5) != factor.threshold)
-                        DropdownMenuItem(
-                          value: factor.threshold,
-                          child: Text(messages.anyOf(factor.threshold)),
-                        ),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        storage.changeThreshold(factor.passport, value);
-                      }
-                    },
-                    value: factor.threshold,
-                  ),
+                leading: DropdownButton(
+                  items: [
+                    for (var i = 5; i >= 1; --i)
+                      DropdownMenuItem(
+                        value: i,
+                        child: Text(messages.anyOf(i)),
+                      ),
+                    if (factor.threshold.clamp(1, 5) != factor.threshold)
+                      DropdownMenuItem(
+                        value: factor.threshold,
+                        child: Text(messages.anyOf(factor.threshold)),
+                      ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      storage.changeThreshold(factor.passport, value);
+                    }
+                  },
+                  value: factor.threshold,
                 ),
               ),
             ),
@@ -159,24 +157,22 @@ class EntityForm extends StatelessWidget {
       ).card,
       ListTile(
         leading: const Icon(Icons.category),
-        title: DropdownButtonHideUnderline(
-          child: DropdownButton(
-            isExpanded: true,
-            items: [
-              for (final type in EntityTheme.knownTypes)
-                DropdownMenuItem(
-                  value: type,
-                  child: type
-                      .chip(type.name(messages).title(messages.wordSeparator)),
-                ),
-            ],
-            onChanged: (type) {
-              if (type != null) {
-                storage.changeType(entity.passport, type);
-              }
-            },
-            value: entity.type,
-          ),
+        title: DropdownButton(
+          isExpanded: true,
+          items: [
+            for (final type in EntityTheme.knownTypes)
+              DropdownMenuItem(
+                value: type,
+                child: type
+                    .chip(type.name(messages).title(messages.wordSeparator)),
+              ),
+          ],
+          onChanged: (type) {
+            if (type != null) {
+              storage.changeType(entity.passport, type);
+            }
+          },
+          value: entity.type,
         ),
       ).card,
       CardDropdown(
