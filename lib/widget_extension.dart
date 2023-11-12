@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 extension WidgetExtension on Widget {
@@ -25,10 +27,12 @@ extension WidgetListExtension on List<Widget> {
   Row get row => Row(children: this);
   Wrap get wrap => Wrap(
         spacing: 4,
-        runSpacing: 4,
+        runSpacing: _wrapSpacing,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: this,
       );
+
+  static final _wrapSpacing = Platform.isAndroid ? .0 : 4.0;
 }
 
 extension ValueBuilderExtension<T> on Widget Function(T) {
