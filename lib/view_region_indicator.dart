@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import 'fractional_spacer.dart';
@@ -13,11 +15,15 @@ class ViewRegionIndicator extends StatelessWidget {
   @override
   build(context) {
     final invertedScale = 1 / region.scale;
+    final aspectRatio = Platform.isAndroid &&
+            MediaQuery.of(context).orientation == Orientation.portrait
+        ? 1.0
+        : region.aspectRatio.clamp(.5, 2.0);
 
     return Ink(
       color: Theme.of(context).colorScheme.primaryContainer,
       child: AspectRatio(
-        aspectRatio: region.aspectRatio.clamp(.5, 2),
+        aspectRatio: aspectRatio,
         child: [
           FractionalSpacer(region.relativeOffset.dx),
           FractionalSpacer(
