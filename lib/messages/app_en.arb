@@ -37,6 +37,7 @@
       }
     }
   },
+  "storageLimit": "The mobile version is limited to 3 documents. Unlimited documents are available on the desktop version, see depauth.com for details.",
   "notStorage": "The selected file is not a DepAuth document.",
   "versionMismatch": "The selected file is exported from a substantially newer version of DepAuth. Please update DepAuth to be able to import it.",
   "loadingStorageDirectory": "Loading documents…",

@@ -9,6 +9,7 @@ class SetQueue<T> {
         _queue = Queue.of(elements);
 
   bool contains(T element) => _set.contains(element);
+  int get length => _queue.length;
 
   Iterable<T> get tail => _queue.skip(1);
   T get first => _queue.first;

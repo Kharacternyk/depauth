@@ -8,6 +8,7 @@ import 'core/insightful_storage.dart';
 import 'core/storage_directory_configuration.dart';
 import 'core/storage_directory_loader.dart';
 import 'core/storage_directory_status.dart';
+import 'core/storage_limit.dart';
 import 'core/traveler.dart';
 import 'debounced_text_field.dart';
 import 'import_export_dropdown.dart';
@@ -100,6 +101,10 @@ class _State extends State<StorageDirectoryScaffold> {
                     },
                     enabled: progress == null,
                     onTap: () async {
+                      if (status.directory.storageLimitReached) {
+                        return context.pushMessage(messages.storageLimit);
+                      }
+
                       final copy = await status.directory.copyActiveStorage();
 
                       if (copy != null && context.mounted) {

@@ -9,6 +9,7 @@ import 'insightful_storage.dart';
 import 'set_queue.dart';
 import 'storage_directory_configuration.dart';
 import 'storage_directory_map.dart';
+import 'storage_limit.dart';
 
 class StorageDirectory implements InactiveStorageDirectory {
   final String _path;
@@ -23,6 +24,9 @@ class StorageDirectory implements InactiveStorageDirectory {
   late final _storages = SetQueue(_initialContent.map(_getInitialPassport));
   final pendingOperationProgress = ValueNotifier<double?>(null);
   var _locked = false;
+
+  @override
+  int get storageCount => _storages.length;
 
   String get activeStorageName {
     return _map.activeStoragePendingName ?? _storages.first.name;
@@ -42,6 +46,10 @@ class StorageDirectory implements InactiveStorageDirectory {
   }
 
   Future<StoragePassport?> copyActiveStorage() {
+    if (storageLimitReached) {
+      return Future.value();
+    }
+
     return _withLock(() async {
       final copy =
           _getPassport(_configuration.getNameOfStorageCopy(activeStorageName));
@@ -70,6 +78,10 @@ class StorageDirectory implements InactiveStorageDirectory {
 
   @override
   createStorage() {
+    if (storageLimitReached) {
+      return Future.value();
+    }
+
     return _withLock(() async {
       final storage = _getPassport();
 

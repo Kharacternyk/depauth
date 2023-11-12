@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/messages.dart';
 
 import 'card_dropdown.dart';
+import 'context_messanger.dart';
 import 'core/inactive_storage_directory.dart';
 import 'core/storage_directory.dart';
+import 'core/storage_limit.dart';
 import 'core/traveler.dart';
 import 'scaled_draggable.dart';
 import 'tip.dart';
@@ -65,7 +67,11 @@ class StorageDirectoryDropdown extends StatelessWidget {
         );
       },
       onAccept: (_) {
-        directory.createStorage();
+        if (directory.storageLimitReached) {
+          context.pushMessage(messages.storageLimit);
+        } else {
+          directory.createStorage();
+        }
       },
     );
   }

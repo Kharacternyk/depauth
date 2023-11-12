@@ -6,4 +6,5 @@ abstract interface class InactiveStorageDirectory {
   ValueNotifier<Iterable<StoragePassport>> get inactiveStorages;
   Future<StoragePassport?> createStorage();
   void switchStorage(StoragePassport storage);
+  int get storageCount;
 }
