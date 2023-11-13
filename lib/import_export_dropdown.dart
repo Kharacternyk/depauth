@@ -31,7 +31,6 @@ class ImportExportDropdown extends StatelessWidget {
 
   @override
   build(context) {
-    late final theme = Theme.of(context);
     final messages = AppLocalizations.of(context)!;
 
     return CardDropdown(
