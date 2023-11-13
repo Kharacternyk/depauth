@@ -37,7 +37,7 @@
       }
     }
   },
-  "storageLimit": "The mobile version is limited to 3 documents. Unlimited documents are available on the desktop version, see depauth.com for details.",
+  "storageLimit": "The mobile version is limited to 3 documents. Unlimited documents are available on the desktop version, visit depauth.com for details.",
   "notStorage": "The selected file is not a DepAuth document.",
   "versionMismatch": "The selected file is exported from a substantially newer version of DepAuth. Please update DepAuth to be able to import it.",
   "loadingStorageDirectory": "Loading documents…",
@@ -49,9 +49,9 @@
   "website": "depauth.com",
   "email": "hello@depauth.com",
   "licenses": "Licenses",
-  "addButtonTooltip": "Drag this button onto an empty space to create a new card, or onto the side form to create a new document or dependency group.",
-  "deleteButtonTooltip": "Drag onto this button to delete cards and documents, or remove dependencies between cards.",
-  "emptyFactorTip": "Drag cards here to add dependencies.",
+  "addButtonTooltip": "Drag this button onto an empty space to create a new card or onto the form to create a new document or connection.",
+  "deleteButtonTooltip": "Drag onto this button to delete cards and documents or remove connections between cards.",
+  "emptyFactorTip": "Drag cards here to add connections.",
   "singletonPlaceholderTip": "Drag the + button here to create a new card.",
   "newEntityTip": "Drag the + button onto an empty space to create a new card.",
   "editEntityTip": "Click or tap on a card to edit it.",
