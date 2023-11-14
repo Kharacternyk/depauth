@@ -29,7 +29,7 @@ extension EntityTheme on EntityType {
 
     return ScaledLine(
       name: name,
-      color: data.colors.primary.withOpacity(.5),
+      color: data.colors.primary.withOpacity(.2),
       targetName: target,
       child: banner,
     );
