@@ -68,9 +68,12 @@ class ListenableStorage extends Storage {
 
   @override
   createEntity(position, name) {
-    super.createEntity(position, name);
+    final identity = super.createEntity(position, name);
+
     _updateEntities([position]);
     _updateBoundaries();
+
+    return identity;
   }
 
   @override

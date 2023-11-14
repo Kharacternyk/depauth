@@ -151,16 +151,19 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
     _deleteEntityStatement.execute([entity.identity._value]);
   }
 
-  late final _createEntityStatement = Statement(_database, '''
+  late final _createEntityQuery = Query(_database, '''
     insert into entities(name, type, x, y, lost, compromised, importance)
     values(?, 0, ?, ?, false, false, 0)
+    returning identity
   ''');
-  void createEntity(Position position, String name) {
-    _createEntityStatement.execute([
-      _getValidName(name),
-      position.x,
-      position.y,
-    ]);
+  Identity<Entity> createEntity(Position position, String name) {
+    return Identity._(
+      _createEntityQuery.selectOne([
+        _getValidName(name),
+        position.x,
+        position.y,
+      ])?.first as int,
+    );
   }
 
   late final _changeNameStatement = Statement(_database, '''
@@ -477,13 +480,24 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
   ''');
   void resetCompromise() => _resetCompromiseStatement.execute();
 
-  late final _lostEntititesQuery = Query(_database, '''
+  late final _originEntitiesQuery = Query(_database, '''
+    select entities.identity
+    from entities
+    left join factors
+    on entity = entities.identity
+    where factors.identity is null
+  ''');
+  Iterable<Identity<Entity>> get originEntities {
+    return _originEntitiesQuery.select(null, _parseIdentity);
+  }
+
+  late final _lostEntitiesQuery = Query(_database, '''
     select identity
     from entities
     where lost
   ''');
   Iterable<Identity<Entity>> get lostEntities {
-    return _lostEntititesQuery.select(null, _parseIdentity);
+    return _lostEntitiesQuery.select(null, _parseIdentity);
   }
 
   late final _compromisedEntititesQuery = Query(_database, '''

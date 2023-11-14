@@ -78,8 +78,12 @@
   "note": "Notes",
   "addNote": "Add notes",
   "showNote": "Show notes",
-  "lost": "Unreachable",
+  "reachable": "Reachable",
+  "reachableThrough": "Reachable through",
+  "notReachable": "Unreachable",
   "compromised": "Compromised",
+  "compromisedThrough": "Compromised through",
+  "notCompromised": "Not compromised",
   "becauseOf": " because of",
   "accessTip": "To access this {entityType}, one needs to have access to…",
   "@accessTip": {

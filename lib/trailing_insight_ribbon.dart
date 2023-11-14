@@ -22,8 +22,6 @@ class TrailingInsightRibbon extends StatelessWidget {
     const spacer = Spacer();
     const spacer2 = Spacer(flex: 2);
     final colors = Theme.of(context).colorScheme;
-    final lost = insight.loss != null;
-    final compromised = insight.compromise != null;
 
     late final lostIcon = Icon(
       Icons.not_listed_location,
@@ -65,7 +63,7 @@ class TrailingInsightRibbon extends StatelessWidget {
         }
         return spacer2;
       }.listen(editSubject),
-      ...switch ((lost, compromised)) {
+      ...switch ((!insight.reachability.present, insight.compromise.present)) {
         (true, true) => [
             Material(
               color: colors.error,

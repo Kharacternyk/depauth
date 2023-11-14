@@ -3,6 +3,7 @@ import 'package:flutter_gen/gen_l10n/messages.dart';
 
 import 'card_dropdown.dart';
 import 'card_form.dart';
+import 'core/access.dart';
 import 'core/active_record.dart';
 import 'core/entity.dart';
 import 'core/entity_insight.dart';
@@ -16,7 +17,6 @@ import 'debounced_text_field.dart';
 import 'entity_chip.dart';
 import 'entity_theme.dart';
 import 'scaled_draggable.dart';
-import 'trait_switch.dart';
 import 'widget_extension.dart';
 
 class EntityForm extends StatelessWidget {
@@ -237,20 +237,67 @@ class EntityForm extends StatelessWidget {
             ].wrap,
           ),
       ].column.card,
-      TraitSwitch(
-        insight.loss,
-        storage: storage,
-        icon: const Icon(Icons.not_listed_location),
-        toggle: (value) => storage.toggleLost(entity.passport, value),
-        name: messages.lost,
-      ),
-      TraitSwitch(
-        insight.compromise,
-        storage: storage,
-        icon: const Icon(Icons.report),
-        toggle: (value) => storage.toggleCompromised(entity.passport, value),
-        name: messages.compromised,
-      ),
+      [
+        SwitchListTile(
+          title: Text(switch (insight.reachability) {
+            DerivedAccess<Identity<Entity>> access when access.present =>
+              messages.reachableThrough,
+            OriginAccess<Identity<Entity>> _ => messages.reachable,
+            _ => messages.notReachable,
+          }),
+          activeColor: colors.error,
+          value: insight.reachability is BlockedAccess,
+          selected: !insight.reachability.present,
+          secondary: insight.reachability.present
+              ? const Icon(Icons.where_to_vote)
+              : const Icon(Icons.not_listed_location),
+          onChanged: (value) {
+            storage.toggleLost(entity.passport, value);
+          },
+        ),
+        if (insight.reachability case DerivedAccess<Identity<Entity>> access
+            when access.present)
+          ListTile(
+            leading: const Icon(Icons.link),
+            title: access.derivedFrom
+                .map(storage.getPassportlessEntity)
+                .nonNulls
+                .map((entity) => entity.chip)
+                .toList()
+                .wrap,
+          )
+      ].column.card,
+      [
+        SwitchListTile(
+          title: Text(switch (insight.compromise) {
+            DerivedAccess<Identity<Entity>> access when access.present =>
+              messages.compromisedThrough,
+            OriginAccess<Identity<Entity>> _ => messages.compromised,
+            _ => messages.notCompromised,
+          }),
+          activeColor: colors.error,
+          value: insight.compromise is OriginAccess,
+          selected: insight.compromise.present,
+          secondary: insight.compromise.present
+              ? const Icon(Icons.report)
+              : const Icon(Icons.report_off),
+          onChanged: (value) {
+            storage.toggleCompromised(entity.passport, value);
+          },
+        ),
+        if (insight.compromise case DerivedAccess<Identity<Entity>> access
+            when access.present)
+          ListTile(
+            iconColor: colors.error,
+            leading: const Icon(Icons.link),
+            title: access.derivedFrom
+                .map(storage.getPassportlessEntity)
+                .nonNulls
+                .map((entity) => entity.chip)
+                .toList()
+                .wrap,
+          )
+      ].column.card,
       ListTile(
         title: Text(
           entity.factors.isEmpty

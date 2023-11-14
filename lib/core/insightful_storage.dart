@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'access_map.dart';
 import 'entity.dart';
 import 'entity_insight.dart';
 import 'entity_insight_origin.dart';
@@ -7,8 +8,6 @@ import 'importance_map.dart';
 import 'listenable_storage.dart';
 import 'storage.dart';
 import 'storage_insight.dart';
-import 'trait.dart';
-import 'trait_map.dart';
 
 class InsightfulStorage extends ListenableStorage
     implements EntityInsightOrigin {
@@ -22,8 +21,8 @@ class InsightfulStorage extends ListenableStorage
     required super.entityDuplicatePrefix,
     required super.entityDuplicateSuffix,
   }) {
-    _loss.setAll(lostEntities);
-    _compromise.setAll(compromisedEntities);
+    _reachability.initialize(origins: originEntities, blocks: lostEntities);
+    _compromise.initialize(origins: compromisedEntities);
     _importance.setAll(positiveImportance);
     _update();
   }
@@ -34,7 +33,7 @@ class InsightfulStorage extends ListenableStorage
   @override
   getEntityInsight(entity) {
     return EntityInsight(
-      loss: _loss[entity],
+      reachability: _reachability[entity],
       compromise: _compromise[entity],
       dependencyCount: getDistinctDependencies(entity).length,
       dependantCount: getDependants(entity).length,
@@ -44,65 +43,44 @@ class InsightfulStorage extends ListenableStorage
 
   final _dependencies = <Identity<Entity>, Set<Identity<Entity>>>{};
   final _dependants = <Identity<Entity>, Set<Identity<Entity>>>{};
-  late final _loss = TraitMap(
-    getDependants,
-    (entity, isLost) {
-      for (final factor in getFactors(entity)) {
-        final dependencies = getDependencies(factor.identity);
-
-        if (dependencies.length >= factor.threshold) {
-          final lostDependencies = <Identity<Entity>>[];
-
-          for (final lostDependency in dependencies.where(isLost)) {
-            lostDependencies.add(lostDependency);
-
-            if (dependencies.length - lostDependencies.length <
-                factor.threshold) {
-              return InheritedTrait(lostDependencies);
-            }
-          }
-        }
-      }
-
-      return null;
-    },
-  );
-  late final _compromise = TraitMap(
-    getDependants,
-    (entity, isCompromised) {
-      final compromisedDependencies = <Identity<Entity>>{};
-
-      for (final factor in getFactors(entity)) {
-        final dependencies = getDependencies(factor.identity);
-
-        if (dependencies.length >= factor.threshold) {
-          var count = 0;
-
-          for (final compromisedDependency
-              in dependencies.where(isCompromised)) {
-            compromisedDependencies.add(compromisedDependency);
-            ++count;
-
-            if (count >= factor.threshold) {
-              break;
-            }
-          }
-
-          if (count < factor.threshold) {
-            return null;
-          }
-        }
-      }
-
-      return compromisedDependencies.isNotEmpty
-          ? InheritedTrait(compromisedDependencies)
-          : null;
-    },
-  );
+  late final _reachability = AccessMap(getDependants, _derive);
+  late final _compromise = AccessMap(getDependants, _derive);
   late final _importance = ImportanceMap(
     getDependants: getDependants,
     getDependencies: getDistinctDependencies,
   );
+
+  Iterable<Identity<Entity>> _derive(
+    Identity<Entity> entity,
+    bool Function(Identity<Entity>) isReachable,
+  ) {
+    final reachableDependencies = <Identity<Entity>>{};
+
+    for (final factor in getFactors(entity)) {
+      final dependencies = getDependencies(factor.identity);
+
+      if (dependencies.length < factor.threshold) {
+        return const Iterable.empty();
+      }
+
+      var count = 0;
+
+      for (final reachableDependency in dependencies.where(isReachable)) {
+        reachableDependencies.add(reachableDependency);
+        ++count;
+
+        if (count >= factor.threshold) {
+          break;
+        }
+      }
+
+      if (count < factor.threshold) {
+        return const Iterable.empty();
+      }
+    }
+
+    return reachableDependencies;
+  }
 
   @override
   getDistinctDependencies(entity) {
@@ -134,6 +112,9 @@ class InsightfulStorage extends ListenableStorage
 
     super.deleteEntity(entity);
     --_entityCount;
+    _reachability.delete(entity.identity);
+    _compromise.delete(entity.identity);
+    _importance.clear(entity.identity);
     _notedEntities.remove(entity.identity);
     _dependencies.remove(entity.identity);
     _dependants.remove(entity.identity);
@@ -145,9 +126,6 @@ class InsightfulStorage extends ListenableStorage
       _dependencies[dependant]?.remove(entity.identity);
     }
 
-    _loss.toggle(entity.identity, false);
-    _compromise.toggle(entity.identity, false);
-    _importance.clear(entity.identity);
     _update();
   }
 
@@ -175,22 +153,34 @@ class InsightfulStorage extends ListenableStorage
   @override
   toggleCompromised(entity, value) {
     super.toggleCompromised(entity, value);
-    _compromise.toggle(entity.identity, value);
+
+    if (value) {
+      _compromise.addOrigin(entity.identity);
+    } else {
+      _compromise.removeOrigin(entity.identity);
+    }
+
     _update();
   }
 
   @override
   toggleLost(entity, value) {
     super.toggleLost(entity, value);
-    _loss.toggle(entity.identity, value);
+
+    if (value) {
+      _reachability.addBlock(entity.identity);
+    } else {
+      _reachability.removeBlock(entity.identity);
+    }
+
     _update();
   }
 
   @override
   changeThreshold(factor, value) {
     super.changeThreshold(factor, value);
-    _loss.reevaluateBothWays([factor.entity.identity]);
-    _compromise.reevaluateBothWays([factor.entity.identity]);
+    _reachability.rederive(factor.entity.identity);
+    _compromise.rederive(factor.entity.identity);
     _update();
   }
 
@@ -199,8 +189,12 @@ class InsightfulStorage extends ListenableStorage
     super.addDependencyAsFactor(entity, dependency);
     _dependencies[entity.identity]?.add(dependency);
     _dependants[dependency]?.add(entity.identity);
-    _loss.reevaluateOneWay([entity.identity]);
-    _compromise.reevaluateBothWays([entity.identity]);
+
+    if (!_reachability.removeOrigin(entity.identity)) {
+      _reachability.rederive(entity.identity);
+    }
+
+    _compromise.rederive(entity.identity);
     _importance.reevaluateOneWay([dependency]);
     _update();
   }
@@ -210,8 +204,8 @@ class InsightfulStorage extends ListenableStorage
     super.addDependency(factor, entity);
     _dependencies[factor.entity.identity]?.add(entity);
     _dependants[entity]?.add(factor.entity.identity);
-    _loss.reevaluateBothWays([factor.entity.identity]);
-    _compromise.reevaluateBothWays([factor.entity.identity]);
+    _reachability.derive(factor.entity.identity);
+    _compromise.derive(factor.entity.identity);
     _importance.reevaluateOneWay([entity]);
     _update();
   }
@@ -221,8 +215,8 @@ class InsightfulStorage extends ListenableStorage
     super.removeDependency(dependency);
     _dependencies.remove(dependency.factor.entity.identity);
     _dependants.remove(dependency.identity);
-    _loss.reevaluateBothWays([dependency.factor.entity.identity]);
-    _compromise.reevaluateBothWays([dependency.factor.entity.identity]);
+    _reachability.underive(dependency.factor.entity.identity);
+    _compromise.underive(dependency.factor.entity.identity);
     _importance.reevaluateBothWays([dependency.identity]);
     _update();
   }
@@ -242,9 +236,13 @@ class InsightfulStorage extends ListenableStorage
       _dependants.remove(dependency.identity);
       _importance.reevaluateBothWays([dependency.identity]);
     }
+    if (!_reachability.underive(dependency.factor.entity.identity)) {
+      _reachability.derive(factor.entity.identity);
+    }
+    if (!_compromise.underive(dependency.factor.entity.identity)) {
+      _compromise.derive(factor.entity.identity);
+    }
 
-    _loss.reevaluateBothWays(identities);
-    _compromise.reevaluateBothWays(identities);
     _update();
   }
 
@@ -260,9 +258,14 @@ class InsightfulStorage extends ListenableStorage
       _dependants.remove(dependency.identity);
       _importance.reevaluateBothWays([dependency.identity]);
     }
+    if (!_reachability.removeOrigin(entity.identity) &&
+        !_reachability.underive(dependency.factor.entity.identity)) {
+      _reachability.rederive(entity.identity);
+    }
+    if (!_compromise.underive(dependency.factor.entity.identity)) {
+      _compromise.rederive(entity.identity);
+    }
 
-    _loss.reevaluateBothWays(identities);
-    _compromise.reevaluateBothWays(identities);
     _update();
   }
 
@@ -277,9 +280,13 @@ class InsightfulStorage extends ListenableStorage
       _dependants.clear();
       _importance.reevaluateBothWays(getDependencies(into.identity));
     }
+    if (!_reachability.underive(from.entity.identity)) {
+      _reachability.derive(into.entity.identity);
+    }
+    if (!_compromise.underive(from.entity.identity)) {
+      _compromise.derive(into.entity.identity);
+    }
 
-    _loss.reevaluateBothWays(identities);
-    _compromise.reevaluateBothWays(identities);
     _update();
   }
 
@@ -290,31 +297,53 @@ class InsightfulStorage extends ListenableStorage
     super.removeFactor(factor);
     _dependencies.remove(factor.entity.identity);
     dependencies.forEach(_dependants.remove);
-    _loss.reevaluateBothWays([factor.entity.identity]);
-    _compromise.reevaluateBothWays([factor.entity.identity]);
+
+    if (getFactors(factor.entity.identity).isEmpty) {
+      _reachability.addOrigin(factor.entity.identity);
+      _compromise.underive(factor.entity.identity);
+    } else {
+      _reachability.derive(factor.entity.identity);
+      _compromise.derive(factor.entity.identity);
+    }
+
     _importance.reevaluateBothWays(dependencies);
     _update();
   }
 
   @override
+  addFactor(entity) {
+    super.addFactor(entity);
+
+    if (!_reachability.removeOrigin(entity.identity)) {
+      _reachability.underive(entity.identity);
+    }
+
+    _compromise.underive(entity.identity);
+  }
+
+  @override
   resetLoss() {
     super.resetLoss();
-    _loss.clear();
+    _reachability.removeBlocks();
     _update();
   }
 
   @override
   resetCompromise() {
     super.resetCompromise();
-    _compromise.clear();
+    _compromise.removeOrigins();
     _update();
   }
 
   @override
   createEntity(position, name) {
-    super.createEntity(position, name);
+    final identity = super.createEntity(position, name);
+
+    _reachability.addOrigin(identity);
     ++_entityCount;
     _update();
+
+    return identity;
   }
 
   @override
@@ -328,8 +357,8 @@ class InsightfulStorage extends ListenableStorage
     super.import(storage);
     _entityCount = super.entityCount;
     _notedEntities.addAll(super.notedEntities);
-    _loss.setAll(lostEntities);
-    _compromise.setAll(compromisedEntities);
+    _reachability.initialize(origins: originEntities, blocks: lostEntities);
+    _compromise.initialize(origins: compromisedEntities);
     _importance.setAll(positiveImportance);
     _update();
   }
@@ -338,8 +367,8 @@ class InsightfulStorage extends ListenableStorage
     storageInsight.value = StorageInsight(
       totalImportance: _importance.sum,
       entityCount: _entityCount,
-      lostEntityCount: _loss.length,
-      compromisedEntityCount: _compromise.length,
+      lostEntityCount: _entityCount - _reachability.size,
+      compromisedEntityCount: _compromise.size,
       noteCount: _notedEntities.length,
     );
     _entityInsightNotifier._update();
