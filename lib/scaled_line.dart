@@ -25,7 +25,7 @@ class ScaledLine extends StatelessWidget {
       sourceAnchor: Alignment.topCenter,
       targetAnchor: Alignment.bottomCenter,
       tipLength: 0,
-      width: 2 /
+      width: 3 /
           switch (Scale.maybeOf(context)) {
             null => 1,
             Scale scale => scale.value,
