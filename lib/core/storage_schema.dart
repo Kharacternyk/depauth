@@ -11,6 +11,12 @@ extension StorageSchema on Database {
     external: 1,
   );
 
+  void touchSchema() {
+    execute('''
+      pragma user_version = ${_version.internal};
+    ''');
+  }
+
   void applyStorageSchema() {
     execute('''
       pragma cache_size = -100000;

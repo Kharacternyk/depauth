@@ -56,8 +56,10 @@ class StorageDirectory implements InactiveStorageDirectory {
 
       await for (final progress in activeStorage.value.copy(copy.path)) {
         pendingOperationProgress.value = progress;
+        activeStorage.value.touch();
       }
 
+      activeStorage.value.touch();
       _storages.addSecond(copy);
       inactiveStorages.value = _storages.tail;
 
@@ -86,6 +88,7 @@ class StorageDirectory implements InactiveStorageDirectory {
       final storage = _getPassport();
 
       await File(storage.path).create();
+      activeStorage.value.touch();
       _storages.addSecond(storage);
       inactiveStorages.value = _storages.tail;
 

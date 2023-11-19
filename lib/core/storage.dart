@@ -541,6 +541,8 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
     copy.dispose();
   }
 
+  void touch() => _database.touchSchema();
+
   late final _insertEntityStatement = Statement(_database, '''
     insert into entities(name, type, x, y, lost, compromised, importance)
     values(?, ?, ?, ?, ?, ?, ?)
