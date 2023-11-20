@@ -17,7 +17,7 @@ class ViewRegionIndicator extends StatelessWidget {
     final invertedScale = 1 / region.scale;
     final aspectRatio = Platform.isAndroid &&
             MediaQuery.of(context).orientation == Orientation.portrait
-        ? 1.0
+        ? .5
         : region.aspectRatio.clamp(.5, 2.0);
 
     return Ink(
