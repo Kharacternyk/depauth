@@ -19,7 +19,10 @@ class AboutDropdown extends StatelessWidget {
         ListTile(
           leading: const Icon(Icons.public),
           title: Text(messages.website),
-          onTap: () => launchUrl(Uri.https(messages.website)),
+          onTap: () => launchUrl(
+            Uri.https(messages.website),
+            mode: LaunchMode.externalApplication,
+          ),
         ),
         ListTile(
           leading: const Icon(Icons.email),
