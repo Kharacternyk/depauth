@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:sqlite3/sqlite3.dart';
 
 import 'active_record.dart';
@@ -62,50 +64,54 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
     order by min(entities.x), min(entities.y)
   ''');
   TraversableEntity? getEntity(Position position) {
+    _beginRead();
+
     final values = _entityQuery.selectOne([position.x, position.y]);
 
-    switch (values) {
-      case null:
-        return null;
+    TraversableEntity? entity;
 
-      case Values values:
-        final [identity, name, type, note] = values;
-        final passport = EntityPassport._(
-          Identity._(identity as int),
-          position,
-        );
+    if (values != null) {
+      final [identity, name, type, note] = values;
+      final passport = EntityPassport._(
+        Identity._(identity as int),
+        position,
+      );
 
-        return TraversableEntity(
-          passport,
-          name as String,
-          EntityType(type as int),
-          _factorsQuery.select([identity], (values) {
-            final [factorIdentity, threshold] = values;
-            final factorPassport = FactorPassport._(
-              Identity._(factorIdentity as int),
-              passport,
-            );
+      entity = TraversableEntity(
+        passport,
+        name as String,
+        EntityType(type as int),
+        _factorsQuery.select([identity], (values) {
+          final [factorIdentity, threshold] = values;
+          final factorPassport = FactorPassport._(
+            Identity._(factorIdentity as int),
+            passport,
+          );
 
-            return Factor(
-              factorPassport,
-              _dependenciesQuery.select([factorIdentity], (values) {
-                final [identity, name, type] = values;
+          return Factor(
+            factorPassport,
+            _dependenciesQuery.select([factorIdentity], (values) {
+              final [identity, name, type] = values;
 
-                return Dependency(
-                  DependencyPassport._(
-                    Identity._(identity as int),
-                    factorPassport,
-                  ),
-                  name as String,
-                  EntityType(type as int),
-                );
-              }),
-              threshold as int,
-            );
-          }),
-          note as String?,
-        );
+              return Dependency(
+                DependencyPassport._(
+                  Identity._(identity as int),
+                  factorPassport,
+                ),
+                name as String,
+                EntityType(type as int),
+              );
+            }),
+            threshold as int,
+          );
+        }),
+        note as String?,
+      );
     }
+
+    _commitRead();
+
+    return entity;
   }
 
   late final _passportlessEntityQuery = Query(_database, '''
@@ -335,13 +341,13 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
   ''');
   @override
   moveDependencyAsFactor(dependency, entity) {
-    _begin.execute();
+    _beginWrite();
     _addFactorStatement.execute([entity.identity._value]);
     _moveDependencyAsFactorStatement.execute([
       dependency.factor.identity._value,
       dependency.identity._value,
     ]);
-    _commit.execute();
+    _commitWrite();
   }
 
   late final _addFactorStatement = Statement(_database, '''
@@ -376,13 +382,13 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
   ''');
   @override
   mergeFactors(into, from) {
-    _begin.execute();
+    _beginWrite();
     _mergeFactorsStatement.execute([
       into.identity._value,
       from.identity._value,
     ]);
     _removeFactorStatement.execute([from.identity._value]);
-    _commit.execute();
+    _commitWrite();
   }
 
   late final _addDependencyAsFactorStatement = Statement(_database, '''
@@ -390,10 +396,10 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
   ''');
   @override
   addDependencyAsFactor(entity, dependency) {
-    _begin.execute();
+    _beginWrite();
     _addFactorStatement.execute([entity.identity._value]);
     _addDependencyAsFactorStatement.execute([dependency._value]);
-    _commit.execute();
+    _commitWrite();
   }
 
   late final _factorIdentitiesQuery = Query(_database, '''
@@ -566,6 +572,8 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
   ''');
   @override
   import(storage) {
+    _beginWrite();
+
     final boundaries = this.boundaries;
     final origin = (
       x: boundaries.end.x,
@@ -577,8 +585,6 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
 
       return (pair.first + origin.x, pair.second + origin.y);
     }
-
-    _begin.execute();
 
     storage.entities.forEach((position, entity) {
       final (x, y) = unpack(position);
@@ -614,7 +620,7 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
       }
     }
 
-    _commit.execute();
+    _commitWrite();
   }
 
   late final _entityExportQuery = Query(_database, '''
@@ -640,6 +646,7 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
     final storage = proto.Storage();
 
     StorageSchema.setCompatibility(storage);
+    _beginRead();
 
     final origin = boundaries.start;
 
@@ -674,15 +681,32 @@ class Storage extends TrackedDisposal implements ActiveRecord, StorageSlot {
       }
     }
 
+    _commitRead();
+
     return storage;
   }
 
-  late final _begin = Statement(_database, '''
+  late final _beginReadStatement = switch (Platform.isAndroid) {
+    false => null,
+    true => Statement(_database, '''
+      begin
+    '''),
+  };
+  void _beginRead() => _beginReadStatement?.execute();
+
+  late final _beginWriteStatement = Statement(_database, '''
     begin immediate
   ''');
-  late final _commit = Statement(_database, '''
+  void _beginWrite() => _beginWriteStatement.execute();
+
+  late final _commitReadStatement =
+      Platform.isAndroid ? _commitWriteStatement : null;
+  void _commitRead() => _commitReadStatement?.execute();
+
+  late final _commitWriteStatement = Statement(_database, '''
     commit
   ''');
+  void _commitWrite() => _commitWriteStatement.execute();
 
   Position _parsePosition(Values values) {
     final [x, y] = values;

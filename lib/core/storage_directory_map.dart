@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:sqlite3/sqlite3.dart';
 
 import 'query.dart';
@@ -7,23 +9,30 @@ import 'storage_directory_map_key.dart';
 class StorageDirectoryMap {
   final Database _database;
 
-  StorageDirectoryMap(String path) : _database = sqlite3.open(path)..execute('''
-    pragma encoding = 'UTF-8';
-    pragma locking_mode = exclusive;
-    pragma synchronous = full;
+  StorageDirectoryMap(String path) : _database = sqlite3.open(path) {
+    if (!Platform.isAndroid) {
+      _database.execute('''
+        pragma locking_mode = exclusive;
+      ''');
+    }
 
-    begin immediate;
+    _database.execute('''
+      pragma encoding = 'UTF-8';
+      pragma synchronous = full;
 
-    pragma auto_vacuum = full;
-    pragma user_version = 1;
+      begin immediate;
 
-    create table if not exists map(
-      key integer primary key,
-      value any not null
-    ) strict, without rowid;
+      pragma auto_vacuum = full;
+      pragma user_version = 1;
 
-    commit;
-  ''');
+      create table if not exists map(
+        key integer primary key,
+        value any not null
+      ) strict, without rowid;
+
+      commit;
+    ''');
+  }
 
   void dispose() {
     _database.dispose();

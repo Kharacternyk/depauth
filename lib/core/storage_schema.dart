@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cross_file/cross_file.dart';
 import 'package:sqlite3/sqlite3.dart';
 
@@ -18,11 +20,16 @@ extension StorageSchema on Database {
   }
 
   void applyStorageSchema() {
+    if (!Platform.isAndroid) {
+      execute('''
+        pragma locking_mode = exclusive;
+      ''');
+    }
+
     execute('''
       pragma cache_size = -100000;
       pragma encoding = 'UTF-8';
       pragma foreign_keys = true;
-      pragma locking_mode = exclusive;
       pragma synchronous = full;
 
       begin immediate;
