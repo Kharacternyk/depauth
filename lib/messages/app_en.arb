@@ -9,7 +9,6 @@
   "lineSeparator": "\n",
   "arrowIdentitySeparator": ":",
   "newStorageName": "New Document",
-  "importedStorageName": "Imported Document",
   "exportedStorageName": "Exported Document",
   "@deduplicatedStorageName": {
     "placeholders": {
