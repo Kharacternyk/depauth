@@ -319,6 +319,7 @@ class InsightfulStorage extends ListenableStorage
     }
 
     _compromise.underive(entity.identity);
+    _update();
   }
 
   @override

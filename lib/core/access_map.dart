@@ -21,7 +21,10 @@ class AccessMap<K> {
     return DerivedAccess(_derived[key] ?? const Iterable.empty());
   }
 
-  int get size => _origins.difference(_blocks).length + _derived.length;
+  int get size => _origins
+      .followedBy(_derived.keys)
+      .where((element) => !_blocks.contains(element))
+      .length;
 
   void addOrigin(K key) {
     if (!_origins.contains(key)) {
