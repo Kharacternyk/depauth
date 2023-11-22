@@ -229,7 +229,11 @@ class EntityForm extends StatelessWidget {
             leading: const Icon(Icons.upgrade),
             title: [
               Text(
-                [insight.importance.boostedValue, messages.becauseOf].join(),
+                [
+                  insight.importance.boostedValue,
+                  messages.wordSeparator,
+                  messages.becauseOf,
+                ].join(),
               ),
               if (storage.getPassportlessEntity(boost.origin)
                   case Entity entity)

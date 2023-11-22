@@ -10,16 +10,6 @@
   "arrowIdentitySeparator": ":",
   "newStorageName": "New Document",
   "exportedStorageName": "Exported Document",
-  "@deduplicatedStorageName": {
-    "placeholders": {
-      "storageName": {
-        "type": "String"
-      },
-      "duplicateCount": {
-        "type": "int"
-      }
-    }
-  },
   "storageCopy": "{storageName} Copy",
   "@storageCopy": {
     "placeholders": {
@@ -36,7 +26,7 @@
       }
     }
   },
-  "storageLimit": "The mobile version is limited to 3 documents. Unlimited documents are available on the desktop version, visit depauth.com for details.",
+  "storageLimit": "The mobile version is limited to 3 documents. Unlimited documents are available on the desktop version, please visit depauth.com for details.",
   "notStorage": "The selected file is not a DepAuth document.",
   "versionMismatch": "The selected file is exported from a substantially newer version of DepAuth. Please update DepAuth to be able to import it.",
   "loadingStorageDirectory": "Loading documents…",
@@ -83,7 +73,7 @@
   "compromised": "Compromised",
   "compromisedThrough": "Compromised through",
   "notCompromised": "Not compromised",
-  "becauseOf": " because of",
+  "becauseOf": "because of",
   "accessTip": "To access this {entityType}, one needs to have access to…",
   "@accessTip": {
     "placeholders": {
@@ -101,7 +91,7 @@
     }
   },
   "copyStorage": "Make a copy of this document",
-  "resetLoss": "Mark all cards as reachable",
+  "resetLoss": "Mark all potentially reachable cards as reachable",
   "resetCompromise": "Mark all cards as not compromised",
   "newEntity": "New Card",
   "genericType": "generic entity",

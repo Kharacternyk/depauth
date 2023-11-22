@@ -2,12 +2,14 @@ class PackedIntegerPair {
   final int first;
   final int second;
 
-  int get packed => first << 16 | second.toUnsigned(16);
+  static const _halfWidth = 16;
+
+  int get packed => first << _halfWidth | second.toUnsigned(_halfWidth);
 
   PackedIntegerPair.fromPair(int first, int second)
-      : first = first.toUnsigned(16),
-        second = second.toUnsigned(16);
+      : first = first.toUnsigned(_halfWidth),
+        second = second.toUnsigned(_halfWidth);
   PackedIntegerPair.fromPacked(int packed)
-      : first = packed >>> 16,
-        second = packed.toUnsigned(16);
+      : first = packed >>> _halfWidth,
+        second = packed.toUnsigned(_halfWidth);
 }

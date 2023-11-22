@@ -1,6 +1,6 @@
-import 'storage.pb.dart' as proto;
+import 'storage.pb.dart';
 
 abstract interface class StorageSlot {
-  void import(proto.Storage storage);
-  proto.Storage export();
+  void import(Storage storage);
+  Storage export();
 }
