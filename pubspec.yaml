@@ -31,7 +31,6 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
-  flutter_launcher_icons: ^0.13.1
   msix: ^3.16.6
   glados: ^1.1.6
 
@@ -43,12 +42,6 @@ flutter:
 
 flutter_native_splash:
   color: "#191c1e"
-
-flutter_launcher_icons:
-  adaptive_icon_background: "#004d64"
-  adaptive_icon_foreground: misc/square.png
-  android: true
-  image_path: misc/square.png
 
 msix_config:
   display_name: DepAuth
