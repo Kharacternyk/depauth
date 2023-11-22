@@ -369,6 +369,7 @@ class InsightfulStorage extends ListenableStorage
       totalImportance: _importance.sum,
       entityCount: _entityCount,
       lostEntityCount: _entityCount - _reachability.size,
+      manuallyLostEntityCount: _reachability.blockCount,
       compromisedEntityCount: _compromise.size,
       noteCount: _notedEntities.length,
     );

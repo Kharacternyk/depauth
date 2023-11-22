@@ -26,6 +26,8 @@ class AccessMap<K> {
       .where((element) => !_blocks.contains(element))
       .length;
 
+  int get blockCount => _blocks.length;
+
   void addOrigin(K key) {
     if (!_origins.contains(key)) {
       _origins.add(key);
